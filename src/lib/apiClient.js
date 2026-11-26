@@ -1,3 +1,4 @@
+
 import { supabase } from "./supabaseClient.js";
 
 /**
@@ -35,17 +36,43 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok || !result.success) {
-    throw new Error(
+    const error = new Error(
       result.message || "Không thể kết nối máy chủ."
     );
+
+    error.status = response.status;
+    error.conflict = result.conflict === true;
+    error.currentVersion = result.currentVersion ?? null;
+
+    throw error;
   }
 
   return result;
 }
 
 /**
- * Lấy thông tin tài khoản và gia đình đang đăng nhập.
+ * Lấy thông tin gia đình.
  */
 export async function getFamilyInfo() {
   return apiRequest("/api/family/me");
+}
+
+/**
+ * Tải dữ liệu tài chính và phiên bản máy chủ.
+ */
+export async function getFamilyData() {
+  return apiRequest("/api/family/data");
+}
+
+/**
+ * Lưu dữ liệu tài chính kèm phiên bản đang sử dụng.
+ */
+export async function saveFamilyData(data, expectedVersion = null) {
+  return apiRequest("/api/family/data", {
+    method: "PUT",
+    body: JSON.stringify({
+      data,
+      expectedVersion,
+    }),
+  });
 }

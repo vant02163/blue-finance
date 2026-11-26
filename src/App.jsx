@@ -1,70 +1,71 @@
 import { createPortal } from "react-dom";
 import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { supabase } from "./lib/supabaseClient";
-
 import {
-  ShieldCheck,
-  LayoutDashboard,
-  List,
-  BarChart3,
-  Wallet,
-  Utensils,
-  House,
-  ShoppingBag,
-  Plus,
-  Trash2,
-  Pencil,
-  Search,
-  RotateCcw,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  ArrowLeftRight,
-  SlidersHorizontal,
-  Landmark,
-  Banknote,
-  Smartphone,
-  CircleDollarSign,
-  Gift,
-  X,
-  Save,
-  TrendingUp,
-  TrendingDown,
-  Eye,
-  Target,
-  AlertTriangle,
-  CheckCircle2,
-  Table2,
-  Bell,
-  LogOut,
-  PieChart,
-  UserRound,
-  KeyRound,
-  Mail,
-  Download,
-  Upload,
-  Sun,
-  Sunset,
-  Moon,
-  CreditCard,
-  PiggyBank,
-  ChevronLeft,
-  ChevronDown,
-  ChevronRight,
-  History as HistoryIcon,
-  ArrowUpRight,
-  ArrowDownRight,
+    getFamilyData,
+    saveFamilyData,
+} from "./lib/apiClient";
+import {
+    ShieldCheck,
+    LayoutDashboard,
+    List,
+    BarChart3,
+    Wallet,
+    Utensils,
+    House,
+    ShoppingBag,
+    Plus,
+    Trash2,
+    Pencil,
+    Search,
+    RotateCcw,
+    ArrowUpCircle,
+    ArrowDownCircle,
+    ArrowLeftRight,
+    SlidersHorizontal,
+    Landmark,
+    Banknote,
+    Smartphone,
+    CircleDollarSign,
+    Gift,
+    X,
+    Save,
+    TrendingUp,
+    TrendingDown,
+    Eye,
+    Target,
+    AlertTriangle,
+    CheckCircle2,
+    Table2,
+    Bell,
+    LogOut,
+    PieChart,
+    UserRound,
+    KeyRound,
+    Mail,
+    Download,
+    Upload,
+    Sun,
+    Sunset,
+    Moon,
+    CreditCard,
+    PiggyBank,
+    ChevronLeft,
+    ChevronDown,
+    ChevronRight,
+    History as HistoryIcon,
+    ArrowUpRight,
+    ArrowDownRight,
 } from "lucide-react";
-
 /* =========================================================
    LOCAL STORAGE
 ========================================================= */
-
 const ACCOUNT_KEY = "blue-finance-accounts-v5";
 const TRANSACTION_KEY = "blue-finance-transactions-v5";
 const BUDGET_KEY = "blue-finance-budgets-v5";
@@ -75,228 +76,171 @@ const DEBT_KEY = "blue-finance-debts-v1";
 const SAVING_KEY = "blue-finance-savings-v1";
 const SALARY_KEY = "blue-finance-salaries-v1";
 const INVEST_CATEGORY_KEY = "blue-finance-invest-categories-v1";
-
 /* Danh mục đầu tư có sẵn (người dùng thêm / xoá danh mục tuỳ ý) */
 const DEFAULT_INVEST_CATEGORIES = [
-  { id: "saving", name: "Gửi tiết kiệm" },
-  { id: "bank-loan", name: "Vay ngân hàng" },
+    { id: "saving", name: "Gửi tiết kiệm" },
+    { id: "bank-loan", name: "Vay ngân hàng" },
 ];
-
 /* =========================================================
    DANH MỤC CHI TIÊU
 ========================================================= */
-
 const categories = {
-  food: {
-    label: "Ăn uống",
-    icon: Utensils,
-  },
-
-  rent: {
-    label: "Tiền trọ",
-    icon: House,
-  },
-
-  other: {
-    label: "Chi tiêu khác",
-    icon: ShoppingBag,
-  },
+    food: {
+        label: "Ăn uống",
+        icon: Utensils,
+    },
+    rent: {
+        label: "Tiền trọ",
+        icon: House,
+    },
+    other: {
+        label: "Chi tiêu khác",
+        icon: ShoppingBag,
+    },
 };
-
 /* =========================================================
    LOẠI TÀI KHOẢN
 ========================================================= */
-
 const accountTypes = {
-  cash: {
-    label: "Tiền mặt",
-    icon: Banknote,
-  },
-
-  bank: {
-    label: "Ngân hàng",
-    icon: Landmark,
-  },
-
-  wallet: {
-    label: "Ví điện tử",
-    icon: Smartphone,
-  },
+    cash: {
+        label: "Tiền mặt",
+        icon: Banknote,
+    },
+    bank: {
+        label: "Ngân hàng",
+        icon: Landmark,
+    },
+    wallet: {
+        label: "Ví điện tử",
+        icon: Smartphone,
+    },
 };
-
 /* =========================================================
    HÀM HỖ TRỢ
 ========================================================= */
-
 function pad(value) {
-  return String(value).padStart(2, "0");
+    return String(value).padStart(2, "0");
 }
-
 function todayString() {
-  const now = new Date();
-
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-    now.getDate()
-  )}`;
+    const now = new Date();
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
-
 function dateKeyFromOffset(offset) {
-  const date = new Date();
-
-  date.setDate(date.getDate() + offset);
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
-
 function currentMonthKey() {
-  const now = new Date();
-
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+    const now = new Date();
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
 }
-
 function formatMoney(value) {
-  return `${Number(value || 0).toLocaleString("vi-VN")} đ`;
+    return `${Number(value || 0).toLocaleString("vi-VN")} đ`;
 }
-
 function formatDate(value) {
-  if (!value) return "";
-
-  const [year, month, day] = value.split("-");
-
-  return `${day}/${month}/${year}`;
+    if (!value)
+        return "";
+    const [year, month, day] = value.split("-");
+    return `${day}/${month}/${year}`;
 }
-
 function formatMonth(value) {
-  if (!value) return "";
-
-  const [year, month] = value.split("-");
-
-  return `Tháng ${Number(month)} / ${year}`;
+    if (!value)
+        return "";
+    const [year, month] = value.split("-");
+    return `Tháng ${Number(month)} / ${year}`;
 }
-
 function getPreviousMonthKey(monthKey) {
-  const [year, month] = monthKey.split("-").map(Number);
-  const date = new Date(year, month - 2, 1);
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+    const [year, month] = monthKey.split("-").map(Number);
+    const date = new Date(year, month - 2, 1);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
 }
-
 /* Số tiền chênh lệch: bỏ 3 số 0 ở cuối (làm tròn đến nghìn) */
 function formatCompareAmount(value) {
-  return Math.round(Math.abs(value) / 1000).toLocaleString("vi-VN");
+    return Math.round(Math.abs(value) / 1000).toLocaleString("vi-VN");
 }
-
 function getGreeting(date = new Date()) {
-  const hour = date.getHours();
-
-  if (hour >= 5 && hour < 12) {
-    return { text: "Good morning", icon: Sun };
-  }
-
-  if (hour >= 12 && hour < 18) {
-    return { text: "Good afternoon", icon: Sunset };
-  }
-
-  if (hour >= 18 && hour < 22) {
-    return { text: "Good evening", icon: Moon };
-  }
-
-  return { text: "Good night", icon: Moon };
+    const hour = date.getHours();
+    if (hour >= 5 && hour < 12) {
+        return { text: "Good morning", icon: Sun };
+    }
+    if (hour >= 12 && hour < 18) {
+        return { text: "Good afternoon", icon: Sunset };
+    }
+    if (hour >= 18 && hour < 22) {
+        return { text: "Good evening", icon: Moon };
+    }
+    return { text: "Good night", icon: Moon };
 }
-
 function createId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
-
 /* =========================================================
    MÃ GIAO DỊCH (ID):  #DDMMYY.N
    Ví dụ giao dịch ngày 01/11/2026 → #011126.1, #011126.2 ...
    Phần sau dấu chấm là số thứ tự của giao dịch trong ngày đó.
    Mã được lưu cùng giao dịch nên không đổi khi xoá giao dịch khác.
 ========================================================= */
-
 function transactionDatePrefix(dateKey) {
-  const [year, month, day] = String(dateKey || "").split("-");
-
-  if (!year || !month || !day) return "";
-
-  return `${day}${month}${year.slice(-2)}`;
+    const [year, month, day] = String(dateKey || "").split("-");
+    if (!year || !month || !day)
+        return "";
+    return `${day}${month}${year.slice(-2)}`;
 }
-
 /* Số thứ tự tiếp theo trong ngày (lớn nhất đang có + 1) */
 function getNextTransactionCode(list, dateKey, letter = "") {
-  const prefix = transactionDatePrefix(dateKey);
-  const pattern = new RegExp("^#" + letter + "(\\d{6})\\.(\\d+)$");
-  let max = 0;
-
-  list.forEach((item) => {
-    const match = pattern.exec(item.code || "");
-
-    if (match && match[1] === prefix) {
-      max = Math.max(max, Number(match[2]));
-    }
-  });
-
-  return `#${letter}${prefix}.${max + 1}`;
+    const prefix = transactionDatePrefix(dateKey);
+    const pattern = new RegExp("^#" + letter + "(\\d{6})\\.(\\d+)$");
+    let max = 0;
+    list.forEach((item) => {
+        const match = pattern.exec(item.code || "");
+        if (match && match[1] === prefix) {
+            max = Math.max(max, Number(match[2]));
+        }
+    });
+    return `#${letter}${prefix}.${max + 1}`;
 }
-
 function transactionCreatedAt(item) {
-  return Number(String(item.id || "").split("-")[0]) || 0;
+    return Number(String(item.id || "").split("-")[0]) || 0;
 }
-
 /* Gán mã cho giao dịch cũ chưa có mã (theo thứ tự tạo trong từng ngày).
    Không có gì để gán thì trả về đúng mảng cũ để không render lại. */
 function assignMissingCodes(list) {
-  if (list.every((item) => item.code || !item.date)) return list;
-
-  const next = [...list];
-  const counters = {};
-
-  next.forEach((item) => {
-    const match = /^#(\d{6})\.(\d+)$/.exec(item.code || "");
-
-    if (match) {
-      counters[match[1]] = Math.max(
-        counters[match[1]] || 0,
-        Number(match[2])
-      );
-    }
-  });
-
-  next
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => !item.code && item.date)
-    .sort(
-      (a, b) =>
-        transactionCreatedAt(a.item) - transactionCreatedAt(b.item) ||
-        a.index - b.index
-    )
-    .forEach(({ item, index }) => {
-      const prefix = transactionDatePrefix(item.date);
-
-      counters[prefix] = (counters[prefix] || 0) + 1;
-      next[index] = { ...item, code: `#${prefix}.${counters[prefix]}` };
+    if (list.every((item) => item.code || !item.date))
+        return list;
+    const next = [...list];
+    const counters = {};
+    next.forEach((item) => {
+        const match = /^#(\d{6})\.(\d+)$/.exec(item.code || "");
+        if (match) {
+            counters[match[1]] = Math.max(counters[match[1]] || 0, Number(match[2]));
+        }
     });
-
-  return next;
+    next
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => !item.code && item.date)
+        .sort((a, b) => transactionCreatedAt(a.item) - transactionCreatedAt(b.item) ||
+        a.index - b.index)
+        .forEach(({ item, index }) => {
+        const prefix = transactionDatePrefix(item.date);
+        counters[prefix] = (counters[prefix] || 0) + 1;
+        next[index] = { ...item, code: `#${prefix}.${counters[prefix]}` };
+    });
+    return next;
 }
-
 function loadStorage(key, defaultValue) {
-  try {
-    const data = localStorage.getItem(key);
-
-    if (!data) return defaultValue;
-
-    return JSON.parse(data);
-  } catch {
-    return defaultValue;
-  }
+    try {
+        const data = localStorage.getItem(key);
+        if (!data)
+            return defaultValue;
+        return JSON.parse(data);
+    }
+    catch {
+        return defaultValue;
+    }
 }
-
 /* =========================================================
    APP
 ========================================================= */
-
 /* =========================================================
    CHẠY SỐ KHI VÀO TRANG
    Quét các số tiền / phần trăm trong trang vừa mở (dạng 1.250.000 đ, 45%)
@@ -304,2021 +248,621 @@ function loadStorage(key, defaultValue) {
    - Bỏ qua nếu bật "giảm chuyển động" của hệ điều hành
    - Nếu React cập nhật số giữa chừng thì tự dừng, không ghi đè dữ liệu
 ========================================================= */
-
 function runNumberCountUp(root, options = {}) {
-  const { duration = 1000, delay = 150, maxItems = 150 } = options;
-
-  if (!root || typeof window === "undefined") return undefined;
-
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  ) {
-    return undefined;
-  }
-
-  const pattern = /^(\s*[-+\u2212]?\s*)(\d{1,3}(?:\.\d{3})+|\d+)(\s*(?:đ|₫|%)?\s*)$/;
-
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      const parent = node.parentElement;
-
-      if (
-        !parent ||
-        parent.closest("input, textarea, select, script, style, [data-no-count]")
-      ) {
-        return NodeFilter.FILTER_REJECT;
-      }
-
-      return pattern.test(node.nodeValue)
-        ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_REJECT;
-    },
-  });
-
-  const items = [];
-
-  while (walker.nextNode() && items.length < maxItems) {
-    const node = walker.currentNode;
-    const match = node.nodeValue.match(pattern);
-    const target = Number(match[2].replace(/\./g, ""));
-    const hasGroup = /\d\.\d{3}/.test(match[2]);
-    const hasSuffix = match[3].trim() !== "";
-
-    /* Chỉ chạy số tiền / phần trăm; bỏ qua số ngày, số thứ tự... */
-    if (!target || (!hasGroup && !hasSuffix)) continue;
-
-    const startText = `${match[1]}0${match[3]}`;
-
-    node.nodeValue = startText;
-
-    items.push({
-      node,
-      original: match[0],
-      prefix: match[1],
-      suffix: match[3],
-      target,
-      last: startText,
-      done: false,
+    const { duration = 1000, delay = 150, maxItems = 150 } = options;
+    if (!root || typeof window === "undefined")
+        return undefined;
+    if (window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return undefined;
+    }
+    const pattern = /^(\s*[-+\u2212]?\s*)(\d{1,3}(?:\.\d{3})+|\d+)(\s*(?:đ|₫|%)?\s*)$/;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            const parent = node.parentElement;
+            if (!parent ||
+                parent.closest("input, textarea, select, script, style, [data-no-count]")) {
+                return NodeFilter.FILTER_REJECT;
+            }
+            return pattern.test(node.nodeValue)
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_REJECT;
+        },
     });
-  }
-
-  if (!items.length) return undefined;
-
-  const startTime = performance.now() + delay;
-  let frame = 0;
-
-  function tick(now) {
-    const progress = Math.min(Math.max((now - startTime) / duration, 0), 1);
-    const eased = 1 - Math.pow(1 - progress, 4);
-    let alive = false;
-
-    items.forEach((item) => {
-      if (item.done) return;
-
-      if (!item.node.isConnected || item.node.nodeValue !== item.last) {
-        item.done = true;
-        return;
-      }
-
-      if (progress >= 1) {
-        item.node.nodeValue = item.original;
-        item.done = true;
-        return;
-      }
-
-      const text = `${item.prefix}${Math.round(
-        item.target * eased
-      ).toLocaleString("vi-VN")}${item.suffix}`;
-
-      item.node.nodeValue = text;
-      item.last = text;
-      alive = true;
-    });
-
-    if (progress < 1 && alive) frame = requestAnimationFrame(tick);
-  }
-
-  frame = requestAnimationFrame(tick);
-
-  return () => {
-    cancelAnimationFrame(frame);
-
-    items.forEach((item) => {
-      if (
-        !item.done &&
-        item.node.isConnected &&
-        item.node.nodeValue === item.last
-      ) {
-        item.node.nodeValue = item.original;
-      }
-    });
-  };
+    const items = [];
+    while (walker.nextNode() && items.length < maxItems) {
+        const node = walker.currentNode;
+        const match = node.nodeValue.match(pattern);
+        const target = Number(match[2].replace(/\./g, ""));
+        const hasGroup = /\d\.\d{3}/.test(match[2]);
+        const hasSuffix = match[3].trim() !== "";
+        /* Chỉ chạy số tiền / phần trăm; bỏ qua số ngày, số thứ tự... */
+        if (!target || (!hasGroup && !hasSuffix))
+            continue;
+        const startText = `${match[1]}0${match[3]}`;
+        node.nodeValue = startText;
+        items.push({
+            node,
+            original: match[0],
+            prefix: match[1],
+            suffix: match[3],
+            target,
+            last: startText,
+            done: false,
+        });
+    }
+    if (!items.length)
+        return undefined;
+    const startTime = performance.now() + delay;
+    let frame = 0;
+    function tick(now) {
+        const progress = Math.min(Math.max((now - startTime) / duration, 0), 1);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        let alive = false;
+        items.forEach((item) => {
+            if (item.done)
+                return;
+            if (!item.node.isConnected || item.node.nodeValue !== item.last) {
+                item.done = true;
+                return;
+            }
+            if (progress >= 1) {
+                item.node.nodeValue = item.original;
+                item.done = true;
+                return;
+            }
+            const text = `${item.prefix}${Math.round(item.target * eased).toLocaleString("vi-VN")}${item.suffix}`;
+            item.node.nodeValue = text;
+            item.last = text;
+            alive = true;
+        });
+        if (progress < 1 && alive)
+            frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick);
+    return () => {
+        cancelAnimationFrame(frame);
+        items.forEach((item) => {
+            if (!item.done &&
+                item.node.isConnected &&
+                item.node.nodeValue === item.last) {
+                item.node.nodeValue = item.original;
+            }
+        });
+    };
 }
-
 /* Đọc số tiền thành chữ tiếng Việt: 1050000 -> "Một triệu không trăm năm mươi nghìn đồng" (tối đa 999 tỷ) */
 function vietnameseAmountInWords(value) {
-  const amount = Math.floor(Math.abs(Number(value) || 0));
-
-  if (!amount || amount >= 1e12) return "";
-
-  const digits = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-  const units = ["", "nghìn", "triệu", "tỷ"];
-
-  function readTriple(n, hasHigher) {
-    const h = Math.floor(n / 100);
-    const t = Math.floor((n % 100) / 10);
-    const u = n % 10;
-    const parts = [];
-
-    if (h > 0 || (hasHigher && (t > 0 || u > 0))) parts.push(`${digits[h]} trăm`);
-
-    if (t > 1) {
-      parts.push(`${digits[t]} mươi`);
-      if (u === 1) parts.push("mốt");
-      else if (u === 5) parts.push("lăm");
-      else if (u > 0) parts.push(digits[u]);
-    } else if (t === 1) {
-      parts.push("mười");
-      if (u === 5) parts.push("lăm");
-      else if (u > 0) parts.push(digits[u]);
-    } else if (u > 0) {
-      if (h > 0 || hasHigher) parts.push("lẻ");
-      parts.push(digits[u]);
+    const amount = Math.floor(Math.abs(Number(value) || 0));
+    if (!amount || amount >= 1e12)
+        return "";
+    const digits = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+    const units = ["", "nghìn", "triệu", "tỷ"];
+    function readTriple(n, hasHigher) {
+        const h = Math.floor(n / 100);
+        const t = Math.floor((n % 100) / 10);
+        const u = n % 10;
+        const parts = [];
+        if (h > 0 || (hasHigher && (t > 0 || u > 0)))
+            parts.push(`${digits[h]} trăm`);
+        if (t > 1) {
+            parts.push(`${digits[t]} mươi`);
+            if (u === 1)
+                parts.push("mốt");
+            else if (u === 5)
+                parts.push("lăm");
+            else if (u > 0)
+                parts.push(digits[u]);
+        }
+        else if (t === 1) {
+            parts.push("mười");
+            if (u === 5)
+                parts.push("lăm");
+            else if (u > 0)
+                parts.push(digits[u]);
+        }
+        else if (u > 0) {
+            if (h > 0 || hasHigher)
+                parts.push("lẻ");
+            parts.push(digits[u]);
+        }
+        return parts.join(" ");
     }
-
-    return parts.join(" ");
-  }
-
-  const groups = [];
-  let rest = amount;
-
-  while (rest > 0) {
-    groups.push(rest % 1000);
-    rest = Math.floor(rest / 1000);
-  }
-
-  const out = [];
-
-  for (let i = groups.length - 1; i >= 0; i -= 1) {
-    if (groups[i] === 0) continue;
-
-    out.push(`${readTriple(groups[i], out.length > 0)} ${units[i]}`.trim());
-  }
-
-  const text = `${out.join(" ")} đồng`;
-
-  return text.charAt(0).toUpperCase() + text.slice(1);
+    const groups = [];
+    let rest = amount;
+    while (rest > 0) {
+        groups.push(rest % 1000);
+        rest = Math.floor(rest / 1000);
+    }
+    const out = [];
+    for (let i = groups.length - 1; i >= 0; i -= 1) {
+        if (groups[i] === 0)
+            continue;
+        out.push(`${readTriple(groups[i], out.length > 0)} ${units[i]}`.trim());
+    }
+    const text = `${out.join(" ")} đồng`;
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
-
 export default function App() {
-  /* =======================================================
-     DỮ LIỆU
-  ======================================================= */
-
-  const [accounts, setAccounts] = useState(() =>
-    loadStorage(ACCOUNT_KEY, [])
-  );
-
-  const [transactions, setTransactions] = useState(() =>
-    loadStorage(TRANSACTION_KEY, [])
-  );
-
-  const [budgets, setBudgets] = useState(() =>
-    loadStorage(BUDGET_KEY, {})
-  );
-
-  const [debts, setDebts] = useState(() =>
-    loadStorage(DEBT_KEY, [])
-  );
-
-  const [savings, setSavings] = useState(() =>
-    loadStorage(SAVING_KEY, [])
-  );
-
-  const [salaries, setSalaries] = useState(() =>
-    loadStorage(SALARY_KEY, [])
-  );
-
-  const [investCategories, setInvestCategories] = useState(() => {
-    const saved = loadStorage(INVEST_CATEGORY_KEY, null);
-
-    return Array.isArray(saved) && saved.length
-      ? saved
-      : DEFAULT_INVEST_CATEGORIES;
-  });
-
-  /* =======================================================
-     ĐIỀU HƯỚNG
-  ======================================================= */
-
-  const [activePage, setActivePage] = useState("dashboard");
-
-  /* Vùng nội dung của trang đang mở: mount lại mỗi lần đổi tab để chạy hiệu ứng vào trang */
-  const pageStageRef = useRef(null);
-
-  useLayoutEffect(
-    () => runNumberCountUp(pageStageRef.current),
-    [activePage]
-  );
-
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const data = loadStorage(TRANSACTION_KEY, []);
-
-    const months = data
-      .filter((item) => item.date)
-      .map((item) => item.date.slice(0, 7))
-      .sort((a, b) => b.localeCompare(a));
-
-    return months[0] || currentMonthKey();
-  });
-
-  const [transactionMonth, setTransactionMonth] = useState(selectedMonth);
-
-  /* Nhật ký giao dịch: xem theo ngày / tháng / năm tuỳ chỉnh */
-  const [logMode, setLogMode] = useState("month");
-  const [logDay, setLogDay] = useState(todayString());
-  const [logYear, setLogYear] = useState(
-    String(new Date().getFullYear())
-  );
-
-  /* Tìm kiếm giao dịch (tìm trong toàn bộ nhật ký) */
-  const [logSearch, setLogSearch] = useState("");
-
-  /* Lọc theo loại: mảng rỗng = tất cả các loại */
-  const [logTypes, setLogTypes] = useState([]);
-
-  /* Phân trang nhật ký */
-  const [logPage, setLogPage] = useState(1);
-  const [logPageSize, setLogPageSize] = useState(8);
-  const logTableRef = useRef(null);
-  const logPageRef = useRef(null);
-
-  /* Thông báo "Giao dịch mới": chuông có 2 tai + nhấp nháy cho tới khi đã đọc */
-  const [txNotices, setTxNotices] = useState(() =>
-    loadStorage(TX_NOTICE_KEY, [])
-  );
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(TX_NOTICE_KEY, JSON.stringify(txNotices));
-    } catch {
-      // bỏ qua
-    }
-  }, [txNotices]);
-
-  function addTxNotice(info) {
-    setTxNotices((old) =>
-      [
-        {
-          id: `tx-${createId()}`,
-          type: "success",
-          title: "Giao dịch mới",
-          text: info.text,
-          actionPage: "transactions",
-        },
-        ...old,
-      ].slice(0, 30)
-    );
-  }
-
-  const [monthlyTableMonth, setMonthlyTableMonth] = useState(selectedMonth);
-
-
-  /* =======================================================
-     FORM GIAO DỊCH
-  ======================================================= */
-
-  const [formType, setFormType] = useState("expense");
-
-  const [transactionForm, setTransactionForm] = useState({
-    date: todayString(),
-    description: "",
-    amount: "",
-    category: "food",
-    accountId: "",
-    adjustmentDirection: "plus",
-    fromAccountId: "",
-    toAccountId: "",
-  });
-
-  /* =======================================================
-     FORM TÀI KHOẢN
-  ======================================================= */
-
-  const [accountForm, setAccountForm] = useState({
-    name: "",
-    type: "bank",
-    openingBalance: "",
-  });
-
-  /* =======================================================
-     FORM NGÂN SÁCH
-  ======================================================= */
-
-  const [budgetForm, setBudgetForm] = useState({
-    food: "",
-    rent: "",
-    other: "",
-  });
-
-  /* =======================================================
-     SỬA GIAO DỊCH
-  ======================================================= */
-
-  const [editingTransaction, setEditingTransaction] = useState(null);
-
-  /* =======================================================
-     XEM TÀI KHOẢN
-  ======================================================= */
-
-  const [viewAccountId, setViewAccountId] = useState("");
-
-  /* =======================================================
-     DASHBOARD
-  ======================================================= */
-
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const greeting = getGreeting(now);
-  const GreetingIcon = greeting.icon;
-
-  const [showNotifications, setShowNotifications] = useState(false);
-  const notificationRef = useRef(null);
-
-  const [readNotificationIds, setReadNotificationIds] = useState(() =>
-    loadStorage(READ_NOTIFICATION_KEY, [])
-  );
-
-  const [dashboardSearch, setDashboardSearch] = useState("");
-
-  const [userEmail, setUserEmail] = useState("");
-
-  /* =======================================================
-     GIAO DIỆN BAN NGÀY / BAN ĐÊM
-  ======================================================= */
-
-  const [isDark, setIsDark] = useState(
-    () => loadStorage(THEME_KEY, "light") === "dark"
-  );
-
-  /* =======================================================
-     NHÃN TÊN CHỨC NĂNG KHI RÊ CHUỘT VÀO THANH TRÁI
-  ======================================================= */
-
-  const [railTip, setRailTip] = useState(null);
-
-  function showRailTip(event, label) {
-    const rect = event.currentTarget.getBoundingClientRect();
-
-    /* Trên điện thoại thanh nằm ở dưới cùng nên nhãn hiện phía trên nút */
-    if (window.innerWidth <= 900) {
-      setRailTip({
-        label,
-        placement: "above",
-        left: rect.left + rect.width / 2,
-        top: rect.top - 10,
-      });
-
-      return;
-    }
-
-    setRailTip({
-      label,
-      placement: "side",
-      left: rect.right + 14,
-      top: rect.top + rect.height / 2,
+    /* =======================================================
+       DỮ LIỆU
+    ======================================================= */
+    const [accounts, setAccounts] = useState(() => loadStorage(ACCOUNT_KEY, []));
+    const [transactions, setTransactions] = useState(() => loadStorage(TRANSACTION_KEY, []));
+    const [budgets, setBudgets] = useState(() => loadStorage(BUDGET_KEY, {}));
+    const [debts, setDebts] = useState(() => loadStorage(DEBT_KEY, []));
+    const [savings, setSavings] = useState(() => loadStorage(SAVING_KEY, []));
+    const [salaries, setSalaries] = useState(() => loadStorage(SALARY_KEY, []));
+    const [investCategories, setInvestCategories] = useState(() => {
+        const saved = loadStorage(INVEST_CATEGORY_KEY, null);
+        return Array.isArray(saved) && saved.length
+            ? saved
+            : DEFAULT_INVEST_CATEGORIES;
     });
-  }
-
-  function hideRailTip() {
-    setRailTip(null);
-  }
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = isDark ? "dark" : "light";
-
-    try {
-      localStorage.setItem(THEME_KEY, JSON.stringify(isDark ? "dark" : "light"));
-    } catch {
-      // Trình duyệt chặn lưu trữ: bỏ qua, chế độ vẫn đổi trong phiên này
-    }
-  }, [isDark]);
-
-  /* =======================================================
-     QUẢN LÝ TÀI KHOẢN ĐĂNG NHẬP
-  ======================================================= */
-
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordSaving, setPasswordSaving] = useState(false);
-  const [passwordMessage, setPasswordMessage] = useState("");
-  const [passwordMessageType, setPasswordMessageType] = useState("");
-
-  /* =======================================================
-     SAO LƯU / KHÔI PHỤC DỮ LIỆU
-  ======================================================= */
-
-  const importFileInputRef = useRef(null);
-  const [importMessage, setImportMessage] = useState("");
-  const [importMessageType, setImportMessageType] = useState("");
-
-  /* =======================================================
-     BỘ LỌC NHẬT KÝ
-  ======================================================= */
-
-  const [filters, setFilters] = useState({
-    search: "",
-    type: "all",
-    category: "all",
-    accountId: "all",
-    dateFrom: "",
-    dateTo: "",
-    minAmount: "",
-    maxAmount: "",
-    sort: "newest",
-  });
-
-  /* =======================================================
-     ÂM THANH
-  ======================================================= */
-
-  const audioContextRef = useRef(null);
-
-  /* Hiệu ứng nhún khi bấm vào các nút chức năng (thanh trên + thanh icon bên trái) */
-  useEffect(() => {
-    const selector = ".topbar-pill, .rail-button";
-
-    function handleBounce(event) {
-      const el = event.target.closest && event.target.closest(selector);
-      if (!el) return;
-      el.classList.remove("is-bouncing");
-      void el.offsetWidth; /* khởi động lại animation nếu bấm liên tục */
-      el.classList.add("is-bouncing");
-    }
-
-    function handleEnd(event) {
-      if (event.animationName === "fn-click-bounce") {
-        event.target.classList.remove("is-bouncing");
-      }
-    }
-
-    document.addEventListener("click", handleBounce);
-    document.addEventListener("animationend", handleEnd);
-
-    return () => {
-      document.removeEventListener("click", handleBounce);
-      document.removeEventListener("animationend", handleEnd);
-    };
-  }, []);
-
-  function playSound(frequency = 520, duration = 0.06) {
-    try {
-      const AudioContext =
-        window.AudioContext || window.webkitAudioContext;
-
-      if (!AudioContext) return;
-
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext();
-      }
-
-      const context = audioContextRef.current;
-
-      if (context.state === "suspended") {
-        context.resume();
-      }
-
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-
-      oscillator.type = "sine";
-      oscillator.frequency.value = frequency;
-
-      gain.gain.setValueAtTime(0.025, context.currentTime);
-
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        context.currentTime + duration
-      );
-
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-
-      oscillator.start();
-      oscillator.stop(context.currentTime + duration);
-    } catch {
-      // bỏ qua
-    }
-  }
-
-  function successSound() {
-    playSound(700, 0.08);
-
-    setTimeout(() => {
-      playSound(880, 0.08);
-    }, 70);
-  }
-
-  function deleteSound() {
-    playSound(250, 0.12);
-  }
-
-  /* =======================================================
-     LƯU LOCAL STORAGE
-  ======================================================= */
-
-  useEffect(() => {
-    localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts));
-  }, [accounts]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      TRANSACTION_KEY,
-      JSON.stringify(transactions)
-    );
-  }, [transactions]);
-
-  /* Giao dịch cũ hoặc dữ liệu nhập vào chưa có mã ID thì tự gán */
-  useEffect(() => {
-    setTransactions((old) => assignMissingCodes(old));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets));
-  }, [budgets]);
-
-  useEffect(() => {
-    localStorage.setItem(DEBT_KEY, JSON.stringify(debts));
-  }, [debts]);
-
-  useEffect(() => {
-    localStorage.setItem(SAVING_KEY, JSON.stringify(savings));
-  }, [savings]);
-
-  useEffect(() => {
-    localStorage.setItem(SALARY_KEY, JSON.stringify(salaries));
-  }, [salaries]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      INVEST_CATEGORY_KEY,
-      JSON.stringify(investCategories)
-    );
-  }, [investCategories]);
-
-  /* =======================================================
-     DANH SÁCH THÁNG
-  ======================================================= */
-
-  const availableMonths = useMemo(() => {
-    const monthSet = new Set();
-
-    transactions.forEach((item) => {
-      if (item.date) {
-        monthSet.add(item.date.slice(0, 7));
-      }
+    /* =======================================================
+       ĐỒNG BỘ DỮ LIỆU GIA ĐÌNH
+    ======================================================= */
+    const [familySyncReady, setFamilySyncReady] = useState(false);
+    const [familySyncError, setFamilySyncError] = useState("");
+    const [familySyncStatus, setFamilySyncStatus] = useState("loading");
+    const familySyncStartedRef = useRef(false);
+    const familySaveTimerRef = useRef(null);
+    const familyDataRef = useRef(null);
+    const familySaveQueueRef = useRef(Promise.resolve());
+    const familySyncVersionRef = useRef(null);
+    const familySyncConflictRef = useRef(false);
+    /* =======================================================
+       ĐIỀU HƯỚNG
+    ======================================================= */
+    const [activePage, setActivePage] = useState("dashboard");
+    /* Vùng nội dung của trang đang mở: mount lại mỗi lần đổi tab để chạy hiệu ứng vào trang */
+    const pageStageRef = useRef(null);
+    useLayoutEffect(() => runNumberCountUp(pageStageRef.current), [activePage]);
+    const [selectedMonth, setSelectedMonth] = useState(() => {
+        const data = loadStorage(TRANSACTION_KEY, []);
+        const months = data
+            .filter((item) => item.date)
+            .map((item) => item.date.slice(0, 7))
+            .sort((a, b) => b.localeCompare(a));
+        return months[0] || currentMonthKey();
     });
-
-    Object.keys(budgets).forEach((month) => {
-      monthSet.add(month);
-    });
-
-    if (monthSet.size === 0) {
-      monthSet.add(selectedMonth);
-    }
-
-    return Array.from(monthSet).sort((a, b) =>
-      b.localeCompare(a)
-    );
-  }, [transactions, budgets, selectedMonth]);
-
-  /* =======================================================
-     TÀI KHOẢN
-  ======================================================= */
-
-  function getAccount(id) {
-    return accounts.find(
-      (account) => String(account.id) === String(id)
-    );
-  }
-
-  function getAccountName(id) {
-    return getAccount(id)?.name || "Không xác định";
-  }
-
-  function getAccountBalance(account, uptoMonth) {
-    let balance = Number(account.openingBalance || 0);
-
-    transactions.forEach((transaction) => {
-      /* Nếu có uptoMonth: chỉ tính các giao dịch đến hết tháng đó */
-      if (
-        uptoMonth &&
-        String(transaction.date || "").slice(0, 7) > uptoMonth
-      ) {
-        return;
-      }
-
-      const amount = Math.abs(Number(transaction.amount || 0));
-
-      if (
-        transaction.type === "income" &&
-        String(transaction.accountId) === String(account.id)
-      ) {
-        balance += amount;
-      }
-
-      if (
-        transaction.type === "expense" &&
-        String(transaction.accountId) === String(account.id)
-      ) {
-        balance -= amount;
-      }
-
-      if (
-        transaction.type === "adjustment" &&
-        String(transaction.accountId) === String(account.id)
-      ) {
-        if (transaction.adjustmentDirection === "minus") {
-          balance -= amount;
-        } else {
-          balance += amount;
+    const [transactionMonth, setTransactionMonth] = useState(selectedMonth);
+    /* Nhật ký giao dịch: xem theo ngày / tháng / năm tuỳ chỉnh */
+    const [logMode, setLogMode] = useState("month");
+    const [logDay, setLogDay] = useState(todayString());
+    const [logYear, setLogYear] = useState(String(new Date().getFullYear()));
+    /* Tìm kiếm giao dịch (tìm trong toàn bộ nhật ký) */
+    const [logSearch, setLogSearch] = useState("");
+    /* Lọc theo loại: mảng rỗng = tất cả các loại */
+    const [logTypes, setLogTypes] = useState([]);
+    /* Phân trang nhật ký */
+    const [logPage, setLogPage] = useState(1);
+    const [logPageSize, setLogPageSize] = useState(8);
+    const logTableRef = useRef(null);
+    const logPageRef = useRef(null);
+    /* Thông báo "Giao dịch mới": chuông có 2 tai + nhấp nháy cho tới khi đã đọc */
+    const [txNotices, setTxNotices] = useState(() => loadStorage(TX_NOTICE_KEY, []));
+    useEffect(() => {
+        try {
+            localStorage.setItem(TX_NOTICE_KEY, JSON.stringify(txNotices));
         }
-      }
-
-      if (transaction.type === "transfer") {
-        if (
-          String(transaction.fromAccountId) === String(account.id)
-        ) {
-          balance -= amount;
+        catch {
+            // bỏ qua
         }
-
-        if (
-          String(transaction.toAccountId) === String(account.id)
-        ) {
-          balance += amount;
-        }
-      }
-    });
-
-    return balance;
-  }
-
-  const totalAssets = useMemo(() => {
-    return accounts.reduce((total, account) => {
-      return total + getAccountBalance(account);
-    }, 0);
-  }, [accounts, transactions]);
-
-  /* =======================================================
-     GIAO DỊCH THÁNG
-  ======================================================= */
-
-  const monthTransactions = useMemo(() => {
-    return transactions.filter(
-      (item) =>
-        item.date && item.date.startsWith(selectedMonth)
-    );
-  }, [transactions, selectedMonth]);
-
-  const logSearchText = logSearch.trim().toLowerCase();
-
-  const transactionMonthTransactions = useMemo(() => {
-    return transactions.filter((item) => {
-      if (!item.date) return false;
-
-      /* Lọc theo loại (không chọn loại nào = lấy tất cả) */
-      if (logTypes.length > 0 && !logTypes.includes(item.type)) return false;
-
-      /* Có từ khoá: tìm trong toàn bộ nhật ký, không giới hạn ngày/tháng/năm */
-      if (logSearchText) {
-        const accountText =
-          item.type === "transfer"
-            ? `${getAccountName(item.fromAccountId)} ${getAccountName(
-                item.toAccountId
-              )}`
-            : getAccountName(item.accountId);
-
-        const categoryText =
-          item.type === "expense"
-            ? categories[item.category]?.label || ""
-            : "";
-
-        return `${item.code || ""} ${item.description || ""} ${accountText} ${categoryText} ${
-          typeLabels[item.type] || ""
-        } ${formatDate(item.date)} ${Math.abs(Number(item.amount || 0))}`
-          .toLowerCase()
-          .includes(logSearchText);
-      }
-
-      if (logMode === "day") return item.date === logDay;
-
-      if (logMode === "year") return item.date.startsWith(`${logYear}-`);
-
-      return item.date.startsWith(transactionMonth);
-    });
-  }, [
-    transactions,
-    accounts,
-    transactionMonth,
-    logMode,
-    logDay,
-    logYear,
-    logTypes,
-    logSearchText,
-  ]);
-
-  const logMonthsWithData = useMemo(() => {
-    const set = new Set();
-
-    transactions.forEach((item) => {
-      if (item.date) set.add(item.date.slice(0, 7));
-    });
-
-    return set;
-  }, [transactions]);
-
-  const logYearsWithData = useMemo(() => {
-    const set = new Set();
-
-    transactions.forEach((item) => {
-      if (item.date) set.add(Number(item.date.slice(0, 4)));
-    });
-
-    return set;
-  }, [transactions]);
-
-  /* Sắp xếp mới nhất trước rồi cắt thành từng trang */
-  const logSorted = useMemo(
-    () =>
-      [...transactionMonthTransactions].sort(
-        (a, b) =>
-          b.date.localeCompare(a.date) ||
-          String(b.id).localeCompare(String(a.id))
-      ),
-    [transactionMonthTransactions]
-  );
-
-  const logPageCount = Math.max(1, Math.ceil(logSorted.length / logPageSize));
-  const logPageSafe = Math.min(logPage, logPageCount);
-  const logPageStart = (logPageSafe - 1) * logPageSize;
-  const logPageData = logSorted.slice(logPageStart, logPageStart + logPageSize);
-
-  /* Đổi bộ lọc thì quay về trang 1 */
-  useEffect(() => {
-    setLogPage(1);
-  }, [
-    logMode,
-    logDay,
-    transactionMonth,
-    logYear,
-    logSearchText,
-    logTypes,
-  ]);
-
-  /* Bảng nhật ký kéo dài tới đáy màn hình: đo chiều cao còn lại, chia số dòng
-     mỗi trang và giãn đều chiều cao dòng để không còn khoảng trống */
-  useLayoutEffect(() => {
-    if (activePage !== "transactions") return undefined;
-
-    const measure = () => {
-      const panel = logPageRef.current;
-      const table = logTableRef.current;
-
-      if (!panel || !table) return;
-
-      if (window.innerWidth <= 900) {
-        panel.style.removeProperty("--log-page-h");
-        table.style.setProperty("--log-row-h", `${LOG_ROW_HEIGHT}px`);
-        setLogPageSize(10);
-
-        return;
-      }
-
-      const top = panel.getBoundingClientRect().top + window.scrollY;
-
-      panel.style.setProperty(
-        "--log-page-h",
-        `${Math.max(420, window.innerHeight - top - 20)}px`
-      );
-
-      const head =
-        table.querySelector(".table-header")?.offsetHeight || LOG_HEAD_HEIGHT;
-      const area = table.clientHeight - head - 2;
-      const count = Math.max(
-        3,
-        Math.min(50, Math.floor(area / LOG_ROW_HEIGHT))
-      );
-
-      table.style.setProperty(
-        "--log-row-h",
-        `${Math.max(LOG_ROW_HEIGHT, area / count)}px`
-      );
-
-      setLogPageSize(count);
-    };
-
-    measure();
-
-    const frame = requestAnimationFrame(measure);
-    const timer = setTimeout(measure, 200);
-
-    let observer = null;
-
-    if (typeof ResizeObserver !== "undefined" && logTableRef.current) {
-      observer = new ResizeObserver(measure);
-      observer.observe(logTableRef.current);
+    }, [txNotices]);
+    function addTxNotice(info) {
+        setTxNotices((old) => [
+            {
+                id: `tx-${createId()}`,
+                type: "success",
+                title: "Giao dịch mới",
+                text: info.text,
+                actionPage: "transactions",
+            },
+            ...old,
+        ].slice(0, 30));
     }
-
-    window.addEventListener("resize", measure);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      clearTimeout(timer);
-      if (observer) observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [activePage]);
-
-  const logYearOptions = useMemo(() => {
-    const thisYear = new Date().getFullYear();
-    const years = new Set([thisYear - 3, thisYear - 2, thisYear - 1, thisYear, thisYear + 1]);
-
-    transactions.forEach((item) => {
-      if (item.date) years.add(Number(item.date.slice(0, 4)));
+    const [monthlyTableMonth, setMonthlyTableMonth] = useState(selectedMonth);
+    /* =======================================================
+       FORM GIAO DỊCH
+    ======================================================= */
+    const [formType, setFormType] = useState("expense");
+    const [transactionForm, setTransactionForm] = useState({
+        date: todayString(),
+        description: "",
+        amount: "",
+        category: "food",
+        accountId: "",
+        adjustmentDirection: "plus",
+        fromAccountId: "",
+        toAccountId: "",
     });
-
-    years.add(Number(transactionMonth.split("-")[0]));
-    years.add(Number(logYear));
-
-    return [...years]
-      .filter((y) => Number.isFinite(y))
-      .sort((a, b) => b - a)
-      .map(String);
-  }, [transactions, transactionMonth, logYear]);
-
-  const logScopeLabel = logSearchText
-    ? `Kết quả cho “${logSearch.trim()}”`
-    : logMode === "day"
-    ? `Ngày ${formatDate(logDay)}`
-    : logMode === "year"
-    ? `Năm ${logYear}`
-    : formatMonth(transactionMonth);
-
-  const logTypeLabel =
-    logTypes.length > 0
-      ? logTypes.map((type) => typeLabels[type]).join(", ")
-      : "";
-
-  const monthlyTableTransactions = useMemo(() => {
-    return transactions.filter(
-      (item) =>
-        item.date && item.date.startsWith(monthlyTableMonth)
-    );
-  }, [transactions, monthlyTableMonth]);
-
-  /* =======================================================
-     TÍNH TỔNG
-  ======================================================= */
-
-  function calculateTotals(data) {
-    let income = 0;
-    let expense = 0;
-    let adjustment = 0;
-
-    let food = 0;
-    let rent = 0;
-    let other = 0;
-
-    data.forEach((item) => {
-      const amount = Math.abs(Number(item.amount || 0));
-
-      if (item.type === "income") {
-        income += amount;
-      }
-
-      if (item.type === "expense") {
-        expense += amount;
-
-        if (item.category === "food") {
-          food += amount;
-        }
-
-        if (item.category === "rent") {
-          rent += amount;
-        }
-
-        if (item.category === "other") {
-          other += amount;
-        }
-      }
-
-      if (item.type === "adjustment") {
-        if (item.adjustmentDirection === "minus") {
-          adjustment -= amount;
-        } else {
-          adjustment += amount;
-        }
-      }
+    /* =======================================================
+       FORM TÀI KHOẢN
+    ======================================================= */
+    const [accountForm, setAccountForm] = useState({
+        name: "",
+        type: "bank",
+        openingBalance: "",
     });
-
-    return {
-      income,
-      expense,
-      adjustment,
-      food,
-      rent,
-      other,
-
-      remaining: income + adjustment - expense,
-    };
-  }
-
-  const totals = useMemo(() => {
-    return calculateTotals(monthTransactions);
-  }, [monthTransactions]);
-
-  /* =======================================================
-     SO SÁNH VỚI THÁNG TRƯỚC
-  ======================================================= */
-
-  const previousMonth = useMemo(
-    () => getPreviousMonthKey(selectedMonth),
-    [selectedMonth]
-  );
-
-  const previousMonthTransactions = useMemo(() => {
-    return transactions.filter(
-      (item) => item.date && item.date.startsWith(previousMonth)
-    );
-  }, [transactions, previousMonth]);
-
-  const previousTotals = useMemo(() => {
-    return calculateTotals(previousMonthTransactions);
-  }, [previousMonthTransactions]);
-
-  const hasPreviousMonthData = previousMonthTransactions.length > 0;
-
-  const monthComparisons = {
-    income: {
-      diff: totals.income - previousTotals.income,
-      ready: hasPreviousMonthData,
-    },
-    expense: {
-      diff: totals.expense - previousTotals.expense,
-      ready: hasPreviousMonthData,
-    },
-    adjustment: {
-      diff: totals.adjustment - previousTotals.adjustment,
-      ready: hasPreviousMonthData,
-    },
-    remaining: {
-      diff: totals.remaining - previousTotals.remaining,
-      ready: hasPreviousMonthData,
-    },
-  };
-
-  /* =======================================================
-     NGÂN SÁCH — ép trang vừa đúng 1 màn hình (không cần cuộn)
-  ======================================================= */
-
-  const budgetPageRef = useRef(null);
-
-  useEffect(() => {
-    if (activePage !== "budget") return undefined;
-
-    const fit = () => {
-      const element = budgetPageRef.current;
-
-      if (!element) return;
-
-      const top = element.getBoundingClientRect().top + window.scrollY;
-      const available = window.innerHeight - top - 20;
-
-      element.style.setProperty(
-        "--budget-page-h",
-        `${Math.max(available, 400)}px`
-      );
-    };
-
-    fit();
-
-    const frame = requestAnimationFrame(fit);
-    const timer = setTimeout(fit, 200);
-
-    window.addEventListener("resize", fit);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      clearTimeout(timer);
-      window.removeEventListener("resize", fit);
-    };
-  }, [activePage]);
-
-  /* =======================================================
-     NGÂN SÁCH
-  ======================================================= */
-
-  const currentBudget = budgets[selectedMonth] || {
-    food: 0,
-    rent: 0,
-    other: 0,
-  };
-
-  const totalBudget =
-    Number(currentBudget.food || 0) +
-    Number(currentBudget.rent || 0) +
-    Number(currentBudget.other || 0);
-
-  const budgetShares = getBudgetShares(currentBudget);
-
-  const budgetUsed = totals.expense;
-
-  const budgetRemaining = totalBudget - budgetUsed;
-
-  const budgetPercent =
-    totalBudget > 0
-      ? (budgetUsed / totalBudget) * 100
-      : 0;
-
-  function categoryBudgetPercent(category) {
-    const budget = Number(currentBudget[category] || 0);
-
-    const spent = Number(totals[category] || 0);
-
-    if (budget <= 0) {
-      return 0;
-    }
-
-    return (spent / budget) * 100;
-  }
-
-  /* =======================================================
-     DANH MỤC CHI NHIỀU NHẤT
-  ======================================================= */
-
-  const highestCategory = useMemo(() => {
-    const data = [
-      {
-        name: "Ăn uống",
-        amount: totals.food,
-      },
-
-      {
-        name: "Tiền trọ",
-        amount: totals.rent,
-      },
-
-      {
-        name: "Chi tiêu khác",
-        amount: totals.other,
-      },
-    ];
-
-    return data.reduce((max, item) =>
-      item.amount > max.amount ? item : max
-    );
-  }, [totals]);
-
-  /* =======================================================
-     NGÂN SÁCH
-  ======================================================= */
-
-  function saveBudget(event) {
-    event.preventDefault();
-
-    const newBudget = {
-      food: Math.max(0, Number(budgetForm.food || 0)),
-
-      rent: Math.max(0, Number(budgetForm.rent || 0)),
-
-      other: Math.max(0, Number(budgetForm.other || 0)),
-    };
-
-    setBudgets((old) => ({
-      ...old,
-
-      [selectedMonth]: newBudget,
-    }));
-
-    successSound();
-  }
-
-  function deleteBudget() {
-    if (
-      !window.confirm(
-        `Bạn có chắc muốn xóa ngân sách ${formatMonth(
-          selectedMonth
-        )}?`
-      )
-    ) {
-      return;
-    }
-
-    setBudgets((old) => {
-      const copy = { ...old };
-
-      delete copy[selectedMonth];
-
-      return copy;
-    });
-
-    setBudgetForm({
-      food: "",
-      rent: "",
-      other: "",
-    });
-
-    deleteSound();
-  }
-
-  useEffect(() => {
-    const budget = budgets[selectedMonth];
-
-    if (budget) {
-      setBudgetForm({
-        food: budget.food || "",
-
-        rent: budget.rent || "",
-
-        other: budget.other || "",
-      });
-    } else {
-      setBudgetForm({
+    /* =======================================================
+       FORM NGÂN SÁCH
+    ======================================================= */
+    const [budgetForm, setBudgetForm] = useState({
         food: "",
-
         rent: "",
-
         other: "",
-      });
-    }
-  }, [selectedMonth, budgets]);
-
-  /* =======================================================
-     THÊM TÀI KHOẢN
-  ======================================================= */
-
-  function addAccount(event) {
-    event.preventDefault();
-
-    if (!accountForm.name.trim()) {
-      alert("Vui lòng nhập tên tài khoản.");
-
-      return;
-    }
-
-    const newAccount = {
-      id: createId(),
-
-      name: accountForm.name.trim(),
-
-      type: accountForm.type,
-
-      openingBalance: Number(accountForm.openingBalance || 0),
-    };
-
-    setAccounts((old) => [...old, newAccount]);
-
-    setAccountForm({
-      name: "",
-
-      type: "bank",
-
-      openingBalance: "",
     });
-
-    successSound();
-  }
-
-  /* =======================================================
-     XÓA TÀI KHOẢN
-  ======================================================= */
-
-  function deleteAccount(id) {
-    const linked = transactions.some(
-      (item) =>
-        String(item.accountId) === String(id) ||
-        String(item.fromAccountId) === String(id) ||
-        String(item.toAccountId) === String(id)
-    );
-
-    if (linked) {
-      alert(
-        "Không thể xóa tài khoản vì tài khoản này đang có giao dịch liên kết."
-      );
-
-      return;
+    /* =======================================================
+       SỬA GIAO DỊCH
+    ======================================================= */
+    const [editingTransaction, setEditingTransaction] = useState(null);
+    /* =======================================================
+       XEM TÀI KHOẢN
+    ======================================================= */
+    const [viewAccountId, setViewAccountId] = useState("");
+    /* =======================================================
+       DASHBOARD
+    ======================================================= */
+    const [now, setNow] = useState(() => new Date());
+    useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(timer);
+    }, []);
+    const greeting = getGreeting(now);
+    const GreetingIcon = greeting.icon;
+    const [showNotifications, setShowNotifications] = useState(false);
+    const notificationRef = useRef(null);
+    const [readNotificationIds, setReadNotificationIds] = useState(() => loadStorage(READ_NOTIFICATION_KEY, []));
+    const [dashboardSearch, setDashboardSearch] = useState("");
+    const [userEmail, setUserEmail] = useState("");
+    /* =======================================================
+       GIAO DIỆN BAN NGÀY / BAN ĐÊM
+    ======================================================= */
+    const [isDark, setIsDark] = useState(() => loadStorage(THEME_KEY, "light") === "dark");
+    /* =======================================================
+       NHÃN TÊN CHỨC NĂNG KHI RÊ CHUỘT VÀO THANH TRÁI
+    ======================================================= */
+    const [railTip, setRailTip] = useState(null);
+    function showRailTip(event, label) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        /* Trên điện thoại thanh nằm ở dưới cùng nên nhãn hiện phía trên nút */
+        if (window.innerWidth <= 900) {
+            setRailTip({
+                label,
+                placement: "above",
+                left: rect.left + rect.width / 2,
+                top: rect.top - 10,
+            });
+            return;
+        }
+        setRailTip({
+            label,
+            placement: "side",
+            left: rect.right + 14,
+            top: rect.top + rect.height / 2,
+        });
     }
-
-    if (!window.confirm("Bạn có chắc muốn xóa tài khoản?")) {
-      return;
+    function hideRailTip() {
+        setRailTip(null);
     }
-
-    setAccounts((old) =>
-      old.filter((account) => account.id !== id)
-    );
-
-    if (String(viewAccountId) === String(id)) {
-      setViewAccountId("");
-    }
-
-    deleteSound();
-  }
-
-  /* =======================================================
-     RESET FORM GIAO DỊCH
-  ======================================================= */
-
-  function resetTransactionForm() {
-    setTransactionForm({
-      date: todayString(),
-
-      description: "",
-
-      amount: "",
-
-      category: "food",
-
-      accountId: "",
-
-      adjustmentDirection: "plus",
-
-      fromAccountId: "",
-
-      toAccountId: "",
+    useEffect(() => {
+        document.documentElement.dataset.theme = isDark ? "dark" : "light";
+        try {
+            localStorage.setItem(THEME_KEY, JSON.stringify(isDark ? "dark" : "light"));
+        }
+        catch {
+            // Trình duyệt chặn lưu trữ: bỏ qua, chế độ vẫn đổi trong phiên này
+        }
+    }, [isDark]);
+    /* =======================================================
+       QUẢN LÝ TÀI KHOẢN ĐĂNG NHẬP
+    ======================================================= */
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordSaving, setPasswordSaving] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState("");
+    const [passwordMessageType, setPasswordMessageType] = useState("");
+    /* =======================================================
+       SAO LƯU / KHÔI PHỤC DỮ LIỆU
+    ======================================================= */
+    const importFileInputRef = useRef(null);
+    const [importMessage, setImportMessage] = useState("");
+    const [importMessageType, setImportMessageType] = useState("");
+    /* =======================================================
+       BỘ LỌC NHẬT KÝ
+    ======================================================= */
+    const [filters, setFilters] = useState({
+        search: "",
+        type: "all",
+        category: "all",
+        accountId: "all",
+        dateFrom: "",
+        dateTo: "",
+        minAmount: "",
+        maxAmount: "",
+        sort: "newest",
     });
-  }
-
-  /* =======================================================
-     THÊM GIAO DỊCH
-  ======================================================= */
-
-  function addTransaction(event) {
-    event.preventDefault();
-
-    const amount = Math.abs(Number(transactionForm.amount));
-
-    if (!transactionForm.date) {
-      alert("Vui lòng chọn ngày.");
-
-      return;
-    }
-
-    if (!amount) {
-      alert("Vui lòng nhập số tiền.");
-
-      return;
-    }
-
-    /* CHUYỂN TIỀN */
-
-    if (formType === "transfer") {
-      if (
-        !transactionForm.fromAccountId ||
-        !transactionForm.toAccountId
-      ) {
-        alert(
-          "Vui lòng chọn tài khoản nguồn và tài khoản đích."
-        );
-
-        return;
-      }
-
-      if (
-        transactionForm.fromAccountId ===
-        transactionForm.toAccountId
-      ) {
-        alert(
-          "Tài khoản nguồn và tài khoản đích phải khác nhau."
-        );
-
-        return;
-      }
-
-      const sourceAccount = getAccount(
-        transactionForm.fromAccountId
-      );
-
-      if (
-        sourceAccount &&
-        getAccountBalance(sourceAccount) < amount
-      ) {
-        const allow = window.confirm(
-          "Số tiền chuyển lớn hơn số dư hiện tại. Bạn vẫn muốn tiếp tục?"
-        );
-
-        if (!allow) return;
-      }
-
-      const transaction = {
-        id: createId(),
-
-        code: getNextTransactionCode(
-          transactions,
-          transactionForm.date
-        ),
-
-        type: "transfer",
-
-        date: transactionForm.date,
-
-        description:
-          transactionForm.description || "Chuyển tiền",
-
-        amount,
-
-        fromAccountId: transactionForm.fromAccountId,
-
-        toAccountId: transactionForm.toAccountId,
-      };
-
-      setTransactions((old) => [...old, transaction]);
-    } else {
-      /* THU / CHI / ĐIỀU CHỈNH */
-
-      if (!transactionForm.accountId) {
-        alert("Vui lòng chọn tài khoản.");
-
-        return;
-      }
-
-      const selectedAccountObject = getAccount(
-        transactionForm.accountId
-      );
-
-      if (
-        formType === "expense" &&
-        selectedAccountObject &&
-        getAccountBalance(selectedAccountObject) < amount
-      ) {
-        const allow = window.confirm(
-          "Khoản chi lớn hơn số dư tài khoản. Bạn vẫn muốn tiếp tục?"
-        );
-
-        if (!allow) return;
-      }
-
-      const transaction = {
-        id: createId(),
-
-        code: getNextTransactionCode(
-          transactions,
-          transactionForm.date
-        ),
-
-        type: formType,
-
-        date: transactionForm.date,
-
-        description: transactionForm.description,
-
-        amount,
-
-        accountId: transactionForm.accountId,
-
-        ...(formType === "expense"
-          ? {
-              category: transactionForm.category,
+    /* =======================================================
+       ÂM THANH
+    ======================================================= */
+    const audioContextRef = useRef(null);
+    /* Hiệu ứng nhún khi bấm vào các nút chức năng (thanh trên + thanh icon bên trái) */
+    useEffect(() => {
+        const selector = ".topbar-pill, .rail-button";
+        function handleBounce(event) {
+            const el = event.target.closest && event.target.closest(selector);
+            if (!el)
+                return;
+            el.classList.remove("is-bouncing");
+            void el.offsetWidth; /* khởi động lại animation nếu bấm liên tục */
+            el.classList.add("is-bouncing");
+        }
+        function handleEnd(event) {
+            if (event.animationName === "fn-click-bounce") {
+                event.target.classList.remove("is-bouncing");
             }
-          : {}),
-
-        ...(formType === "adjustment"
-          ? {
-              adjustmentDirection:
-                transactionForm.adjustmentDirection,
+        }
+        document.addEventListener("click", handleBounce);
+        document.addEventListener("animationend", handleEnd);
+        return () => {
+            document.removeEventListener("click", handleBounce);
+            document.removeEventListener("animationend", handleEnd);
+        };
+    }, []);
+    function playSound(frequency = 520, duration = 0.06) {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext)
+                return;
+            if (!audioContextRef.current) {
+                audioContextRef.current = new AudioContext();
             }
-          : {}),
-      };
-
-      setTransactions((old) => [...old, transaction]);
-    }
-
-    setSelectedMonth(transactionForm.date.slice(0, 7));
-
-    /* Nhật ký giao dịch cũng chuyển sang tháng của giao dịch vừa thêm
-       để thấy ngay dòng mới */
-    setTransactionMonth(transactionForm.date.slice(0, 7));
-    setMonthlyTableMonth(transactionForm.date.slice(0, 7));
-    setLogDay(transactionForm.date);
-    setLogYear(transactionForm.date.slice(0, 4));
-
-    /* Thông báo chuông: mã này trùng mã vừa cấp cho giao dịch (state chưa cập nhật) */
-    addTxNotice({
-      text: `${typeLabels[formType]} · ${formatMoney(amount)} · ${getNextTransactionCode(
-        transactions,
-        transactionForm.date
-      )}`,
-    });
-
-    resetTransactionForm();
-
-    successSound();
-  }
-
-  /* =======================================================
-     XÓA GIAO DỊCH
-  ======================================================= */
-
-  function deleteTransaction(id) {
-    if (!window.confirm("Bạn có chắc muốn xóa giao dịch?")) {
-      return;
-    }
-
-    setTransactions((old) =>
-      old.filter((item) => item.id !== id)
-    );
-
-    deleteSound();
-  }
-
-  /* =======================================================
-     SỬA GIAO DỊCH
-  ======================================================= */
-
-  function startEdit(transaction) {
-    setEditingTransaction({
-      ...transaction,
-
-      amount: Math.abs(Number(transaction.amount || 0)),
-    });
-  }
-
-  function saveEdit(event) {
-    event.preventDefault();
-
-    if (!editingTransaction) return;
-
-    const amount = Math.abs(Number(editingTransaction.amount));
-
-    if (!editingTransaction.date || !amount) {
-      alert("Ngày và số tiền không được để trống.");
-
-      return;
-    }
-
-    if (editingTransaction.type === "transfer") {
-      if (
-        !editingTransaction.fromAccountId ||
-        !editingTransaction.toAccountId
-      ) {
-        alert("Vui lòng chọn đủ hai tài khoản.");
-
-        return;
-      }
-
-      if (
-        editingTransaction.fromAccountId ===
-        editingTransaction.toAccountId
-      ) {
-        alert(
-          "Tài khoản nguồn và tài khoản đích phải khác nhau."
-        );
-
-        return;
-      }
-    } else if (!editingTransaction.accountId) {
-      alert("Vui lòng chọn tài khoản.");
-
-      return;
-    }
-
-    /* Mã ID gắn với ngày: đổi ngày thì cấp mã mới theo ngày mới */
-    const original = transactions.find(
-      (item) => item.id === editingTransaction.id
-    );
-
-    let code = editingTransaction.code;
-
-    if (!code || (original && original.date !== editingTransaction.date)) {
-      code = getNextTransactionCode(
-        transactions.filter((item) => item.id !== editingTransaction.id),
-        editingTransaction.date,
-        /^#L/.test(editingTransaction.code || "") ? "L" : ""
-      );
-    }
-
-    const updated = {
-      ...editingTransaction,
-
-      code,
-
-      amount,
-    };
-
-    setTransactions((old) =>
-      old.map((item) =>
-        item.id === updated.id ? updated : item
-      )
-    );
-
-    setSelectedMonth(updated.date.slice(0, 7));
-
-    setEditingTransaction(null);
-
-    successSound();
-  }
-
-  /* =======================================================
-     LỌC GIAO DỊCH
-  ======================================================= */
-
-  const filteredTransactions = useMemo(() => {
-    let result = [...monthTransactions];
-
-    const search = filters.search.trim().toLowerCase();
-
-    if (search) {
-      result = result.filter((item) => {
-        let accountText = "";
-
-        if (item.type === "transfer") {
-          accountText = `${getAccountName(
-            item.fromAccountId
-          )} ${getAccountName(item.toAccountId)}`;
-        } else {
-          accountText = getAccountName(item.accountId);
+            const context = audioContextRef.current;
+            if (context.state === "suspended") {
+                context.resume();
+            }
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.type = "sine";
+            oscillator.frequency.value = frequency;
+            gain.gain.setValueAtTime(0.025, context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start();
+            oscillator.stop(context.currentTime + duration);
         }
-
-        const categoryText =
-          item.type === "expense"
-            ? categories[item.category]?.label || ""
-            : "";
-
-        return `${item.description || ""} ${accountText} ${categoryText}`
-          .toLowerCase()
-          .includes(search);
-      });
-    }
-
-    if (filters.type !== "all") {
-      result = result.filter(
-        (item) => item.type === filters.type
-      );
-    }
-
-    if (filters.category !== "all") {
-      result = result.filter(
-        (item) =>
-          item.type === "expense" &&
-          item.category === filters.category
-      );
-    }
-
-    if (filters.accountId !== "all") {
-      result = result.filter((item) => {
-        if (item.type === "transfer") {
-          return (
-            String(item.fromAccountId) ===
-              String(filters.accountId) ||
-            String(item.toAccountId) ===
-              String(filters.accountId)
-          );
+        catch {
+            // bỏ qua
         }
-
-        return (
-          String(item.accountId) ===
-          String(filters.accountId)
-        );
-      });
     }
-
-    if (filters.dateFrom) {
-      result = result.filter(
-        (item) => item.date >= filters.dateFrom
-      );
+    function successSound() {
+        playSound(700, 0.08);
+        setTimeout(() => {
+            playSound(880, 0.08);
+        }, 70);
     }
-
-    if (filters.dateTo) {
-      result = result.filter(
-        (item) => item.date <= filters.dateTo
-      );
+    function deleteSound() {
+        playSound(250, 0.12);
     }
-
-    if (filters.minAmount !== "") {
-      result = result.filter(
-        (item) =>
-          Math.abs(Number(item.amount)) >=
-          Number(filters.minAmount)
-      );
-    }
-
-    if (filters.maxAmount !== "") {
-      result = result.filter(
-        (item) =>
-          Math.abs(Number(item.amount)) <=
-          Number(filters.maxAmount)
-      );
-    }
-
-    result.sort((a, b) => {
-      if (filters.sort === "newest") {
-        return b.date.localeCompare(a.date);
-      }
-
-      if (filters.sort === "oldest") {
-        return a.date.localeCompare(b.date);
-      }
-
-      if (filters.sort === "highest") {
-        return Number(b.amount) - Number(a.amount);
-      }
-
-      if (filters.sort === "lowest") {
-        return Number(a.amount) - Number(b.amount);
-      }
-
-      return 0;
-    });
-
-    return result;
-  }, [monthTransactions, filters, accounts]);
-
-  const filteredTotals = useMemo(
-    () => calculateTotals(filteredTransactions),
-    [filteredTransactions]
-  );
-
-  const filteredAverage =
-    filteredTransactions.length > 0
-      ? filteredTransactions.reduce(
-          (sum, item) =>
-            sum + Math.abs(Number(item.amount || 0)),
-          0
-        ) / filteredTransactions.length
-      : 0;
-
-  const filteredHighest =
-    filteredTransactions.length > 0
-      ? Math.max(
-          ...filteredTransactions.map((item) =>
-            Math.abs(Number(item.amount || 0))
-          )
-        )
-      : 0;
-
-  function resetFilters() {
-    setFilters({
-      search: "",
-
-      type: "all",
-
-      category: "all",
-
-      accountId: "all",
-
-      dateFrom: "",
-
-      dateTo: "",
-
-      minAmount: "",
-
-      maxAmount: "",
-
-      sort: "newest",
-    });
-
-    playSound();
-  }
-
-  /* =======================================================
-     LỊCH
+    /* =======================================================
+     LƯU LOCAL STORAGE
+     Chỉ lưu sau khi đã tải dữ liệu gia đình thành công
   ======================================================= */
-
-  const [selectedYear, selectedMonthNumber] = selectedMonth
-    .split("-")
-    .map(Number);
-
-  const calendarCells = useMemo(() => {
-    const firstDate = new Date(
-      selectedYear,
-      selectedMonthNumber - 1,
-      1
-    );
-
-    const numberOfDays = new Date(
-      selectedYear,
-      selectedMonthNumber,
-      0
-    ).getDate();
-
-    let start = firstDate.getDay();
-
-    start = start === 0 ? 6 : start - 1;
-
-    const cells = [];
-
-    for (let i = 0; i < start; i++) {
-      cells.push(null);
-    }
-
-    for (let day = 1; day <= numberOfDays; day++) {
-      cells.push(day);
-    }
-
-    return cells;
-  }, [selectedYear, selectedMonthNumber]);
-
-  function dailyTotals(day) {
-    const date = `${selectedYear}-${pad(
-      selectedMonthNumber
-    )}-${pad(day)}`;
-
-    const data = monthTransactions.filter(
-      (item) => item.date === date
-    );
-
-    return calculateTotals(data);
-  }
-
-  /* =======================================================
-     LỊCH SỬ TÀI KHOẢN
-  ======================================================= */
-
-  const selectedAccount = getAccount(viewAccountId);
-
-  const selectedAccountHistory = useMemo(() => {
-    if (!viewAccountId) {
-      return [];
-    }
-
-    return transactions
-      .filter((item) => {
-        if (item.type === "transfer") {
-          return (
-            String(item.fromAccountId) ===
-              String(viewAccountId) ||
-            String(item.toAccountId) ===
-              String(viewAccountId)
-          );
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts));
+    }, [accounts, familySyncReady]);
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(TRANSACTION_KEY, JSON.stringify(transactions));
+    }, [transactions, familySyncReady]);
+    /* Giao dịch cũ chưa có mã thì tự gán sau khi tải dữ liệu */
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        setTransactions((old) => assignMissingCodes(old));
+    }, [transactions, familySyncReady]);
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets));
+    }, [budgets, familySyncReady]);
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(DEBT_KEY, JSON.stringify(debts));
+    }, [debts, familySyncReady]);
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(SAVING_KEY, JSON.stringify(savings));
+    }, [savings, familySyncReady]);
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(SALARY_KEY, JSON.stringify(salaries));
+    }, [salaries, familySyncReady]);
+    useEffect(() => {
+        if (!familySyncReady)
+            return;
+        localStorage.setItem(INVEST_CATEGORY_KEY, JSON.stringify(investCategories));
+    }, [investCategories, familySyncReady]);
+    /* =======================================================
+       TẢI DỮ LIỆU GIA ĐÌNH TỪ SUPABASE
+    ======================================================= */
+    useEffect(() => {
+        if (familySyncStartedRef.current)
+            return;
+        familySyncStartedRef.current = true;
+        async function initializeFamilyData() {
+            try {
+                setFamilySyncStatus("loading");
+                setFamilySyncError("");
+                // 1. Sao lưu dữ liệu cũ trên máy trước khi đồng bộ
+                const backupKey = "blue-finance-before-family-sync-backup-v1";
+                if (!localStorage.getItem(backupKey)) {
+                    const backup = {
+                        createdAt: new Date().toISOString(),
+                        values: {
+                            accounts: localStorage.getItem(ACCOUNT_KEY),
+                            transactions: localStorage.getItem(TRANSACTION_KEY),
+                            budgets: localStorage.getItem(BUDGET_KEY),
+                            debts: localStorage.getItem(DEBT_KEY),
+                            savings: localStorage.getItem(SAVING_KEY),
+                            salaries: localStorage.getItem(SALARY_KEY),
+                            investCategories: localStorage.getItem(INVEST_CATEGORY_KEY),
+                        },
+                    };
+                    localStorage.setItem(backupKey, JSON.stringify(backup));
+                }
+                // 2. Đóng gói dữ liệu hiện có trên máy
+                const localData = {
+                    accounts,
+                    transactions,
+                    budgets,
+                    debts,
+                    savings,
+                    salaries,
+                    investCategories,
+                };
+                // 3. Tải dữ liệu từ Supabase
+                const result = await getFamilyData();
+                const remoteData = result.data;
+                familySyncVersionRef.current =
+                    result.version ?? result.updatedAt ?? null;
+                if (remoteData &&
+                    typeof remoteData === "object" &&
+                    !Array.isArray(remoteData)) {
+                    // 4A. Đã có dữ liệu trên máy chủ:
+                    // lấy dữ liệu máy chủ làm dữ liệu chính
+                    const normalizedData = {
+                        accounts: Array.isArray(remoteData.accounts)
+                            ? remoteData.accounts
+                            : [],
+                        transactions: Array.isArray(remoteData.transactions)
+                            ? remoteData.transactions
+                            : [],
+                        budgets: remoteData.budgets &&
+                            typeof remoteData.budgets === "object" &&
+                            !Array.isArray(remoteData.budgets)
+                            ? remoteData.budgets
+                            : {},
+                        debts: Array.isArray(remoteData.debts)
+                            ? remoteData.debts
+                            : [],
+                        savings: Array.isArray(remoteData.savings)
+                            ? remoteData.savings
+                            : [],
+                        salaries: Array.isArray(remoteData.salaries)
+                            ? remoteData.salaries
+                            : [],
+                        investCategories: Array.isArray(remoteData.investCategories) &&
+                            remoteData.investCategories.length
+                            ? remoteData.investCategories
+                            : DEFAULT_INVEST_CATEGORIES,
+                    };
+                    setAccounts(normalizedData.accounts);
+                    setTransactions(normalizedData.transactions);
+                    setBudgets(normalizedData.budgets);
+                    setDebts(normalizedData.debts);
+                    setSavings(normalizedData.savings);
+                    setSalaries(normalizedData.salaries);
+                    setInvestCategories(normalizedData.investCategories);
+                    familyDataRef.current = JSON.stringify(normalizedData);
+                }
+                else {
+                    // 4B. Chưa có dữ liệu trên máy chủ:
+                    // đưa dữ liệu hiện có trên máy lên Supabase
+                    const saveResult = await saveFamilyData(localData, null);
+                    familySyncVersionRef.current =
+                        saveResult.version ?? saveResult.updatedAt ?? null;
+                    familyDataRef.current = JSON.stringify(localData);
+                }
+                // 5. Chỉ cho phép lưu và đồng bộ sau khi hoàn tất
+                setFamilySyncStatus("synced");
+                setFamilySyncReady(true);
+            }
+            catch (error) {
+                console.error("Family sync initialization error:", error);
+                setFamilySyncStatus("error");
+                setFamilySyncError(error.message ||
+                    "Không thể tải dữ liệu gia đình. Vui lòng thử tải lại trang.");
+            }
         }
-
-        return (
-          String(item.accountId) === String(viewAccountId)
-        );
-      })
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }, [transactions, viewAccountId]);
-
-  /* =======================================================
-     DASHBOARD - BIẾN ĐỘNG TIỀN VÀO / TIỀN RA
-  ======================================================= */
-
-  const dashboardFlowData = useMemo(() => {
-    const [year, month] = selectedMonth.split("-").map(Number);
-    const daysInMonth = new Date(year, month, 0).getDate();
-    let cumulative = 0;
-
-    return Array.from({ length: daysInMonth }, (_, index) => {
-      const day = index + 1;
-      const date = `${selectedMonth}-${pad(day)}`;
-      const dayTransactions = transactions.filter(
-        (item) => item.date === date
-      );
-
-      let income = 0;
-      let expense = 0;
-      let adjustment = 0;
-
-      dayTransactions.forEach((item) => {
-        const amount = Math.abs(Number(item.amount || 0));
-
-        if (item.type === "income") income += amount;
-        if (item.type === "expense") expense += amount;
-        if (item.type === "adjustment") {
-          adjustment +=
-            item.adjustmentDirection === "minus"
-              ? -amount
-              : amount;
+        initializeFamilyData();
+    }, []);
+    /* =======================================================
+       TỰ ĐỘNG ĐỒNG BỘ DỮ LIỆU LÊN SUPABASE
+    ======================================================= */
+    useEffect(() => {
+        if (!familySyncReady || familySyncConflictRef.current) {
+            return;
         }
-      });
-
-      cumulative += income + adjustment - expense;
-
-      return {
-        day,
-        income,
-        expense,
-        adjustment,
-        net: income + adjustment - expense,
-        cumulative,
-      };
-    });
-  }, [transactions, selectedMonth]);
-
-  /* =======================================================
-     DASHBOARD - THÔNG BÁO
-  ======================================================= */
-
-  const dashboardNotifications = useMemo(() => {
-    const items = [];
-
-    if (totalBudget > 0 && budgetPercent >= 100) {
-      items.push({
-        id: `budget-danger-${selectedMonth}`,
-        type: "danger",
-        title: "Đã vượt ngân sách",
-        text: `Đã chi ${formatMoney(budgetUsed)} / ${formatMoney(totalBudget)}.`,
-        actionPage: "budget",
-      });
-    } else if (totalBudget > 0 && budgetPercent >= 80) {
-      items.push({
-        id: `budget-warning-${selectedMonth}`,
-        type: "warning",
-        title: "Ngân sách sắp đạt giới hạn",
-        text: `Đã sử dụng ${budgetPercent.toFixed(0)}% ngân sách tháng.`,
-        actionPage: "budget",
-      });
-    }
-
-    if (accounts.length === 0) {
-      items.push({
-        id: "no-account",
-        type: "info",
-        title: "Chưa có tài khoản",
-        text: "Hãy tạo tài khoản để bắt đầu theo dõi số dư.",
-        actionPage: "accounts",
-      });
-    }
-
-    if (monthTransactions.length === 0) {
-      items.push({
-        id: `empty-month-${selectedMonth}`,
-        type: "info",
-        title: "Chưa có giao dịch",
-        text: `${formatMonth(selectedMonth)} chưa có dữ liệu.`,
-        actionPage: "transactions",
-      });
-    }
-
-    return [...txNotices.slice(0, 5), ...items].slice(0, 8);
-  }, [
-    txNotices,
-    totalBudget,
-    budgetPercent,
-    budgetUsed,
-    accounts.length,
-    monthTransactions,
-    selectedMonth,
-  ]);
-
-  const unreadNotifications = useMemo(() => {
-    return dashboardNotifications.filter(
-      (item) => !readNotificationIds.includes(item.id)
-    );
-  }, [dashboardNotifications, readNotificationIds]);
-
-  /* Còn giao dịch mới chưa đọc → chuông có 2 tai và nhấp nháy;
-     đọc xong thì trở về chuông ban đầu */
-  const hasNewTx = unreadNotifications.some((item) =>
-    String(item.id).startsWith("tx-")
-  );
-
-  function markNotificationRead(id) {
-    setReadNotificationIds((old) => {
-      if (old.includes(id)) return old;
-
-      const next = [...old, id].slice(-100);
-      localStorage.setItem(READ_NOTIFICATION_KEY, JSON.stringify(next));
-      return next;
-    });
-  }
-
-  function markAllNotificationsRead() {
-    setReadNotificationIds((old) => {
-      const next = Array.from(
-        new Set([...old, ...dashboardNotifications.map((item) => item.id)])
-      ).slice(-100);
-      localStorage.setItem(READ_NOTIFICATION_KEY, JSON.stringify(next));
-      return next;
-    });
-  }
-
-  function openNotification(item) {
-    markNotificationRead(item.id);
-    setShowNotifications(false);
-    if (item.actionPage) {
-      setActivePage(item.actionPage);
-      playSound(620, 0.05);
-    }
-  }
-
-  useEffect(() => {
-    setShowNotifications(false);
-  }, [activePage]);
-
-  useEffect(() => {
-    function handleOutsideNotificationClick(event) {
-      if (
-        showNotifications &&
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target)
-      ) {
-        setShowNotifications(false);
-      }
-    }
-
-    function handleNotificationEscape(event) {
-      if (event.key === "Escape") {
-        setShowNotifications(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleOutsideNotificationClick);
-    document.addEventListener("keydown", handleNotificationEscape);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideNotificationClick);
-      document.removeEventListener("keydown", handleNotificationEscape);
-    };
-  }, [showNotifications]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    supabase.auth
-      .getUser()
-      .then(({ data }) => {
-        if (mounted) {
-          setUserEmail(data.user?.email || "");
+        const familyData = {
+            accounts,
+            transactions,
+            budgets,
+            debts,
+            savings,
+            salaries,
+            investCategories,
+        };
+        const serializedData = JSON.stringify(familyData);
+        // Không lưu nếu dữ liệu chưa thay đổi
+        if (serializedData === familyDataRef.current) {
+            return;
         }
-      })
-      .catch(() => {
-        if (mounted) setUserEmail("");
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  async function handleLogout() {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function handleChangePassword(event) {
-    event.preventDefault();
-    setPasswordMessage("");
-    setPasswordMessageType("");
-
-    if (newPassword.length < 8) {
-      setPasswordMessage("Mật khẩu mới phải có ít nhất 8 ký tự.");
-      setPasswordMessageType("error");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordMessage("Mật khẩu xác nhận không khớp.");
-      setPasswordMessageType("error");
-      return;
-    }
-
-    setPasswordSaving(true);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) {
-        setPasswordMessage(error.message || "Không thể đổi mật khẩu.");
-        setPasswordMessageType("error");
-        return;
-      }
-
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordMessage("Đổi mật khẩu thành công.");
-      setPasswordMessageType("success");
-      playSound(720, 0.06);
-    } catch (error) {
-      console.error(error);
-      setPasswordMessage("Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.");
-      setPasswordMessageType("error");
-    } finally {
-      setPasswordSaving(false);
-    }
-  }
-
-  /* =======================================================
-     XUẤT DỮ LIỆU RA FILE JSON
-  ======================================================= */
-
-  function exportData() {
-    const payload = {
-      app: "blue-finance",
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      data: {
+        // Chờ 1 giây sau thao tác cuối cùng rồi mới lưu
+        if (familySaveTimerRef.current) {
+            clearTimeout(familySaveTimerRef.current);
+        }
+        familySaveTimerRef.current = setTimeout(() => {
+            familySaveQueueRef.current = familySaveQueueRef.current
+                .catch(() => { })
+                .then(async () => {
+                if (serializedData === familyDataRef.current ||
+                    familySyncConflictRef.current) {
+                    return;
+                }
+                try {
+                    setFamilySyncStatus("saving");
+                    setFamilySyncError("");
+                    const saveResult = await saveFamilyData(familyData, familySyncVersionRef.current);
+                    familySyncVersionRef.current =
+                        saveResult.version ?? saveResult.updatedAt ?? null;
+                    familyDataRef.current = serializedData;
+                    setFamilySyncStatus("synced");
+                }
+                catch (error) {
+                    console.error("Family data save error:", error);
+                    if (error.conflict) {
+                        familySyncConflictRef.current = true;
+                        localStorage.setItem("blue-finance-conflict-backup-v1", JSON.stringify({
+                            createdAt: new Date().toISOString(),
+                            expectedVersion: familySyncVersionRef.current,
+                            data: familyData,
+                        }));
+                        setFamilySyncError("Dữ liệu đã được thay đổi trên thiết bị khác. Bản chỉnh sửa trên thiết bị này đã được sao lưu cục bộ. Hãy tải lại trang để nhận dữ liệu mới nhất.");
+                        setFamilySyncReady(false);
+                    }
+                    else {
+                        setFamilySyncError(error.message ||
+                            "Không thể đồng bộ dữ liệu lên máy chủ.");
+                    }
+                    setFamilySyncStatus("error");
+                }
+            });
+        }, 1000);
+        return () => {
+            if (familySaveTimerRef.current) {
+                clearTimeout(familySaveTimerRef.current);
+            }
+        };
+    }, [
         accounts,
         transactions,
         budgets,
@@ -2326,340 +870,1228 @@ export default function App() {
         savings,
         salaries,
         investCategories,
-      },
-    };
-
-    try {
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {
-        type: "application/json",
-      });
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `blue-finance-backup-${todayString()}.json`;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
-
-      setImportMessage("Đã xuất file sao lưu thành công.");
-      setImportMessageType("success");
-      successSound();
-    } catch (error) {
-      console.error(error);
-      setImportMessage("Không thể xuất file sao lưu. Vui lòng thử lại.");
-      setImportMessageType("error");
+        familySyncReady,
+    ]);
+    /* =======================================================
+       DANH SÁCH THÁNG
+    ======================================================= */
+    const availableMonths = useMemo(() => {
+        const monthSet = new Set();
+        transactions.forEach((item) => {
+            if (item.date) {
+                monthSet.add(item.date.slice(0, 7));
+            }
+        });
+        Object.keys(budgets).forEach((month) => {
+            monthSet.add(month);
+        });
+        if (monthSet.size === 0) {
+            monthSet.add(selectedMonth);
+        }
+        return Array.from(monthSet).sort((a, b) => b.localeCompare(a));
+    }, [transactions, budgets, selectedMonth]);
+    /* =======================================================
+       TÀI KHOẢN
+    ======================================================= */
+    function getAccount(id) {
+        return accounts.find((account) => String(account.id) === String(id));
     }
-  }
-
-  /* =======================================================
-     NHẬP DỮ LIỆU TỪ FILE JSON
-  ======================================================= */
-
-  function triggerImportFile() {
-    importFileInputRef.current?.click();
-  }
-
-  function handleImportFile(event) {
-    const file = event.target.files?.[0];
-
-    /* CHO PHÉP CHỌN LẠI CÙNG 1 FILE LẦN NỮA */
-    event.target.value = "";
-
-    if (!file) return;
-
-    setImportMessage("");
-    setImportMessageType("");
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(String(reader.result || ""));
-
-        /* HỖ TRỢ CẢ FILE CÓ BỌC { data: {...} } VÀ FILE THÔ {...} */
-        const data = parsed?.data || parsed;
-
-        const nextAccounts = Array.isArray(data?.accounts)
-          ? data.accounts
-          : null;
-
-        const nextTransactions = Array.isArray(data?.transactions)
-          ? data.transactions
-          : null;
-
-        const nextBudgets =
-          data?.budgets &&
-          typeof data.budgets === "object" &&
-          !Array.isArray(data.budgets)
-            ? data.budgets
-            : null;
-
-        if (!nextAccounts || !nextTransactions || !nextBudgets) {
-          setImportMessage(
-            "File không đúng định dạng sao lưu của Blue Finance."
-          );
-          setImportMessageType("error");
-          return;
+    function getAccountName(id) {
+        return getAccount(id)?.name || "Không xác định";
+    }
+    function getAccountBalance(account, uptoMonth) {
+        let balance = Number(account.openingBalance || 0);
+        transactions.forEach((transaction) => {
+            /* Nếu có uptoMonth: chỉ tính các giao dịch đến hết tháng đó */
+            if (uptoMonth &&
+                String(transaction.date || "").slice(0, 7) > uptoMonth) {
+                return;
+            }
+            const amount = Math.abs(Number(transaction.amount || 0));
+            if (transaction.type === "income" &&
+                String(transaction.accountId) === String(account.id)) {
+                balance += amount;
+            }
+            if (transaction.type === "expense" &&
+                String(transaction.accountId) === String(account.id)) {
+                balance -= amount;
+            }
+            if (transaction.type === "adjustment" &&
+                String(transaction.accountId) === String(account.id)) {
+                if (transaction.adjustmentDirection === "minus") {
+                    balance -= amount;
+                }
+                else {
+                    balance += amount;
+                }
+            }
+            if (transaction.type === "transfer") {
+                if (String(transaction.fromAccountId) === String(account.id)) {
+                    balance -= amount;
+                }
+                if (String(transaction.toAccountId) === String(account.id)) {
+                    balance += amount;
+                }
+            }
+        });
+        return balance;
+    }
+    const totalAssets = useMemo(() => {
+        return accounts.reduce((total, account) => {
+            return total + getAccountBalance(account);
+        }, 0);
+    }, [accounts, transactions]);
+    /* =======================================================
+       GIAO DỊCH THÁNG
+    ======================================================= */
+    const monthTransactions = useMemo(() => {
+        return transactions.filter((item) => item.date && item.date.startsWith(selectedMonth));
+    }, [transactions, selectedMonth]);
+    const logSearchText = logSearch.trim().toLowerCase();
+    const transactionMonthTransactions = useMemo(() => {
+        return transactions.filter((item) => {
+            if (!item.date)
+                return false;
+            /* Lọc theo loại (không chọn loại nào = lấy tất cả) */
+            if (logTypes.length > 0 && !logTypes.includes(item.type))
+                return false;
+            /* Có từ khoá: tìm trong toàn bộ nhật ký, không giới hạn ngày/tháng/năm */
+            if (logSearchText) {
+                const accountText = item.type === "transfer"
+                    ? `${getAccountName(item.fromAccountId)} ${getAccountName(item.toAccountId)}`
+                    : getAccountName(item.accountId);
+                const categoryText = item.type === "expense"
+                    ? categories[item.category]?.label || ""
+                    : "";
+                return `${item.code || ""} ${item.description || ""} ${accountText} ${categoryText} ${typeLabels[item.type] || ""} ${formatDate(item.date)} ${Math.abs(Number(item.amount || 0))}`
+                    .toLowerCase()
+                    .includes(logSearchText);
+            }
+            if (logMode === "day")
+                return item.date === logDay;
+            if (logMode === "year")
+                return item.date.startsWith(`${logYear}-`);
+            return item.date.startsWith(transactionMonth);
+        });
+    }, [
+        transactions,
+        accounts,
+        transactionMonth,
+        logMode,
+        logDay,
+        logYear,
+        logTypes,
+        logSearchText,
+    ]);
+    const logMonthsWithData = useMemo(() => {
+        const set = new Set();
+        transactions.forEach((item) => {
+            if (item.date)
+                set.add(item.date.slice(0, 7));
+        });
+        return set;
+    }, [transactions]);
+    const logYearsWithData = useMemo(() => {
+        const set = new Set();
+        transactions.forEach((item) => {
+            if (item.date)
+                set.add(Number(item.date.slice(0, 4)));
+        });
+        return set;
+    }, [transactions]);
+    /* Sắp xếp mới nhất trước rồi cắt thành từng trang */
+    const logSorted = useMemo(() => [...transactionMonthTransactions].sort((a, b) => b.date.localeCompare(a.date) ||
+        String(b.id).localeCompare(String(a.id))), [transactionMonthTransactions]);
+    const logPageCount = Math.max(1, Math.ceil(logSorted.length / logPageSize));
+    const logPageSafe = Math.min(logPage, logPageCount);
+    const logPageStart = (logPageSafe - 1) * logPageSize;
+    const logPageData = logSorted.slice(logPageStart, logPageStart + logPageSize);
+    /* Đổi bộ lọc thì quay về trang 1 */
+    useEffect(() => {
+        setLogPage(1);
+    }, [
+        logMode,
+        logDay,
+        transactionMonth,
+        logYear,
+        logSearchText,
+        logTypes,
+    ]);
+    /* Bảng nhật ký kéo dài tới đáy màn hình: đo chiều cao còn lại, chia số dòng
+       mỗi trang và giãn đều chiều cao dòng để không còn khoảng trống */
+    useLayoutEffect(() => {
+        if (activePage !== "transactions")
+            return undefined;
+        const measure = () => {
+            const panel = logPageRef.current;
+            const table = logTableRef.current;
+            if (!panel || !table)
+                return;
+            if (window.innerWidth <= 900) {
+                panel.style.removeProperty("--log-page-h");
+                table.style.setProperty("--log-row-h", `${LOG_ROW_HEIGHT}px`);
+                setLogPageSize(10);
+                return;
+            }
+            const top = panel.getBoundingClientRect().top + window.scrollY;
+            panel.style.setProperty("--log-page-h", `${Math.max(420, window.innerHeight - top - 20)}px`);
+            const head = table.querySelector(".table-header")?.offsetHeight || LOG_HEAD_HEIGHT;
+            const area = table.clientHeight - head - 2;
+            const count = Math.max(3, Math.min(50, Math.floor(area / LOG_ROW_HEIGHT)));
+            table.style.setProperty("--log-row-h", `${Math.max(LOG_ROW_HEIGHT, area / count)}px`);
+            setLogPageSize(count);
+        };
+        measure();
+        const frame = requestAnimationFrame(measure);
+        const timer = setTimeout(measure, 200);
+        let observer = null;
+        if (typeof ResizeObserver !== "undefined" && logTableRef.current) {
+            observer = new ResizeObserver(measure);
+            observer.observe(logTableRef.current);
         }
-
-        const confirmed = window.confirm(
-          "Nhập dữ liệu sẽ THAY THẾ toàn bộ tài khoản, giao dịch, ngân sách, khoản nợ và khoản tiết kiệm hiện tại bằng dữ liệu trong file. Bạn có chắc chắn muốn tiếp tục?"
-        );
-
-        if (!confirmed) return;
-
-        setAccounts(nextAccounts);
-        setTransactions(nextTransactions);
-        setBudgets(nextBudgets);
-
-        /* File sao lưu cũ chưa có 2 mục này: giữ nguyên dữ liệu hiện tại */
-        if (Array.isArray(data?.debts)) setDebts(data.debts);
-        if (Array.isArray(data?.savings)) setSavings(data.savings);
-        if (Array.isArray(data?.salaries)) setSalaries(data.salaries);
-        if (Array.isArray(data?.investCategories) && data.investCategories.length) {
-          setInvestCategories(data.investCategories);
+        window.addEventListener("resize", measure);
+        return () => {
+            cancelAnimationFrame(frame);
+            clearTimeout(timer);
+            if (observer)
+                observer.disconnect();
+            window.removeEventListener("resize", measure);
+        };
+    }, [activePage]);
+    const logYearOptions = useMemo(() => {
+        const thisYear = new Date().getFullYear();
+        const years = new Set([thisYear - 3, thisYear - 2, thisYear - 1, thisYear, thisYear + 1]);
+        transactions.forEach((item) => {
+            if (item.date)
+                years.add(Number(item.date.slice(0, 4)));
+        });
+        years.add(Number(transactionMonth.split("-")[0]));
+        years.add(Number(logYear));
+        return [...years]
+            .filter((y) => Number.isFinite(y))
+            .sort((a, b) => b - a)
+            .map(String);
+    }, [transactions, transactionMonth, logYear]);
+    const logScopeLabel = logSearchText
+        ? `Kết quả cho “${logSearch.trim()}”`
+        : logMode === "day"
+            ? `Ngày ${formatDate(logDay)}`
+            : logMode === "year"
+                ? `Năm ${logYear}`
+                : formatMonth(transactionMonth);
+    const logTypeLabel = logTypes.length > 0
+        ? logTypes.map((type) => typeLabels[type]).join(", ")
+        : "";
+    const monthlyTableTransactions = useMemo(() => {
+        return transactions.filter((item) => item.date && item.date.startsWith(monthlyTableMonth));
+    }, [transactions, monthlyTableMonth]);
+    /* =======================================================
+       TÍNH TỔNG
+    ======================================================= */
+    function calculateTotals(data) {
+        let income = 0;
+        let expense = 0;
+        let adjustment = 0;
+        let food = 0;
+        let rent = 0;
+        let other = 0;
+        data.forEach((item) => {
+            const amount = Math.abs(Number(item.amount || 0));
+            if (item.type === "income") {
+                income += amount;
+            }
+            if (item.type === "expense") {
+                expense += amount;
+                if (item.category === "food") {
+                    food += amount;
+                }
+                if (item.category === "rent") {
+                    rent += amount;
+                }
+                if (item.category === "other") {
+                    other += amount;
+                }
+            }
+            if (item.type === "adjustment") {
+                if (item.adjustmentDirection === "minus") {
+                    adjustment -= amount;
+                }
+                else {
+                    adjustment += amount;
+                }
+            }
+        });
+        return {
+            income,
+            expense,
+            adjustment,
+            food,
+            rent,
+            other,
+            remaining: income + adjustment - expense,
+        };
+    }
+    const totals = useMemo(() => {
+        return calculateTotals(monthTransactions);
+    }, [monthTransactions]);
+    /* =======================================================
+       SO SÁNH VỚI THÁNG TRƯỚC
+    ======================================================= */
+    const previousMonth = useMemo(() => getPreviousMonthKey(selectedMonth), [selectedMonth]);
+    const previousMonthTransactions = useMemo(() => {
+        return transactions.filter((item) => item.date && item.date.startsWith(previousMonth));
+    }, [transactions, previousMonth]);
+    const previousTotals = useMemo(() => {
+        return calculateTotals(previousMonthTransactions);
+    }, [previousMonthTransactions]);
+    const hasPreviousMonthData = previousMonthTransactions.length > 0;
+    const monthComparisons = {
+        income: {
+            diff: totals.income - previousTotals.income,
+            ready: hasPreviousMonthData,
+        },
+        expense: {
+            diff: totals.expense - previousTotals.expense,
+            ready: hasPreviousMonthData,
+        },
+        adjustment: {
+            diff: totals.adjustment - previousTotals.adjustment,
+            ready: hasPreviousMonthData,
+        },
+        remaining: {
+            diff: totals.remaining - previousTotals.remaining,
+            ready: hasPreviousMonthData,
+        },
+    };
+    /* =======================================================
+       NGÂN SÁCH — ép trang vừa đúng 1 màn hình (không cần cuộn)
+    ======================================================= */
+    const budgetPageRef = useRef(null);
+    useEffect(() => {
+        if (activePage !== "budget")
+            return undefined;
+        const fit = () => {
+            const element = budgetPageRef.current;
+            if (!element)
+                return;
+            const top = element.getBoundingClientRect().top + window.scrollY;
+            const available = window.innerHeight - top - 20;
+            element.style.setProperty("--budget-page-h", `${Math.max(available, 400)}px`);
+        };
+        fit();
+        const frame = requestAnimationFrame(fit);
+        const timer = setTimeout(fit, 200);
+        window.addEventListener("resize", fit);
+        return () => {
+            cancelAnimationFrame(frame);
+            clearTimeout(timer);
+            window.removeEventListener("resize", fit);
+        };
+    }, [activePage]);
+    /* =======================================================
+       NGÂN SÁCH
+    ======================================================= */
+    const currentBudget = budgets[selectedMonth] || {
+        food: 0,
+        rent: 0,
+        other: 0,
+    };
+    const totalBudget = Number(currentBudget.food || 0) +
+        Number(currentBudget.rent || 0) +
+        Number(currentBudget.other || 0);
+    const budgetShares = getBudgetShares(currentBudget);
+    const budgetUsed = totals.expense;
+    const budgetRemaining = totalBudget - budgetUsed;
+    const budgetPercent = totalBudget > 0
+        ? (budgetUsed / totalBudget) * 100
+        : 0;
+    function categoryBudgetPercent(category) {
+        const budget = Number(currentBudget[category] || 0);
+        const spent = Number(totals[category] || 0);
+        if (budget <= 0) {
+            return 0;
         }
-
-        setImportMessage("Nhập dữ liệu thành công.");
-        setImportMessageType("success");
+        return (spent / budget) * 100;
+    }
+    /* =======================================================
+       DANH MỤC CHI NHIỀU NHẤT
+    ======================================================= */
+    const highestCategory = useMemo(() => {
+        const data = [
+            {
+                name: "Ăn uống",
+                amount: totals.food,
+            },
+            {
+                name: "Tiền trọ",
+                amount: totals.rent,
+            },
+            {
+                name: "Chi tiêu khác",
+                amount: totals.other,
+            },
+        ];
+        return data.reduce((max, item) => item.amount > max.amount ? item : max);
+    }, [totals]);
+    /* =======================================================
+       NGÂN SÁCH
+    ======================================================= */
+    function saveBudget(event) {
+        event.preventDefault();
+        const newBudget = {
+            food: Math.max(0, Number(budgetForm.food || 0)),
+            rent: Math.max(0, Number(budgetForm.rent || 0)),
+            other: Math.max(0, Number(budgetForm.other || 0)),
+        };
+        setBudgets((old) => ({
+            ...old,
+            [selectedMonth]: newBudget,
+        }));
         successSound();
-      } catch (error) {
-        console.error(error);
-        setImportMessage(
-          "Không thể đọc file. Vui lòng kiểm tra lại file JSON."
-        );
-        setImportMessageType("error");
-      }
+    }
+    function deleteBudget() {
+        if (!window.confirm(`Bạn có chắc muốn xóa ngân sách ${formatMonth(selectedMonth)}?`)) {
+            return;
+        }
+        setBudgets((old) => {
+            const copy = { ...old };
+            delete copy[selectedMonth];
+            return copy;
+        });
+        setBudgetForm({
+            food: "",
+            rent: "",
+            other: "",
+        });
+        deleteSound();
+    }
+    useEffect(() => {
+        const budget = budgets[selectedMonth];
+        if (budget) {
+            setBudgetForm({
+                food: budget.food || "",
+                rent: budget.rent || "",
+                other: budget.other || "",
+            });
+        }
+        else {
+            setBudgetForm({
+                food: "",
+                rent: "",
+                other: "",
+            });
+        }
+    }, [selectedMonth, budgets]);
+    /* =======================================================
+       THÊM TÀI KHOẢN
+    ======================================================= */
+    function addAccount(event) {
+        event.preventDefault();
+        if (!accountForm.name.trim()) {
+            alert("Vui lòng nhập tên tài khoản.");
+            return;
+        }
+        const newAccount = {
+            id: createId(),
+            name: accountForm.name.trim(),
+            type: accountForm.type,
+            openingBalance: Number(accountForm.openingBalance || 0),
+        };
+        setAccounts((old) => [...old, newAccount]);
+        setAccountForm({
+            name: "",
+            type: "bank",
+            openingBalance: "",
+        });
+        successSound();
+    }
+    /* =======================================================
+       XÓA TÀI KHOẢN
+    ======================================================= */
+    function deleteAccount(id) {
+        const linked = transactions.some((item) => String(item.accountId) === String(id) ||
+            String(item.fromAccountId) === String(id) ||
+            String(item.toAccountId) === String(id));
+        if (linked) {
+            alert("Không thể xóa tài khoản vì tài khoản này đang có giao dịch liên kết.");
+            return;
+        }
+        if (!window.confirm("Bạn có chắc muốn xóa tài khoản?")) {
+            return;
+        }
+        setAccounts((old) => old.filter((account) => account.id !== id));
+        if (String(viewAccountId) === String(id)) {
+            setViewAccountId("");
+        }
+        deleteSound();
+    }
+    /* =======================================================
+       RESET FORM GIAO DỊCH
+    ======================================================= */
+    function resetTransactionForm() {
+        setTransactionForm({
+            date: todayString(),
+            description: "",
+            amount: "",
+            category: "food",
+            accountId: "",
+            adjustmentDirection: "plus",
+            fromAccountId: "",
+            toAccountId: "",
+        });
+    }
+    /* =======================================================
+       THÊM GIAO DỊCH
+    ======================================================= */
+    function addTransaction(event) {
+        event.preventDefault();
+        const amount = Math.abs(Number(transactionForm.amount));
+        if (!transactionForm.date) {
+            alert("Vui lòng chọn ngày.");
+            return;
+        }
+        if (!amount) {
+            alert("Vui lòng nhập số tiền.");
+            return;
+        }
+        /* CHUYỂN TIỀN */
+        if (formType === "transfer") {
+            if (!transactionForm.fromAccountId ||
+                !transactionForm.toAccountId) {
+                alert("Vui lòng chọn tài khoản nguồn và tài khoản đích.");
+                return;
+            }
+            if (transactionForm.fromAccountId ===
+                transactionForm.toAccountId) {
+                alert("Tài khoản nguồn và tài khoản đích phải khác nhau.");
+                return;
+            }
+            const sourceAccount = getAccount(transactionForm.fromAccountId);
+            if (sourceAccount &&
+                getAccountBalance(sourceAccount) < amount) {
+                const allow = window.confirm("Số tiền chuyển lớn hơn số dư hiện tại. Bạn vẫn muốn tiếp tục?");
+                if (!allow)
+                    return;
+            }
+            const transaction = {
+                id: createId(),
+                code: getNextTransactionCode(transactions, transactionForm.date),
+                type: "transfer",
+                date: transactionForm.date,
+                description: transactionForm.description || "Chuyển tiền",
+                amount,
+                fromAccountId: transactionForm.fromAccountId,
+                toAccountId: transactionForm.toAccountId,
+            };
+            setTransactions((old) => [...old, transaction]);
+        }
+        else {
+            /* THU / CHI / ĐIỀU CHỈNH */
+            if (!transactionForm.accountId) {
+                alert("Vui lòng chọn tài khoản.");
+                return;
+            }
+            const selectedAccountObject = getAccount(transactionForm.accountId);
+            if (formType === "expense" &&
+                selectedAccountObject &&
+                getAccountBalance(selectedAccountObject) < amount) {
+                const allow = window.confirm("Khoản chi lớn hơn số dư tài khoản. Bạn vẫn muốn tiếp tục?");
+                if (!allow)
+                    return;
+            }
+            const transaction = {
+                id: createId(),
+                code: getNextTransactionCode(transactions, transactionForm.date),
+                type: formType,
+                date: transactionForm.date,
+                description: transactionForm.description,
+                amount,
+                accountId: transactionForm.accountId,
+                ...(formType === "expense"
+                    ? {
+                        category: transactionForm.category,
+                    }
+                    : {}),
+                ...(formType === "adjustment"
+                    ? {
+                        adjustmentDirection: transactionForm.adjustmentDirection,
+                    }
+                    : {}),
+            };
+            setTransactions((old) => [...old, transaction]);
+        }
+        setSelectedMonth(transactionForm.date.slice(0, 7));
+        /* Nhật ký giao dịch cũng chuyển sang tháng của giao dịch vừa thêm
+           để thấy ngay dòng mới */
+        setTransactionMonth(transactionForm.date.slice(0, 7));
+        setMonthlyTableMonth(transactionForm.date.slice(0, 7));
+        setLogDay(transactionForm.date);
+        setLogYear(transactionForm.date.slice(0, 4));
+        /* Thông báo chuông: mã này trùng mã vừa cấp cho giao dịch (state chưa cập nhật) */
+        addTxNotice({
+            text: `${typeLabels[formType]} · ${formatMoney(amount)} · ${getNextTransactionCode(transactions, transactionForm.date)}`,
+        });
+        resetTransactionForm();
+        successSound();
+    }
+    /* =======================================================
+       XÓA GIAO DỊCH
+    ======================================================= */
+    function deleteTransaction(id) {
+        if (!window.confirm("Bạn có chắc muốn xóa giao dịch?")) {
+            return;
+        }
+        setTransactions((old) => old.filter((item) => item.id !== id));
+        deleteSound();
+    }
+    /* =======================================================
+       SỬA GIAO DỊCH
+    ======================================================= */
+    function startEdit(transaction) {
+        setEditingTransaction({
+            ...transaction,
+            amount: Math.abs(Number(transaction.amount || 0)),
+        });
+    }
+    function saveEdit(event) {
+        event.preventDefault();
+        if (!editingTransaction)
+            return;
+        const amount = Math.abs(Number(editingTransaction.amount));
+        if (!editingTransaction.date || !amount) {
+            alert("Ngày và số tiền không được để trống.");
+            return;
+        }
+        if (editingTransaction.type === "transfer") {
+            if (!editingTransaction.fromAccountId ||
+                !editingTransaction.toAccountId) {
+                alert("Vui lòng chọn đủ hai tài khoản.");
+                return;
+            }
+            if (editingTransaction.fromAccountId ===
+                editingTransaction.toAccountId) {
+                alert("Tài khoản nguồn và tài khoản đích phải khác nhau.");
+                return;
+            }
+        }
+        else if (!editingTransaction.accountId) {
+            alert("Vui lòng chọn tài khoản.");
+            return;
+        }
+        /* Mã ID gắn với ngày: đổi ngày thì cấp mã mới theo ngày mới */
+        const original = transactions.find((item) => item.id === editingTransaction.id);
+        let code = editingTransaction.code;
+        if (!code || (original && original.date !== editingTransaction.date)) {
+            code = getNextTransactionCode(transactions.filter((item) => item.id !== editingTransaction.id), editingTransaction.date, /^#L/.test(editingTransaction.code || "") ? "L" : "");
+        }
+        const updated = {
+            ...editingTransaction,
+            code,
+            amount,
+        };
+        setTransactions((old) => old.map((item) => item.id === updated.id ? updated : item));
+        setSelectedMonth(updated.date.slice(0, 7));
+        setEditingTransaction(null);
+        successSound();
+    }
+    /* =======================================================
+       LỌC GIAO DỊCH
+    ======================================================= */
+    const filteredTransactions = useMemo(() => {
+        let result = [...monthTransactions];
+        const search = filters.search.trim().toLowerCase();
+        if (search) {
+            result = result.filter((item) => {
+                let accountText = "";
+                if (item.type === "transfer") {
+                    accountText = `${getAccountName(item.fromAccountId)} ${getAccountName(item.toAccountId)}`;
+                }
+                else {
+                    accountText = getAccountName(item.accountId);
+                }
+                const categoryText = item.type === "expense"
+                    ? categories[item.category]?.label || ""
+                    : "";
+                return `${item.description || ""} ${accountText} ${categoryText}`
+                    .toLowerCase()
+                    .includes(search);
+            });
+        }
+        if (filters.type !== "all") {
+            result = result.filter((item) => item.type === filters.type);
+        }
+        if (filters.category !== "all") {
+            result = result.filter((item) => item.type === "expense" &&
+                item.category === filters.category);
+        }
+        if (filters.accountId !== "all") {
+            result = result.filter((item) => {
+                if (item.type === "transfer") {
+                    return (String(item.fromAccountId) ===
+                        String(filters.accountId) ||
+                        String(item.toAccountId) ===
+                            String(filters.accountId));
+                }
+                return (String(item.accountId) ===
+                    String(filters.accountId));
+            });
+        }
+        if (filters.dateFrom) {
+            result = result.filter((item) => item.date >= filters.dateFrom);
+        }
+        if (filters.dateTo) {
+            result = result.filter((item) => item.date <= filters.dateTo);
+        }
+        if (filters.minAmount !== "") {
+            result = result.filter((item) => Math.abs(Number(item.amount)) >=
+                Number(filters.minAmount));
+        }
+        if (filters.maxAmount !== "") {
+            result = result.filter((item) => Math.abs(Number(item.amount)) <=
+                Number(filters.maxAmount));
+        }
+        result.sort((a, b) => {
+            if (filters.sort === "newest") {
+                return b.date.localeCompare(a.date);
+            }
+            if (filters.sort === "oldest") {
+                return a.date.localeCompare(b.date);
+            }
+            if (filters.sort === "highest") {
+                return Number(b.amount) - Number(a.amount);
+            }
+            if (filters.sort === "lowest") {
+                return Number(a.amount) - Number(b.amount);
+            }
+            return 0;
+        });
+        return result;
+    }, [monthTransactions, filters, accounts]);
+    const filteredTotals = useMemo(() => calculateTotals(filteredTransactions), [filteredTransactions]);
+    const filteredAverage = filteredTransactions.length > 0
+        ? filteredTransactions.reduce((sum, item) => sum + Math.abs(Number(item.amount || 0)), 0) / filteredTransactions.length
+        : 0;
+    const filteredHighest = filteredTransactions.length > 0
+        ? Math.max(...filteredTransactions.map((item) => Math.abs(Number(item.amount || 0))))
+        : 0;
+    function resetFilters() {
+        setFilters({
+            search: "",
+            type: "all",
+            category: "all",
+            accountId: "all",
+            dateFrom: "",
+            dateTo: "",
+            minAmount: "",
+            maxAmount: "",
+            sort: "newest",
+        });
+        playSound();
+    }
+    /* =======================================================
+       LỊCH
+    ======================================================= */
+    const [selectedYear, selectedMonthNumber] = selectedMonth
+        .split("-")
+        .map(Number);
+    const calendarCells = useMemo(() => {
+        const firstDate = new Date(selectedYear, selectedMonthNumber - 1, 1);
+        const numberOfDays = new Date(selectedYear, selectedMonthNumber, 0).getDate();
+        let start = firstDate.getDay();
+        start = start === 0 ? 6 : start - 1;
+        const cells = [];
+        for (let i = 0; i < start; i++) {
+            cells.push(null);
+        }
+        for (let day = 1; day <= numberOfDays; day++) {
+            cells.push(day);
+        }
+        return cells;
+    }, [selectedYear, selectedMonthNumber]);
+    function dailyTotals(day) {
+        const date = `${selectedYear}-${pad(selectedMonthNumber)}-${pad(day)}`;
+        const data = monthTransactions.filter((item) => item.date === date);
+        return calculateTotals(data);
+    }
+    /* =======================================================
+       LỊCH SỬ TÀI KHOẢN
+    ======================================================= */
+    const selectedAccount = getAccount(viewAccountId);
+    const selectedAccountHistory = useMemo(() => {
+        if (!viewAccountId) {
+            return [];
+        }
+        return transactions
+            .filter((item) => {
+            if (item.type === "transfer") {
+                return (String(item.fromAccountId) ===
+                    String(viewAccountId) ||
+                    String(item.toAccountId) ===
+                        String(viewAccountId));
+            }
+            return (String(item.accountId) === String(viewAccountId));
+        })
+            .sort((a, b) => b.date.localeCompare(a.date));
+    }, [transactions, viewAccountId]);
+    /* =======================================================
+       DASHBOARD - BIẾN ĐỘNG TIỀN VÀO / TIỀN RA
+    ======================================================= */
+    const dashboardFlowData = useMemo(() => {
+        const [year, month] = selectedMonth.split("-").map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        let cumulative = 0;
+        return Array.from({ length: daysInMonth }, (_, index) => {
+            const day = index + 1;
+            const date = `${selectedMonth}-${pad(day)}`;
+            const dayTransactions = transactions.filter((item) => item.date === date);
+            let income = 0;
+            let expense = 0;
+            let adjustment = 0;
+            dayTransactions.forEach((item) => {
+                const amount = Math.abs(Number(item.amount || 0));
+                if (item.type === "income")
+                    income += amount;
+                if (item.type === "expense")
+                    expense += amount;
+                if (item.type === "adjustment") {
+                    adjustment +=
+                        item.adjustmentDirection === "minus"
+                            ? -amount
+                            : amount;
+                }
+            });
+            cumulative += income + adjustment - expense;
+            return {
+                day,
+                income,
+                expense,
+                adjustment,
+                net: income + adjustment - expense,
+                cumulative,
+            };
+        });
+    }, [transactions, selectedMonth]);
+    /* =======================================================
+       DASHBOARD - THÔNG BÁO
+    ======================================================= */
+    const dashboardNotifications = useMemo(() => {
+        const items = [];
+        if (totalBudget > 0 && budgetPercent >= 100) {
+            items.push({
+                id: `budget-danger-${selectedMonth}`,
+                type: "danger",
+                title: "Đã vượt ngân sách",
+                text: `Đã chi ${formatMoney(budgetUsed)} / ${formatMoney(totalBudget)}.`,
+                actionPage: "budget",
+            });
+        }
+        else if (totalBudget > 0 && budgetPercent >= 80) {
+            items.push({
+                id: `budget-warning-${selectedMonth}`,
+                type: "warning",
+                title: "Ngân sách sắp đạt giới hạn",
+                text: `Đã sử dụng ${budgetPercent.toFixed(0)}% ngân sách tháng.`,
+                actionPage: "budget",
+            });
+        }
+        if (accounts.length === 0) {
+            items.push({
+                id: "no-account",
+                type: "info",
+                title: "Chưa có tài khoản",
+                text: "Hãy tạo tài khoản để bắt đầu theo dõi số dư.",
+                actionPage: "accounts",
+            });
+        }
+        if (monthTransactions.length === 0) {
+            items.push({
+                id: `empty-month-${selectedMonth}`,
+                type: "info",
+                title: "Chưa có giao dịch",
+                text: `${formatMonth(selectedMonth)} chưa có dữ liệu.`,
+                actionPage: "transactions",
+            });
+        }
+        return [...txNotices.slice(0, 5), ...items].slice(0, 8);
+    }, [
+        txNotices,
+        totalBudget,
+        budgetPercent,
+        budgetUsed,
+        accounts.length,
+        monthTransactions,
+        selectedMonth,
+    ]);
+    const unreadNotifications = useMemo(() => {
+        return dashboardNotifications.filter((item) => !readNotificationIds.includes(item.id));
+    }, [dashboardNotifications, readNotificationIds]);
+    /* Còn giao dịch mới chưa đọc → chuông có 2 tai và nhấp nháy;
+       đọc xong thì trở về chuông ban đầu */
+    const hasNewTx = unreadNotifications.some((item) => String(item.id).startsWith("tx-"));
+    function markNotificationRead(id) {
+        setReadNotificationIds((old) => {
+            if (old.includes(id))
+                return old;
+            const next = [...old, id].slice(-100);
+            localStorage.setItem(READ_NOTIFICATION_KEY, JSON.stringify(next));
+            return next;
+        });
+    }
+    function markAllNotificationsRead() {
+        setReadNotificationIds((old) => {
+            const next = Array.from(new Set([...old, ...dashboardNotifications.map((item) => item.id)])).slice(-100);
+            localStorage.setItem(READ_NOTIFICATION_KEY, JSON.stringify(next));
+            return next;
+        });
+    }
+    function openNotification(item) {
+        markNotificationRead(item.id);
+        setShowNotifications(false);
+        if (item.actionPage) {
+            setActivePage(item.actionPage);
+            playSound(620, 0.05);
+        }
+    }
+    useEffect(() => {
+        setShowNotifications(false);
+    }, [activePage]);
+    useEffect(() => {
+        function handleOutsideNotificationClick(event) {
+            if (showNotifications &&
+                notificationRef.current &&
+                !notificationRef.current.contains(event.target)) {
+                setShowNotifications(false);
+            }
+        }
+        function handleNotificationEscape(event) {
+            if (event.key === "Escape") {
+                setShowNotifications(false);
+            }
+        }
+        document.addEventListener("mousedown", handleOutsideNotificationClick);
+        document.addEventListener("keydown", handleNotificationEscape);
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideNotificationClick);
+            document.removeEventListener("keydown", handleNotificationEscape);
+        };
+    }, [showNotifications]);
+    useEffect(() => {
+        let mounted = true;
+        supabase.auth
+            .getUser()
+            .then(({ data }) => {
+            if (mounted) {
+                setUserEmail(data.user?.email || "");
+            }
+        })
+            .catch(() => {
+            if (mounted)
+                setUserEmail("");
+        });
+        return () => {
+            mounted = false;
+        };
+    }, []);
+    async function handleLogout() {
+        try {
+            await supabase.auth.signOut();
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+    async function handleChangePassword(event) {
+        event.preventDefault();
+        setPasswordMessage("");
+        setPasswordMessageType("");
+        if (newPassword.length < 8) {
+            setPasswordMessage("Mật khẩu mới phải có ít nhất 8 ký tự.");
+            setPasswordMessageType("error");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordMessage("Mật khẩu xác nhận không khớp.");
+            setPasswordMessageType("error");
+            return;
+        }
+        setPasswordSaving(true);
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword,
+            });
+            if (error) {
+                setPasswordMessage(error.message || "Không thể đổi mật khẩu.");
+                setPasswordMessageType("error");
+                return;
+            }
+            setNewPassword("");
+            setConfirmPassword("");
+            setPasswordMessage("Đổi mật khẩu thành công.");
+            setPasswordMessageType("success");
+            playSound(720, 0.06);
+        }
+        catch (error) {
+            console.error(error);
+            setPasswordMessage("Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.");
+            setPasswordMessageType("error");
+        }
+        finally {
+            setPasswordSaving(false);
+        }
+    }
+    /* =======================================================
+       XUẤT DỮ LIỆU RA FILE JSON
+    ======================================================= */
+    function exportData() {
+        const payload = {
+            app: "blue-finance",
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            data: {
+                accounts,
+                transactions,
+                budgets,
+                debts,
+                savings,
+                salaries,
+                investCategories,
+            },
+        };
+        try {
+            const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                type: "application/json",
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `blue-finance-backup-${todayString()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            setImportMessage("Đã xuất file sao lưu thành công.");
+            setImportMessageType("success");
+            successSound();
+        }
+        catch (error) {
+            console.error(error);
+            setImportMessage("Không thể xuất file sao lưu. Vui lòng thử lại.");
+            setImportMessageType("error");
+        }
+    }
+    /* =======================================================
+       NHẬP DỮ LIỆU TỪ FILE JSON
+    ======================================================= */
+    function triggerImportFile() {
+        importFileInputRef.current?.click();
+    }
+    function handleImportFile(event) {
+        const file = event.target.files?.[0];
+        /* CHO PHÉP CHỌN LẠI CÙNG 1 FILE LẦN NỮA */
+        event.target.value = "";
+        if (!file)
+            return;
+        setImportMessage("");
+        setImportMessageType("");
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const parsed = JSON.parse(String(reader.result || ""));
+                /* HỖ TRỢ CẢ FILE CÓ BỌC { data: {...} } VÀ FILE THÔ {...} */
+                const data = parsed?.data || parsed;
+                const nextAccounts = Array.isArray(data?.accounts)
+                    ? data.accounts
+                    : null;
+                const nextTransactions = Array.isArray(data?.transactions)
+                    ? data.transactions
+                    : null;
+                const nextBudgets = data?.budgets &&
+                    typeof data.budgets === "object" &&
+                    !Array.isArray(data.budgets)
+                    ? data.budgets
+                    : null;
+                if (!nextAccounts || !nextTransactions || !nextBudgets) {
+                    setImportMessage("File không đúng định dạng sao lưu của Blue Finance.");
+                    setImportMessageType("error");
+                    return;
+                }
+                const confirmed = window.confirm("Nhập dữ liệu sẽ THAY THẾ toàn bộ tài khoản, giao dịch, ngân sách, khoản nợ và khoản tiết kiệm hiện tại bằng dữ liệu trong file. Bạn có chắc chắn muốn tiếp tục?");
+                if (!confirmed)
+                    return;
+                setAccounts(nextAccounts);
+                setTransactions(nextTransactions);
+                setBudgets(nextBudgets);
+                /* File sao lưu cũ chưa có 2 mục này: giữ nguyên dữ liệu hiện tại */
+                if (Array.isArray(data?.debts))
+                    setDebts(data.debts);
+                if (Array.isArray(data?.savings))
+                    setSavings(data.savings);
+                if (Array.isArray(data?.salaries))
+                    setSalaries(data.salaries);
+                if (Array.isArray(data?.investCategories) && data.investCategories.length) {
+                    setInvestCategories(data.investCategories);
+                }
+                setImportMessage("Nhập dữ liệu thành công.");
+                setImportMessageType("success");
+                successSound();
+            }
+            catch (error) {
+                console.error(error);
+                setImportMessage("Không thể đọc file. Vui lòng kiểm tra lại file JSON.");
+                setImportMessageType("error");
+            }
+        };
+        reader.onerror = () => {
+            setImportMessage("Không thể đọc file. Vui lòng thử lại.");
+            setImportMessageType("error");
+        };
+        reader.readAsText(file);
+    }
+    /* =======================================================
+       MENU
+    ======================================================= */
+    const pages = [
+        {
+            id: "dashboard",
+            label: "Tổng quan",
+            icon: LayoutDashboard,
+        },
+        {
+            id: "transactions",
+            label: "Nhật ký giao dịch",
+            icon: List,
+        },
+        {
+            id: "monthlyTable",
+            label: "Thống kê tháng",
+            icon: Table2,
+        },
+        {
+            id: "reports",
+            label: "Báo cáo theo tháng",
+            icon: BarChart3,
+        },
+        {
+            id: "salary",
+            label: "Lương",
+            icon: Banknote,
+        },
+        {
+            id: "budget",
+            label: "Ngân sách tháng",
+            icon: Target,
+        },
+        {
+            id: "accounts",
+            label: "Tài khoản tài chính",
+            icon: Wallet,
+        },
+        {
+            id: "debts",
+            label: "Khoản Vay / Nợ",
+            icon: CreditCard,
+        },
+        {
+            id: "savings",
+            label: "Đầu tư",
+            icon: TrendingUp,
+        },
+        {
+            id: "profile",
+            label: "Tài khoản & bảo mật",
+            icon: UserRound,
+        },
+    ];
+    const shortLabels = {
+        dashboard: "Tổng quan",
+        transactions: "Giao dịch",
+        monthlyTable: "Thống kê",
+        reports: "Báo cáo",
+        salary: "Lương",
+        budget: "Ngân sách",
+        accounts: "Tài khoản",
+        debts: "Khoản Vay / Nợ",
+        savings: "Đầu tư",
+        profile: "Bảo mật",
     };
-
-    reader.onerror = () => {
-      setImportMessage("Không thể đọc file. Vui lòng thử lại.");
-      setImportMessageType("error");
-    };
-
-    reader.readAsText(file);
-  }
-
-  /* =======================================================
-     MENU
-  ======================================================= */
-
-  const pages = [
-    {
-      id: "dashboard",
-
-      label: "Tổng quan",
-
-      icon: LayoutDashboard,
-    },
-
-    {
-      id: "transactions",
-
-      label: "Nhật ký giao dịch",
-
-      icon: List,
-    },
-
-    {
-      id: "monthlyTable",
-
-      label: "Thống kê tháng",
-
-      icon: Table2,
-    },
-
-    {
-      id: "reports",
-
-      label: "Báo cáo theo tháng",
-
-      icon: BarChart3,
-    },
-
-    {
-      id: "salary",
-
-      label: "Lương",
-
-      icon: Banknote,
-    },
-
-    {
-      id: "budget",
-
-      label: "Ngân sách tháng",
-
-      icon: Target,
-    },
-
-    {
-      id: "accounts",
-
-      label: "Tài khoản tài chính",
-
-      icon: Wallet,
-    },
-
-    {
-      id: "debts",
-
-      label: "Khoản Vay / Nợ",
-
-      icon: CreditCard,
-    },
-
-    {
-      id: "savings",
-
-      label: "Đầu tư",
-
-      icon: TrendingUp,
-    },
-
-    {
-      id: "profile",
-
-      label: "Tài khoản & bảo mật",
-
-      icon: UserRound,
-    },
-  ];
-
-  const shortLabels = {
-    dashboard: "Tổng quan",
-    transactions: "Giao dịch",
-    monthlyTable: "Thống kê",
-    reports: "Báo cáo",
-    salary: "Lương",
-    budget: "Ngân sách",
-    accounts: "Tài khoản",
-    debts: "Khoản Vay / Nợ",
-    savings: "Đầu tư",
-    profile: "Bảo mật",
-  };
-
-  /* Hai chức năng nằm ở thanh điều hướng trên (chỉ chữ, không logo).
-     Trên điện thoại thanh trên bị ẩn nên hai nút này vẫn có ở thanh dưới. */
-  const topbarPageIds = ["budget", "accounts"];
-
-  const topbarPages = pages.filter((page) =>
-    topbarPageIds.includes(page.id)
-  );
-
-  /* Nút icon trên thanh trái (dùng cho cả nhóm giữa và nhóm dưới cùng) */
-  function renderRailButton(page) {
-    const Icon = page.icon;
-
-    return (
-      <button
-        key={page.id}
-        type="button"
-        aria-label={page.label}
-        onMouseEnter={(event) => showRailTip(event, page.label)}
-        onMouseLeave={hideRailTip}
-        onFocus={(event) => showRailTip(event, page.label)}
-        onBlur={hideRailTip}
-        className={`rail-button ${
-          activePage === page.id ? "active" : ""
-        } ${topbarPageIds.includes(page.id) ? "moved-to-topbar" : ""}`}
-        onClick={() => {
-          setActivePage(page.id);
-          playSound();
-        }}
-      >
-        <Icon size={20} />
-      </button>
-    );
-  }
-
-  const pageTitle =
-    pages.find((item) => item.id === activePage)?.label ||
-    "Blue Finance";
-
-  /* Ô "Thêm giao dịch": số dư sau giao dịch (xem trước) và các lựa chọn nhanh */
-  const quickTypes = [
-    { id: "income", label: "Đầu vào", icon: ArrowUpCircle },
-    { id: "expense", label: "Đầu ra", icon: ArrowDownCircle },
-    { id: "adjustment", label: "Tip / Âm", icon: SlidersHorizontal },
-  ];
-  const quickAmounts = [50000, 100000, 200000, 500000];
-  const quickAmount = Math.abs(Number(transactionForm.amount)) || 0;
-  const quickAccount = transactionForm.accountId
-    ? getAccount(transactionForm.accountId)
-    : null;
-  const quickBalance = quickAccount ? getAccountBalance(quickAccount) : 0;
-  const quickSign =
-    formType === "income" ||
-    (formType === "adjustment" &&
-      transactionForm.adjustmentDirection === "plus")
-      ? 1
-      : -1;
-  const quickAfter = quickBalance + quickSign * quickAmount;
-  const quickWords = vietnameseAmountInWords(quickAmount);
-  const quickCategoryLabel =
-    formType === "expense"
-      ? { food: "Tiền ăn", rent: "Tiền trọ", other: "Chi khác" }[
-          transactionForm.category
-        ] || "Chi tiêu"
-      : formType === "income"
-      ? "Đầu vào"
-      : transactionForm.adjustmentDirection === "plus"
-      ? "Tip / Cộng"
-      : "Âm / Trừ";
-  const quickSuggestions =
-    formType === "income"
-      ? ["Tiền lương", "Bố mẹ gửi", "Được cho", "Hoàn tiền"]
-      : formType === "adjustment"
-      ? transactionForm.adjustmentDirection === "plus"
-        ? ["Được tip", "Điều chỉnh số dư"]
-        : ["Điều chỉnh số dư", "Sai số"]
-      : transactionForm.category === "rent"
-      ? ["Tiền trọ", "Tiền điện", "Tiền nước", "Internet"]
-      : transactionForm.category === "other"
-      ? ["Đổ xăng", "Grab", "Mua sắm", "Giải trí"]
-      : ["Ăn sáng", "Ăn trưa", "Ăn tối", "Cà phê"];
-  const quickMissing = [
-    !quickAmount && "số tiền",
-    !quickAccount && "tài khoản",
-    !transactionForm.date && "ngày",
-  ].filter(Boolean);
-  /* Tài khoản mới thêm gần nhất (tài khoản được thêm sau cùng nằm cuối danh sách) */
-  const quickAccountsSorted = [...accounts].reverse();
-  let quickVisible = quickAccountsSorted.slice(0, 2);
-  if (
-    quickAccount &&
-    !quickVisible.some((item) => String(item.id) === String(quickAccount.id))
-  ) {
-    quickVisible = [quickVisible[0], quickAccount].filter(Boolean);
-  }
-  const renderQuickAccount = (account) => {
-    const accConfig = accountTypes[account.type] || accountTypes.bank;
-    const AccIcon = accConfig.icon;
-    const on = String(transactionForm.accountId) === String(account.id);
-
-    return (
-      <button
-        key={account.id}
-        type="button"
-        role="radio"
-        aria-checked={on}
-        className={`qa-acc ${account.type || "bank"} ${on ? "active" : ""}`}
-        onClick={() => {
-          setTransactionForm({
-            ...transactionForm,
-            accountId: String(account.id),
-          });
-          playSound();
-        }}
-      >
+    /* Hai chức năng nằm ở thanh điều hướng trên (chỉ chữ, không logo).
+       Trên điện thoại thanh trên bị ẩn nên hai nút này vẫn có ở thanh dưới. */
+    const topbarPageIds = ["budget", "accounts"];
+    const topbarPages = pages.filter((page) => topbarPageIds.includes(page.id));
+    /* Nút icon trên thanh trái (dùng cho cả nhóm giữa và nhóm dưới cùng) */
+    function renderRailButton(page) {
+        const Icon = page.icon;
+        return (<button key={page.id} type="button" aria-label={page.label} onMouseEnter={(event) => showRailTip(event, page.label)} onMouseLeave={hideRailTip} onFocus={(event) => showRailTip(event, page.label)} onBlur={hideRailTip} className={`rail-button ${activePage === page.id ? "active" : ""} ${topbarPageIds.includes(page.id) ? "moved-to-topbar" : ""}`} onClick={() => {
+                setActivePage(page.id);
+                playSound();
+            }}>
+        <Icon size={20}/>
+      </button>);
+    }
+    const pageTitle = pages.find((item) => item.id === activePage)?.label ||
+        "Blue Finance";
+    /* Ô "Thêm giao dịch": số dư sau giao dịch (xem trước) và các lựa chọn nhanh */
+    const quickTypes = [
+        { id: "income", label: "Đầu vào", icon: ArrowUpCircle },
+        { id: "expense", label: "Đầu ra", icon: ArrowDownCircle },
+        { id: "adjustment", label: "Tip / Âm", icon: SlidersHorizontal },
+    ];
+    const quickAmounts = [50000, 100000, 200000, 500000];
+    const quickAmount = Math.abs(Number(transactionForm.amount)) || 0;
+    const quickAccount = transactionForm.accountId
+        ? getAccount(transactionForm.accountId)
+        : null;
+    const quickBalance = quickAccount ? getAccountBalance(quickAccount) : 0;
+    const quickSign = formType === "income" ||
+        (formType === "adjustment" &&
+            transactionForm.adjustmentDirection === "plus")
+        ? 1
+        : -1;
+    const quickAfter = quickBalance + quickSign * quickAmount;
+    const quickWords = vietnameseAmountInWords(quickAmount);
+    const quickCategoryLabel = formType === "expense"
+        ? { food: "Tiền ăn", rent: "Tiền trọ", other: "Chi khác" }[transactionForm.category] || "Chi tiêu"
+        : formType === "income"
+            ? "Đầu vào"
+            : transactionForm.adjustmentDirection === "plus"
+                ? "Tip / Cộng"
+                : "Âm / Trừ";
+    const quickSuggestions = formType === "income"
+        ? ["Tiền lương", "Bố mẹ gửi", "Được cho", "Hoàn tiền"]
+        : formType === "adjustment"
+            ? transactionForm.adjustmentDirection === "plus"
+                ? ["Được tip", "Điều chỉnh số dư"]
+                : ["Điều chỉnh số dư", "Sai số"]
+            : transactionForm.category === "rent"
+                ? ["Tiền trọ", "Tiền điện", "Tiền nước", "Internet"]
+                : transactionForm.category === "other"
+                    ? ["Đổ xăng", "Grab", "Mua sắm", "Giải trí"]
+                    : ["Ăn sáng", "Ăn trưa", "Ăn tối", "Cà phê"];
+    const quickMissing = [
+        !quickAmount && "số tiền",
+        !quickAccount && "tài khoản",
+        !transactionForm.date && "ngày",
+    ].filter(Boolean);
+    /* Tài khoản mới thêm gần nhất (tài khoản được thêm sau cùng nằm cuối danh sách) */
+    const quickAccountsSorted = [...accounts].reverse();
+    let quickVisible = quickAccountsSorted.slice(0, 2);
+    if (quickAccount &&
+        !quickVisible.some((item) => String(item.id) === String(quickAccount.id))) {
+        quickVisible = [quickVisible[0], quickAccount].filter(Boolean);
+    }
+    const renderQuickAccount = (account) => {
+        const accConfig = accountTypes[account.type] || accountTypes.bank;
+        const AccIcon = accConfig.icon;
+        const on = String(transactionForm.accountId) === String(account.id);
+        return (<button key={account.id} type="button" role="radio" aria-checked={on} className={`qa-acc ${account.type || "bank"} ${on ? "active" : ""}`} onClick={() => {
+                setTransactionForm({
+                    ...transactionForm,
+                    accountId: String(account.id),
+                });
+                playSound();
+            }}>
         <i>
-          <AccIcon size={17} />
+          <AccIcon size={17}/>
         </i>
 
         <span>
@@ -2667,18 +2099,107 @@ export default function App() {
           <small>{formatMoney(getAccountBalance(account))}</small>
         </span>
 
-        {on && <CheckCircle2 size={16} className="qa-acc-check" />}
-      </button>
-    );
-  };
-  const quickSubmitLabel = {
-    expense: "Thêm khoản chi",
-    income: "Thêm khoản thu",
-    adjustment: "Thêm Tip / Âm",
-  }[formType] || "Thêm giao dịch";
+        {on && <CheckCircle2 size={16} className="qa-acc-check"/>}
+      </button>);
+    };
+    const quickSubmitLabel = {
+        expense: "Thêm khoản chi",
+        income: "Thêm khoản thu",
+        adjustment: "Thêm Tip / Âm",
+    }[formType] || "Thêm giao dịch";
+    /* =======================================================
+       MÀN HÌNH CHỜ ĐỒNG BỘ DỮ LIỆU GIA ĐÌNH
+    ======================================================= */
+    if (!familySyncReady) {
+        const isError = familySyncStatus === "error";
+        return (<div style={{
+                minHeight: "100vh",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "24px",
+                background: "#f5f7fb",
+                fontFamily: "Arial, sans-serif",
+            }}>
+        <div style={{
+                width: "100%",
+                maxWidth: "420px",
+                padding: "32px 24px",
+                borderRadius: "20px",
+                background: "#ffffff",
+                textAlign: "center",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.08)",
+            }}>
+          <div style={{
+                width: "58px",
+                height: "58px",
+                margin: "0 auto 18px",
+                borderRadius: "18px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: isError ? "#fee2e2" : "#e0f2fe",
+                color: isError ? "#dc2626" : "#0284c7",
+                fontSize: "27px",
+            }}>
+            {isError ? "!" : "↻"}
+          </div>
 
-  return (
-    <>
+          <h2 style={{
+                margin: "0 0 10px",
+                color: "#172033",
+                fontSize: "21px",
+            }}>
+            {isError
+                ? "Không thể đồng bộ dữ liệu"
+                : "Đang tải dữ liệu gia đình"}
+          </h2>
+
+          <p style={{
+                margin: "0 0 22px",
+                color: "#64748b",
+                fontSize: "14px",
+                lineHeight: 1.7,
+            }}>
+            {isError
+                ? familySyncError ||
+                    "Đã xảy ra lỗi khi kết nối máy chủ."
+                : "Vui lòng chờ trong giây lát. Hệ thống đang kết nối và tải dữ liệu tài chính của gia đình."}
+          </p>
+
+          {isError ? (<button type="button" onClick={() => window.location.reload()} style={{
+                    border: "none",
+                    borderRadius: "10px",
+                    padding: "12px 24px",
+                    background: "#2563eb",
+                    color: "#ffffff",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                }}>
+              Thử kết nối lại
+            </button>) : (<div style={{
+                    width: "28px",
+                    height: "28px",
+                    margin: "0 auto",
+                    border: "3px solid #dbeafe",
+                    borderTopColor: "#2563eb",
+                    borderRadius: "50%",
+                    animation: "familySyncSpin 0.8s linear infinite",
+                }}/>)}
+        </div>
+
+        <style>
+          {`
+            @keyframes familySyncSpin {
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          `}
+        </style>
+      </div>);
+    }
+    return (<>
       <style>{styles}</style>
 
       <div className={`app theme-v14 light-mode ${isDark ? "is-dark" : ""}`}>
@@ -2689,7 +2210,7 @@ export default function App() {
         <nav className="topbar">
           <div className="topbar-brand">
             <div className="topbar-logo">
-              <Wallet size={23} strokeWidth={2.3} />
+              <Wallet size={23} strokeWidth={2.3}/>
             </div>
 
             <div className="topbar-brand-text">
@@ -2698,133 +2219,76 @@ export default function App() {
           </div>
 
           <div className="topbar-nav" role="tablist">
-            {topbarPages.map((page) => (
-              <button
-                key={page.id}
-                type="button"
-                role="tab"
-                aria-selected={activePage === page.id}
-                className={`topbar-pill ${
-                  activePage === page.id ? "active" : ""
-                }`}
-                onClick={() => {
-                  setActivePage(page.id);
-                  playSound();
-                }}
-              >
+            {topbarPages.map((page) => (<button key={page.id} type="button" role="tab" aria-selected={activePage === page.id} className={`topbar-pill ${activePage === page.id ? "active" : ""}`} onClick={() => {
+                setActivePage(page.id);
+                playSound();
+            }}>
                 {shortLabels[page.id] || page.label}
-              </button>
-            ))}
+              </button>))}
           </div>
 
           <div className="topbar-right">
                 <div className="header-actions">
-                  {activePage === "dashboard" && (
-                  <div className="dashboard-search">
-                    <Search size={18} />
+                  {activePage === "dashboard" && (<div className="dashboard-search">
+                    <Search size={18}/>
 
-                    <input
-                      value={dashboardSearch}
-                      placeholder="Tìm kiếm giao dịch..."
-                      onChange={(event) =>
-                        setDashboardSearch(event.target.value)
-                      }
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          playSound();
-                        }
-                      }}
-                    />
-                  </div>
-                  )}
+                    <input value={dashboardSearch} placeholder="Tìm kiếm giao dịch..." onChange={(event) => setDashboardSearch(event.target.value)} onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                    playSound();
+                }
+            }}/>
+                  </div>)}
 
-                  <div
-                    className="header-notification-wrap"
-                    ref={notificationRef}
-                  >
-                    <button
-                      type="button"
-                      className={`icon-button ${
-                        showNotifications ? "active" : ""
-                      } ${hasNewTx ? "ringing" : ""}`}
-                      title="Thông báo"
-                      onClick={() => {
-                        setShowNotifications((old) => !old);
-                        playSound(620, 0.05);
-                      }}
-                    >
-                      {hasNewTx ? (
-                        <RingingBell size={30} />
-                      ) : (
-                        <Bell size={19} />
-                      )}
+                  <div className="header-notification-wrap" ref={notificationRef}>
+                    <button type="button" className={`icon-button ${showNotifications ? "active" : ""} ${hasNewTx ? "ringing" : ""}`} title="Thông báo" onClick={() => {
+            setShowNotifications((old) => !old);
+            playSound(620, 0.05);
+        }}>
+                      {hasNewTx ? (<RingingBell size={30}/>) : (<Bell size={19}/>)}
 
-                      {unreadNotifications.length > 0 && (
-                        <span className="notification-badge">
+                      {unreadNotifications.length > 0 && (<span className="notification-badge">
                           {unreadNotifications.length}
-                        </span>
-                      )}
+                        </span>)}
                     </button>
 
-                    {showNotifications && (
-                      <div className="notification-dropdown">
+                    {showNotifications && (<div className="notification-dropdown">
                         <div className="notification-header">
                           <div>
                             <strong>Thông báo</strong>
                             <span>
                               {unreadNotifications.length > 0
-                                ? `${unreadNotifications.length} mục chưa đọc`
-                                : "Không có thông báo mới"}
+                ? `${unreadNotifications.length} mục chưa đọc`
+                : "Không có thông báo mới"}
                             </span>
                           </div>
 
-                          {unreadNotifications.length > 0 ? (
-                            <button
-                              type="button"
-                              className="notification-read-all"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                markAllNotificationsRead();
-                                setShowNotifications(false);
-                                playSound(700, 0.05);
-                              }}
-                            >
+                          {unreadNotifications.length > 0 ? (<button type="button" className="notification-read-all" onClick={(event) => {
+                    event.stopPropagation();
+                    markAllNotificationsRead();
+                    setShowNotifications(false);
+                    playSound(700, 0.05);
+                }}>
                               Đọc tất cả
-                            </button>
-                          ) : (
-                            <Bell size={17} />
-                          )}
+                            </button>) : (<Bell size={17}/>)}
                         </div>
 
-                        {unreadNotifications.length === 0 ? (
-                          <div className="notification-empty">
+                        {unreadNotifications.length === 0 ? (<div className="notification-empty">
                             Bạn đã xem hết thông báo.
-                          </div>
-                        ) : (
-                          unreadNotifications.map((item) => (
-                            <button
-                              type="button"
-                              key={item.id}
-                              className={`notification-item ${item.type}`}
-                              onClick={() => openNotification(item)}
-                            >
-                              <div className="notification-dot" />
+                          </div>) : (unreadNotifications.map((item) => (<button type="button" key={item.id} className={`notification-item ${item.type}`} onClick={() => openNotification(item)}>
+                              <div className="notification-dot"/>
 
                               <div>
                                 <strong>{item.title}</strong>
                                 <span>{item.text}</span>
                               </div>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    )}
+                            </button>)))}
+                      </div>)}
                   </div>
 
                 </div>
             <div className="topbar-user" title={userEmail || ""}>
               <div className="topbar-avatar">
-                <UserRound size={18} />
+                <UserRound size={18}/>
               </div>
 
               <div className="topbar-user-text">
@@ -2843,75 +2307,46 @@ export default function App() {
           {/* Nhóm trên cùng: Ban ngày / Ban đêm */}
           <div className="rail-pill rail-top">
             {[
-              { mode: "light", label: "Ban ngày", icon: Sun },
-              { mode: "dark", label: "Ban đêm", icon: Moon },
-            ].map((item) => {
-              const ModeIcon = item.icon;
-              const selected = (item.mode === "dark") === isDark;
-
-              return (
-                <button
-                  key={item.mode}
-                  type="button"
-                  aria-label={item.label}
-                  aria-pressed={selected}
-                  onMouseEnter={(event) => showRailTip(event, item.label)}
-                  onMouseLeave={hideRailTip}
-                  onFocus={(event) => showRailTip(event, item.label)}
-                  onBlur={hideRailTip}
-                  className={`rail-button ${selected ? "active" : ""}`}
-                  onClick={() => {
+            { mode: "light", label: "Ban ngày", icon: Sun },
+            { mode: "dark", label: "Ban đêm", icon: Moon },
+        ].map((item) => {
+            const ModeIcon = item.icon;
+            const selected = (item.mode === "dark") === isDark;
+            return (<button key={item.mode} type="button" aria-label={item.label} aria-pressed={selected} onMouseEnter={(event) => showRailTip(event, item.label)} onMouseLeave={hideRailTip} onFocus={(event) => showRailTip(event, item.label)} onBlur={hideRailTip} className={`rail-button ${selected ? "active" : ""}`} onClick={() => {
                     setIsDark(item.mode === "dark");
                     playSound(item.mode === "dark" ? 440 : 640, 0.06);
-                  }}
-                >
-                  <ModeIcon size={20} />
-                </button>
-              );
-            })}
+                }}>
+                  <ModeIcon size={20}/>
+                </button>);
+        })}
           </div>
 
           <div className="rail-pill">
             {pages
-              .filter((page) => page.id !== "profile")
-              .map((page) => renderRailButton(page))}
+            .filter((page) => page.id !== "profile")
+            .map((page) => renderRailButton(page))}
           </div>
 
-          <div className="rail-spacer" />
+          <div className="rail-spacer"/>
 
           {/* Nhóm dưới cùng: Tài khoản & bảo mật + Đăng xuất */}
           <div className="rail-pill rail-bottom">
             {pages
-              .filter((page) => page.id === "profile")
-              .map((page) => renderRailButton(page))}
+            .filter((page) => page.id === "profile")
+            .map((page) => renderRailButton(page))}
 
-            <button
-              type="button"
-              aria-label="Đăng xuất"
-              onMouseEnter={(event) => showRailTip(event, "Đăng xuất")}
-              onMouseLeave={hideRailTip}
-              onFocus={(event) => showRailTip(event, "Đăng xuất")}
-              onBlur={hideRailTip}
-              className="rail-button rail-logout"
-              onClick={() => {
-                handleLogout();
-                playSound(420, 0.06);
-              }}
-            >
-              <LogOut size={20} />
+            <button type="button" aria-label="Đăng xuất" onMouseEnter={(event) => showRailTip(event, "Đăng xuất")} onMouseLeave={hideRailTip} onFocus={(event) => showRailTip(event, "Đăng xuất")} onBlur={hideRailTip} className="rail-button rail-logout" onClick={() => {
+            handleLogout();
+            playSound(420, 0.06);
+        }}>
+              <LogOut size={20}/>
             </button>
           </div>
         </aside>
 
-        {railTip && (
-          <div
-            className={`rail-tooltip ${railTip.placement}`}
-            style={{ top: railTip.top, left: railTip.left }}
-            role="tooltip"
-          >
+        {railTip && (<div className={`rail-tooltip ${railTip.placement}`} style={{ top: railTip.top, left: railTip.left }} role="tooltip">
             {railTip.label}
-          </div>
-        )}
+          </div>)}
 
         <div className="shell">
 
@@ -2932,7 +2367,7 @@ export default function App() {
               </div>
 
               <div className="eyebrow header-greeting">
-                <GreetingIcon size={17} />
+                <GreetingIcon size={17}/>
 
                 {greeting.text}
               </div>
@@ -2942,55 +2377,26 @@ export default function App() {
             <div className="page-stage" key={activePage} ref={pageStageRef}>
 
             {/* =================================================
-                TỔNG QUAN
-            ================================================= */}
+            TỔNG QUAN
+        ================================================= */}
 
-            {activePage === "dashboard" && (
-              <>
+            {activePage === "dashboard" && (<>
                 <div className="dashboard-top-row">
                 <div className="dashboard-top-left">
                 <div className="summary-board">
                 <div className="summary-board-head">
-                  <MonthBadge month={selectedMonth} label="Đang xem" live />
+                  <MonthBadge month={selectedMonth} label="Đang xem" live/>
                 </div>
                 <div className="summary-grid dashboard-summary-grid">
-                  <SummaryCard
-                    icon={ArrowUpCircle}
-                    title="TỔNG ĐẦU VÀO"
-                    value={totals.income}
-                    className="income"
-                    compare={monthComparisons.income}
-                  />
+                  <SummaryCard icon={ArrowUpCircle} title="TỔNG ĐẦU VÀO" value={totals.income} className="income" compare={monthComparisons.income}/>
 
-                  <SummaryCard
-                    icon={ArrowDownCircle}
-                    title="CHI TIÊU THÁNG"
-                    value={totals.expense}
-                    className="expense"
-                    compare={monthComparisons.expense}
-                  />
+                  <SummaryCard icon={ArrowDownCircle} title="CHI TIÊU THÁNG" value={totals.expense} className="expense" compare={monthComparisons.expense}/>
 
-                  <SummaryCard
-                    icon={Gift}
-                    title="TIP"
-                    value={totals.adjustment}
-                    className="adjustment"
-                    compare={monthComparisons.adjustment}
-                  />
+                  <SummaryCard icon={Gift} title="TIP" value={totals.adjustment} className="adjustment" compare={monthComparisons.adjustment}/>
 
-                  <SummaryCard
-                    icon={CircleDollarSign}
-                    title={
-                      totals.remaining >= 0
-                        ? "DƯ TRONG THÁNG"
-                        : "ÂM TRONG THÁNG"
-                    }
-                    value={Math.abs(totals.remaining)}
-                    className={
-                      totals.remaining >= 0 ? "positive" : "expense"
-                    }
-                    compare={monthComparisons.remaining}
-                  />
+                  <SummaryCard icon={CircleDollarSign} title={totals.remaining >= 0
+                ? "DƯ TRONG THÁNG"
+                : "ÂM TRONG THÁNG"} value={Math.abs(totals.remaining)} className={totals.remaining >= 0 ? "positive" : "expense"} compare={monthComparisons.remaining}/>
                 </div>
                 </div>
 
@@ -3000,41 +2406,28 @@ export default function App() {
                         <h2>Giao dịch gần đây</h2>
                         <span>
                           {dashboardSearch.trim()
-                            ? `Kết quả tìm kiếm: "${dashboardSearch.trim()}"`
-                            : `5 giao dịch mới nhất trong ${formatMonth(selectedMonth)}`}
+                ? `Kết quả tìm kiếm: "${dashboardSearch.trim()}"`
+                : `5 giao dịch mới nhất trong ${formatMonth(selectedMonth)}`}
                         </span>
                       </div>
 
-                      <button
-                        type="button"
-                        className="text-button"
-                        onClick={() => {
-                          setActivePage("transactions");
-                          playSound();
-                        }}
-                      >
+                      <button type="button" className="text-button" onClick={() => {
+                setActivePage("transactions");
+                playSound();
+            }}>
                         Xem tất cả →
                       </button>
                     </div>
 
-                    <DashboardRecentTransactions
-                      transactions={monthTransactions}
-                      getAccountName={getAccountName}
-                      search={dashboardSearch}
-                    />
+                    <DashboardRecentTransactions transactions={monthTransactions} getAccountName={getAccountName} search={dashboardSearch}/>
                   </div>
                 </div>
 
                 <div className="panel dashboard-allocation-panel dashboard-top-donut">
-                  <WeeklySpendingChart
-                    transactions={transactions}
-                    selectedMonth={selectedMonth}
-                    availableMonths={availableMonths}
-                    onSelectMonth={(monthKey) => {
-                      setSelectedMonth(monthKey);
-                      playSound();
-                    }}
-                  />
+                  <WeeklySpendingChart transactions={transactions} selectedMonth={selectedMonth} availableMonths={availableMonths} onSelectMonth={(monthKey) => {
+                setSelectedMonth(monthKey);
+                playSound();
+            }}/>
                 </div>
                 </div>
 
@@ -3047,7 +2440,7 @@ export default function App() {
                       <div className="qa-top">
                         <div className="qa-head">
                           <i className="qa-head-ico">
-                            <Plus size={20} strokeWidth={2.4} />
+                            <Plus size={20} strokeWidth={2.4}/>
                           </i>
 
                           <div>
@@ -3056,170 +2449,104 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div
-                          className="qa-seg"
-                          role="tablist"
-                          style={{
-                            "--qa-i": Math.max(
-                              0,
-                              quickTypes.findIndex((item) => item.id === formType)
-                            ),
-                          }}
-                        >
+                        <div className="qa-seg" role="tablist" style={{
+                "--qa-i": Math.max(0, quickTypes.findIndex((item) => item.id === formType)),
+            }}>
                           {quickTypes.map((item) => {
-                            const TypeIcon = item.icon;
-
-                            return (
-                              <button
-                                key={item.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={formType === item.id}
-                                className={`qa-seg-btn ${
-                                  formType === item.id ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  setFormType(item.id);
-                                  playSound();
-                                }}
-                              >
-                                <TypeIcon size={17} />
+                const TypeIcon = item.icon;
+                return (<button key={item.id} type="button" role="tab" aria-selected={formType === item.id} className={`qa-seg-btn ${formType === item.id ? "active" : ""}`} onClick={() => {
+                        setFormType(item.id);
+                        playSound();
+                    }}>
+                                <TypeIcon size={17}/>
                                 {item.label}
-                              </button>
-                            );
-                          })}
+                              </button>);
+            })}
                         </div>
                       </div>
 
                       <div className="qa-body">
-                          {formType === "expense" && (
-                            <div className="qa-field qa-swap" key="expense">
+                          {formType === "expense" && (<div className="qa-field qa-swap" key="expense">
                               <span className="qa-label">Danh mục</span>
 
                               <div className="qa-options">
                                 {[
-                                  { id: "food", label: "Tiền ăn", icon: Utensils },
-                                  { id: "rent", label: "Tiền trọ", icon: House },
-                                  { id: "other", label: "Chi khác", icon: ShoppingBag },
-                                ].map((item) => {
-                                  const CategoryIcon = item.icon;
-                                  const on = transactionForm.category === item.id;
-
-                                  return (
-                                    <button
-                                      key={item.id}
-                                      type="button"
-                                      aria-pressed={on}
-                                      className={`qa-option ${on ? "active" : ""}`}
-                                      onClick={() => {
-                                        setTransactionForm({
-                                          ...transactionForm,
-                                          category: item.id,
-                                        });
-                                        playSound();
-                                      }}
-                                    >
-                                      <CategoryIcon size={16} />
+                    { id: "food", label: "Tiền ăn", icon: Utensils },
+                    { id: "rent", label: "Tiền trọ", icon: House },
+                    { id: "other", label: "Chi khác", icon: ShoppingBag },
+                ].map((item) => {
+                    const CategoryIcon = item.icon;
+                    const on = transactionForm.category === item.id;
+                    return (<button key={item.id} type="button" aria-pressed={on} className={`qa-option ${on ? "active" : ""}`} onClick={() => {
+                            setTransactionForm({
+                                ...transactionForm,
+                                category: item.id,
+                            });
+                            playSound();
+                        }}>
+                                      <CategoryIcon size={16}/>
                                       {item.label}
-                                    </button>
-                                  );
-                                })}
+                                    </button>);
+                })}
                               </div>
-                            </div>
-                          )}
+                            </div>)}
 
-                          {formType === "adjustment" && (
-                            <div className="qa-field qa-swap" key="adjustment">
+                          {formType === "adjustment" && (<div className="qa-field qa-swap" key="adjustment">
                               <span className="qa-label">Chiều điều chỉnh</span>
 
                               <div className="qa-options">
                                 {[
-                                  { id: "plus", label: "Tip / Cộng (+)", icon: ArrowUpRight },
-                                  { id: "minus", label: "Âm / Trừ (\u2212)", icon: ArrowDownRight },
-                                ].map((item) => {
-                                  const DirectionIcon = item.icon;
-                                  const on =
-                                    transactionForm.adjustmentDirection === item.id;
-
-                                  return (
-                                    <button
-                                      key={item.id}
-                                      type="button"
-                                      aria-pressed={on}
-                                      className={`qa-option ${on ? "active" : ""}`}
-                                      onClick={() => {
-                                        setTransactionForm({
-                                          ...transactionForm,
-                                          adjustmentDirection: item.id,
-                                        });
-                                        playSound();
-                                      }}
-                                    >
-                                      <DirectionIcon size={16} />
+                    { id: "plus", label: "Tip / Cộng (+)", icon: ArrowUpRight },
+                    { id: "minus", label: "Âm / Trừ (\u2212)", icon: ArrowDownRight },
+                ].map((item) => {
+                    const DirectionIcon = item.icon;
+                    const on = transactionForm.adjustmentDirection === item.id;
+                    return (<button key={item.id} type="button" aria-pressed={on} className={`qa-option ${on ? "active" : ""}`} onClick={() => {
+                            setTransactionForm({
+                                ...transactionForm,
+                                adjustmentDirection: item.id,
+                            });
+                            playSound();
+                        }}>
+                                      <DirectionIcon size={16}/>
                                       {item.label}
-                                    </button>
-                                  );
-                                })}
+                                    </button>);
+                })}
                               </div>
-                            </div>
-                          )}
+                            </div>)}
                         <div className="qa-fields">
                           <div className="qa-field">
                             <span className="qa-label">Ngày</span>
 
-                            <DatePicker
-                              clearable
-                              customizable
-                              value={transactionForm.date}
-                              onChange={(event) =>
-                                setTransactionForm({
-                                  ...transactionForm,
-                                  date: event.target.value,
-                                })
-                              }
-                            />
+                            <DatePicker clearable customizable value={transactionForm.date} onChange={(event) => setTransactionForm({
+                ...transactionForm,
+                date: event.target.value,
+            })}/>
                           </div>
 
                           <label className="qa-field">
                             <span className="qa-label">Số tiền</span>
 
-                            <MoneyInput
-                              className="qa-money"
-                              placeholder="0"
-                              aria-label="Số tiền"
-                              value={transactionForm.amount}
-                              onValueChange={(next) =>
-                                setTransactionForm((old) => ({
-                                  ...old,
-                                  amount: next,
-                                }))
-                              }
-                            />
+                            <MoneyInput className="qa-money" placeholder="0" aria-label="Số tiền" value={transactionForm.amount} onValueChange={(next) => setTransactionForm((old) => ({
+                ...old,
+                amount: next,
+            }))}/>
                           </label>
 
                           <label className="qa-field qa-wide">
                             <span className="qa-label">Nội dung</span>
 
                             <span className="qa-input-wrap">
-                              <Pencil size={16} />
+                              <Pencil size={16}/>
 
-                              <input
-                                className="qa-input"
-                                placeholder={
-                                  formType === "expense"
-                                    ? "Ví dụ: Ăn trưa / Đổ xăng..."
-                                    : formType === "income"
-                                    ? "Ví dụ: Bố gửi / Tiền lương..."
-                                    : "Ví dụ: Được tip / Điều chỉnh..."
-                                }
-                                value={transactionForm.description}
-                                onChange={(event) =>
-                                  setTransactionForm({
-                                    ...transactionForm,
-                                    description: event.target.value,
-                                  })
-                                }
-                              />
+                              <input className="qa-input" placeholder={formType === "expense"
+                ? "Ví dụ: Ăn trưa / Đổ xăng..."
+                : formType === "income"
+                    ? "Ví dụ: Bố gửi / Tiền lương..."
+                    : "Ví dụ: Được tip / Điều chỉnh..."} value={transactionForm.description} onChange={(event) => setTransactionForm({
+                ...transactionForm,
+                description: event.target.value,
+            })}/>
                             </span>
                           </label>
                         </div>
@@ -3228,37 +2555,27 @@ export default function App() {
                           <span className="qa-label">Tài khoản</span>
 
                           <div className="qa-acc-row" role="radiogroup" aria-label="Tài khoản">
-                            {accounts.length === 0 && (
-                              <div className="qa-empty">
+                            {accounts.length === 0 && (<div className="qa-empty">
                                 Chưa có tài khoản. Hãy tạo ở mục Tài khoản.
-                              </div>
-                            )}
+                              </div>)}
 
                             {quickVisible.map((account) => renderQuickAccount(account))}
 
-                            {accounts.length > 2 && (
-                              <AccountMenuButton
-                                accounts={quickAccountsSorted}
-                                selectedId={transactionForm.accountId}
-                                getBalance={getAccountBalance}
-                                onSelect={(account) => {
-                                  setTransactionForm({
-                                    ...transactionForm,
-                                    accountId: String(account.id),
-                                  });
-                                  playSound();
-                                }}
-                              />
-                            )}
+                            {accounts.length > 2 && (<AccountMenuButton accounts={quickAccountsSorted} selectedId={transactionForm.accountId} getBalance={getAccountBalance} onSelect={(account) => {
+                    setTransactionForm({
+                        ...transactionForm,
+                        accountId: String(account.id),
+                    });
+                    playSound();
+                }}/>)}
                           </div>
                         </div>
                       </div>
 
                       {/* Chân thẻ: tóm tắt giao dịch + nút thêm */}
                       <div className="qa-foot">
-                        {!quickMissing.length && (
-                          <div className="qa-summary ready" aria-live="polite">
-                            <CheckCircle2 size={16} />
+                        {!quickMissing.length && (<div className="qa-summary ready" aria-live="polite">
+                            <CheckCircle2 size={16}/>
                             <span>
                               <b>
                                 {quickSign > 0 ? "+" : "\u2212"}
@@ -3267,11 +2584,10 @@ export default function App() {
                               · {quickCategoryLabel} · {quickAccount.name} ·{" "}
                               {formatDate(transactionForm.date)}
                             </span>
-                          </div>
-                        )}
+                          </div>)}
 
                         <button className="qa-submit">
-                          <Plus size={19} strokeWidth={2.4} />
+                          <Plus size={19} strokeWidth={2.4}/>
                           {quickSubmitLabel}
                         </button>
                       </div>
@@ -3288,27 +2604,27 @@ export default function App() {
                         <h2>Thao tác nhanh</h2>
                         <span>Chuyển đến chức năng bạn cần</span>
                       </div>
-                      <Plus size={22} />
+                      <Plus size={22}/>
                     </div>
 
                     <div className="dashboard-quick-actions">
                       <button type="button" onClick={() => {
-                        document
-                          .getElementById("dashboard-quick-add")
-                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        playSound();
-                      }}>
-                        <ArrowDownCircle size={19} />
+                document
+                    .getElementById("dashboard-quick-add")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                playSound();
+            }}>
+                        <ArrowDownCircle size={19}/>
                         <span>Thêm giao dịch</span>
                         <small>Thu / chi / tip</small>
                       </button>
                       <button type="button" onClick={() => { setActivePage("reports"); playSound(); }}>
-                        <BarChart3 size={19} />
+                        <BarChart3 size={19}/>
                         <span>Xem báo cáo</span>
                         <small>Biểu đồ và phân bổ chi tiêu</small>
                       </button>
                       <button type="button" onClick={() => { setActivePage("monthlyTable"); playSound(); }}>
-                        <Table2 size={19} />
+                        <Table2 size={19}/>
                         <span>Thống kê tháng</span>
                         <small>Tổng hợp từng tháng</small>
                       </button>
@@ -3322,13 +2638,12 @@ export default function App() {
                       <div>
                         <div className="panel-kicker">NGÂN SÁCH</div>
                         <h2>Tình hình ngân sách</h2>
-                        <MonthBadge month={selectedMonth} compact />
+                        <MonthBadge month={selectedMonth} compact/>
                       </div>
-                      <Target size={22} />
+                      <Target size={22}/>
                     </div>
 
-                    {totalBudget > 0 ? (
-                      <>
+                    {totalBudget > 0 ? (<>
                         <div className="dashboard-budget-total">
                           <div>
                             <span>Đã sử dụng</span>
@@ -3342,33 +2657,23 @@ export default function App() {
                         </div>
 
                         <div className="dashboard-budget-track">
-                          <span
-                            style={{
-                              width: `${Math.min(budgetPercent, 100)}%`,
-                            }}
-                            className={budgetPercent >= 100 ? "danger" : budgetPercent >= 80 ? "warning" : "safe"}
-                          />
+                          <span style={{
+                    width: `${Math.min(budgetPercent, 100)}%`,
+                }} className={budgetPercent >= 100 ? "danger" : budgetPercent >= 80 ? "warning" : "safe"}/>
                         </div>
 
                         <div className="dashboard-budget-mini-grid">
-                          <BudgetMini label="Ăn uống" spent={totals.food} budget={currentBudget.food} />
-                          <BudgetMini label="Tiền trọ" spent={totals.rent} budget={currentBudget.rent} />
-                          <BudgetMini label="Chi khác" spent={totals.other} budget={currentBudget.other} />
+                          <BudgetMini label="Ăn uống" spent={totals.food} budget={currentBudget.food}/>
+                          <BudgetMini label="Tiền trọ" spent={totals.rent} budget={currentBudget.rent}/>
+                          <BudgetMini label="Chi khác" spent={totals.other} budget={currentBudget.other}/>
                         </div>
-                      </>
-                    ) : (
-                      <Empty>Chưa thiết lập ngân sách cho tháng này.</Empty>
-                    )}
+                      </>) : (<Empty>Chưa thiết lập ngân sách cho tháng này.</Empty>)}
 
-                    <button
-                      type="button"
-                      className="secondary-button dashboard-wide-button"
-                      onClick={() => {
-                        setActivePage("budget");
-                        playSound();
-                      }}
-                    >
-                      <Target size={17} />
+                    <button type="button" className="secondary-button dashboard-wide-button" onClick={() => {
+                setActivePage("budget");
+                playSound();
+            }}>
+                      <Target size={17}/>
                       Xem ngân sách tháng
                     </button>
                   </div>
@@ -3380,192 +2685,111 @@ export default function App() {
                         <h2>Phân bổ số dư</h2>
                         <span>{accounts.length} tài khoản đang theo dõi</span>
                       </div>
-                      <Wallet size={22} />
+                      <Wallet size={22}/>
                     </div>
 
-                    <DashboardAccountBalances
-                      accounts={accounts}
-                      getAccountBalance={getAccountBalance}
-                    />
+                    <DashboardAccountBalances accounts={accounts} getAccountBalance={getAccountBalance}/>
 
-                    <button
-                      type="button"
-                      className="secondary-button dashboard-wide-button"
-                      onClick={() => {
-                        setActivePage("accounts");
-                        playSound();
-                      }}
-                    >
-                      <Wallet size={17} />
+                    <button type="button" className="secondary-button dashboard-wide-button" onClick={() => {
+                setActivePage("accounts");
+                playSound();
+            }}>
+                      <Wallet size={17}/>
                       Quản lý tài khoản
                     </button>
                   </div>
                 </section>
 
                 <div className="dashboard-note">
-                  <ShieldCheck size={18} />
+                  <ShieldCheck size={18}/>
                   <span>Biểu đồ chi tiết, phân bổ chi tiêu và biến động tiền vào/ra đã được chuyển sang <strong>Báo cáo theo tháng</strong> để phần Tổng quan gọn và dễ theo dõi hơn.</span>
                   <button type="button" onClick={() => { setActivePage("reports"); playSound(); }}>Xem báo cáo →</button>
                 </div>
-              </>
-            )}
+              </>)}
 
             {/* =================================================
-                NHẬT KÝ GIAO DỊCH
-            ================================================= */}
+            NHẬT KÝ GIAO DỊCH
+        ================================================= */}
 
-            {activePage === "transactions" && (
-              <>
+            {activePage === "transactions" && (<>
                 <section className="panel log-page" ref={logPageRef}>
                   <div className="log-filter">
                     <div className="log-filter-left">
-                      <div
-                        className="log-filter-modes"
-                        role="tablist"
-                        aria-label="Cách xem nhật ký"
-                      >
+                      <div className="log-filter-modes" role="tablist" aria-label="Cách xem nhật ký">
                         {[
-                          ["day", "Theo ngày"],
-                          ["month", "Theo tháng"],
-                          ["year", "Theo năm"],
-                        ].map(([mode, label]) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            role="tab"
-                            aria-selected={logMode === mode}
-                            className={logMode === mode ? "active" : ""}
-                            onClick={() => {
-                              setLogMode(mode);
-                              setEditingTransaction(null);
-                              playSound();
-                            }}
-                          >
+                ["day", "Theo ngày"],
+                ["month", "Theo tháng"],
+                ["year", "Theo năm"],
+            ].map(([mode, label]) => (<button key={mode} type="button" role="tab" aria-selected={logMode === mode} className={logMode === mode ? "active" : ""} onClick={() => {
+                    setLogMode(mode);
+                    setEditingTransaction(null);
+                    playSound();
+                }}>
                             {label}
-                          </button>
-                        ))}
+                          </button>))}
                       </div>
 
-                      <div
-                        className="log-filter-types"
-                        aria-label="Lọc theo loại"
-                      >
-                        <button
-                          type="button"
-                          className={`log-type-chip all ${
-                            logTypes.length === 0 ? "active" : ""
-                          }`}
-                          onClick={() => {
-                            setLogTypes([]);
-                            playSound();
-                          }}
-                        >
+                      <div className="log-filter-types" aria-label="Lọc theo loại">
+                        <button type="button" className={`log-type-chip all ${logTypes.length === 0 ? "active" : ""}`} onClick={() => {
+                setLogTypes([]);
+                playSound();
+            }}>
                           Tất cả
                         </button>
 
                         {logTypeKeys.map((type) => {
-                          const TypeIcon = typeIcons[type];
-                          const on = logTypes.includes(type);
-
-                          return (
-                            <button
-                              key={type}
-                              type="button"
-                              aria-pressed={on}
-                              className={`log-type-chip ${type} ${
-                                on ? "active" : ""
-                              }`}
-                              onClick={() => {
-                                setLogTypes((old) =>
-                                  old.includes(type)
-                                    ? old.filter((item) => item !== type)
-                                    : [...old, type]
-                                );
-                                playSound();
-                              }}
-                            >
-                              <TypeIcon size={14} strokeWidth={2.3} />
+                const TypeIcon = typeIcons[type];
+                const on = logTypes.includes(type);
+                return (<button key={type} type="button" aria-pressed={on} className={`log-type-chip ${type} ${on ? "active" : ""}`} onClick={() => {
+                        setLogTypes((old) => old.includes(type)
+                            ? old.filter((item) => item !== type)
+                            : [...old, type]);
+                        playSound();
+                    }}>
+                              <TypeIcon size={14} strokeWidth={2.3}/>
 
                               {typeLabels[type]}
-                            </button>
-                          );
-                        })}
+                            </button>);
+            })}
                       </div>
                     </div>
 
-                    <div
-                      className={`log-filter-right ${
-                        logSearchText ? "searching" : ""
-                      }`}
-                    >
+                    <div className={`log-filter-right ${logSearchText ? "searching" : ""}`}>
                       <label className="log-search">
-                        <Search size={16} />
+                        <Search size={16}/>
 
-                        <input
-                          value={logSearch}
-                          placeholder="Tìm kiếm giao dịch..."
-                          onChange={(event) => {
-                            setLogSearch(event.target.value);
-                            setEditingTransaction(null);
-                          }}
-                        />
+                        <input value={logSearch} placeholder="Tìm kiếm giao dịch..." onChange={(event) => {
+                setLogSearch(event.target.value);
+                setEditingTransaction(null);
+            }}/>
 
-                        {logSearch && (
-                          <button
-                            type="button"
-                            aria-label="Xoá tìm kiếm"
-                            onClick={() => {
-                              setLogSearch("");
-                              playSound();
-                            }}
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
+                        {logSearch && (<button type="button" aria-label="Xoá tìm kiếm" onClick={() => {
+                    setLogSearch("");
+                    playSound();
+                }}>
+                            <X size={14}/>
+                          </button>)}
                       </label>
 
                       <div className="log-filter-picker">
-                        {logMode === "day" && (
-                          <DatePicker
-                            clearable
-                            className="page-month-select"
-                            value={logDay}
-                            onChange={(event) => {
-                              if (!event.target.value) return;
+                        {logMode === "day" && (<DatePicker clearable className="page-month-select" value={logDay} onChange={(event) => {
+                    if (!event.target.value)
+                        return;
+                    setLogDay(event.target.value);
+                    setEditingTransaction(null);
+                }}/>)}
 
-                              setLogDay(event.target.value);
-                              setEditingTransaction(null);
-                            }}
-                          />
-                        )}
+                        {logMode === "month" && (<PeriodPicker mode="month" value={transactionMonth} monthsWithData={logMonthsWithData} yearsWithData={logYearsWithData} onChange={(value) => {
+                    setTransactionMonth(value);
+                    setEditingTransaction(null);
+                    playSound();
+                }}/>)}
 
-                        {logMode === "month" && (
-                          <PeriodPicker
-                            mode="month"
-                            value={transactionMonth}
-                            monthsWithData={logMonthsWithData}
-                            yearsWithData={logYearsWithData}
-                            onChange={(value) => {
-                              setTransactionMonth(value);
-                              setEditingTransaction(null);
-                              playSound();
-                            }}
-                          />
-                        )}
-
-                        {logMode === "year" && (
-                          <PeriodPicker
-                            mode="year"
-                            value={logYear}
-                            monthsWithData={logMonthsWithData}
-                            yearsWithData={logYearsWithData}
-                            onChange={(value) => {
-                              setLogYear(value);
-                              setEditingTransaction(null);
-                              playSound();
-                            }}
-                          />
-                        )}
+                        {logMode === "year" && (<PeriodPicker mode="year" value={logYear} monthsWithData={logMonthsWithData} yearsWithData={logYearsWithData} onChange={(value) => {
+                    setLogYear(value);
+                    setEditingTransaction(null);
+                    playSound();
+                }}/>)}
                       </div>
                     </div>
                   </div>
@@ -3579,325 +2803,159 @@ export default function App() {
                   </div>
 
                   <div className="log-table" ref={logTableRef}>
-                    <TransactionTable
-                      data={logPageData}
-                      getAccountName={getAccountName}
-                      onEdit={startEdit}
-                      onDelete={deleteTransaction}
-                    />
+                    <TransactionTable data={logPageData} getAccountName={getAccountName} onEdit={startEdit} onDelete={deleteTransaction}/>
                   </div>
 
-                  <LogPager
-                    page={logPageSafe}
-                    pageCount={logPageCount}
-                    total={logSorted.length}
-                    from={logSorted.length ? logPageStart + 1 : 0}
-                    to={Math.min(logPageStart + logPageSize, logSorted.length)}
-                    onChange={(next) => {
-                      setLogPage(next);
-                      playSound();
-                    }}
-                  />
+                  <LogPager page={logPageSafe} pageCount={logPageCount} total={logSorted.length} from={logSorted.length ? logPageStart + 1 : 0} to={Math.min(logPageStart + logPageSize, logSorted.length)} onChange={(next) => {
+                setLogPage(next);
+                playSound();
+            }}/>
                 </section>
-              </>
-            )}
+              </>)}
 
             {/* =================================================
-                THỐNG KÊ THÁNG
-            ================================================= */}
+            THỐNG KÊ THÁNG
+        ================================================= */}
 
-            {activePage === "monthlyTable" && (
-              <MonthlyStatistics
-                transactions={transactions}
-                month={monthlyTableMonth}
-                onMonthChange={(value) => {
-                  setMonthlyTableMonth(value);
-                  playSound();
-                }}
-                calculateTotals={calculateTotals}
-              />
-            )}
+            {activePage === "monthlyTable" && (<MonthlyStatistics transactions={transactions} month={monthlyTableMonth} onMonthChange={(value) => {
+                setMonthlyTableMonth(value);
+                playSound();
+            }} calculateTotals={calculateTotals}/>)}
 
             {/* =================================================
-                LỊCH
-            ================================================= */}
+            LỊCH
+        ================================================= */}
 
-            {activePage === "calendar" && (
-              <section className="panel">
-                <PanelTitle
-                  title={`Lịch tài chính ${formatMonth(
-                    selectedMonth
-                  )}`}
-                  subtitle={`Tổng chi: ${formatMoney(
-                    totals.expense
-                  )}`}
-                />
+            {activePage === "calendar" && (<section className="panel">
+                <PanelTitle title={`Lịch tài chính ${formatMonth(selectedMonth)}`} subtitle={`Tổng chi: ${formatMoney(totals.expense)}`}/>
 
                 <div className="calendar-scroll">
                   <div className="weekdays">
                     {[
-                      "THỨ 2",
-                      "THỨ 3",
-                      "THỨ 4",
-                      "THỨ 5",
-                      "THỨ 6",
-                      "THỨ 7",
-                      "CN",
-                    ].map((day) => (
-                      <div key={day}>
+                "THỨ 2",
+                "THỨ 3",
+                "THỨ 4",
+                "THỨ 5",
+                "THỨ 6",
+                "THỨ 7",
+                "CN",
+            ].map((day) => (<div key={day}>
                         {day}
-                      </div>
-                    ))}
+                      </div>))}
                   </div>
 
                   <div className="calendar-grid">
-                    {calendarCells.map(
-                      (day, index) => {
-                        if (!day) {
-                          return (
-                            <div
-                              className="calendar-empty"
-                              key={`empty-${index}`}
-                            />
-                          );
-                        }
-
-                        const result =
-                          dailyTotals(day);
-
-                        const date = `${selectedYear}-${pad(
-                          selectedMonthNumber
-                        )}-${pad(day)}`;
-
-                        const today =
-                          date === todayString();
-
-                        return (
-                          <div
-                            className={`calendar-day ${
-                              today
-                                ? "today"
-                                : ""
-                            }`}
-                            key={date}
-                          >
+                    {calendarCells.map((day, index) => {
+                if (!day) {
+                    return (<div className="calendar-empty" key={`empty-${index}`}/>);
+                }
+                const result = dailyTotals(day);
+                const date = `${selectedYear}-${pad(selectedMonthNumber)}-${pad(day)}`;
+                const today = date === todayString();
+                return (<div className={`calendar-day ${today
+                        ? "today"
+                        : ""}`} key={date}>
                             <div className="calendar-day-number">
                               <strong>
                                 {day}
                               </strong>
 
-                              {today && (
-                                <span>
+                              {today && (<span>
                                   HÔM NAY
-                                </span>
-                              )}
+                                </span>)}
                             </div>
 
                             {result.income >
-                              0 && (
-                              <span className="calendar-income">
+                        0 && (<span className="calendar-income">
                                 +{" "}
-                                {formatMoney(
-                                  result.income
-                                )}
-                              </span>
-                            )}
+                                {formatMoney(result.income)}
+                              </span>)}
 
                             {result.expense >
-                              0 && (
-                              <span className="calendar-expense">
+                        0 && (<span className="calendar-expense">
                                 -{" "}
-                                {formatMoney(
-                                  result.expense
-                                )}
-                              </span>
-                            )}
+                                {formatMoney(result.expense)}
+                              </span>)}
 
                             {result.adjustment !==
-                              0 && (
-                              <span className="calendar-adjustment">
+                        0 && (<span className="calendar-adjustment">
                                 Tip/Âm:{" "}
-                                {formatMoney(
-                                  result.adjustment
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      }
-                    )}
+                                {formatMoney(result.adjustment)}
+                              </span>)}
+                          </div>);
+            })}
                   </div>
                 </div>
-              </section>
-            )}
+              </section>)}
 
             {/* =================================================
-                BÁO CÁO
-            ================================================= */}
+            BÁO CÁO
+        ================================================= */}
 
-            {activePage === "reports" && (
-              <MonthlyReportPage
-                availableMonths={availableMonths}
-                selectedMonth={selectedMonth}
-                setSelectedMonth={setSelectedMonth}
-                transactions={transactions}
-                totals={totals}
-                previousTotals={previousTotals}
-                hasPreviousMonthData={hasPreviousMonthData}
-                previousMonth={previousMonth}
-                flowData={dashboardFlowData}
-                monthTransactions={monthTransactions}
-                calculateTotals={calculateTotals}
-                getAccountName={getAccountName}
-                onEdit={startEdit}
-                onDelete={deleteTransaction}
-                playSound={playSound}
-              />
-            )}
+            {activePage === "reports" && (<MonthlyReportPage availableMonths={availableMonths} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} transactions={transactions} totals={totals} previousTotals={previousTotals} hasPreviousMonthData={hasPreviousMonthData} previousMonth={previousMonth} flowData={dashboardFlowData} monthTransactions={monthTransactions} calculateTotals={calculateTotals} getAccountName={getAccountName} onEdit={startEdit} onDelete={deleteTransaction} playSound={playSound}/>)}
 
             {/* =================================================
-                NGÂN SÁCH
-            ================================================= */}
+            NGÂN SÁCH
+        ================================================= */}
 
-            {activePage === "budget" && (
-              <div className="budget-page" ref={budgetPageRef}>
-                <BudgetHero
-                  total={totalBudget}
-                  used={budgetUsed}
-                  remaining={budgetRemaining}
-                  percent={budgetPercent}
-                  shares={budgetShares}
-                />
+            {activePage === "budget" && (<div className="budget-page" ref={budgetPageRef}>
+                <BudgetHero total={totalBudget} used={budgetUsed} remaining={budgetRemaining} percent={budgetPercent} shares={budgetShares}/>
 
                 <div className="dashboard-grid">
                   <section className="panel">
-                    <PanelTitle
-                      title="Thiết lập ngân sách"
-                      subtitle={
-                        <BudgetMonthPicker
-                          month={selectedMonth}
-                          budgets={budgets}
-                          onChange={(value) => {
-                            setSelectedMonth(value);
-                            playSound();
-                          }}
-                        />
-                      }
-                    />
+                    <PanelTitle title="Thiết lập ngân sách" subtitle={<BudgetMonthPicker month={selectedMonth} budgets={budgets} onChange={(value) => {
+                    setSelectedMonth(value);
+                    playSound();
+                }}/>}/>
 
-                    <form
-                      className="form"
-                      onSubmit={saveBudget}
-                    >
+                    <form className="form" onSubmit={saveBudget}>
                       <FormField label="Ngân sách tiền ăn">
-                        <MoneyInput
-                          value={budgetForm.food}
-                          onValueChange={(next) =>
-                            setBudgetForm((old) => ({ ...old, food: next }))
-                          }
-                        />
+                        <MoneyInput value={budgetForm.food} onValueChange={(next) => setBudgetForm((old) => ({ ...old, food: next }))}/>
                       </FormField>
 
                       <FormField label="Ngân sách tiền trọ">
-                        <MoneyInput
-                          value={budgetForm.rent}
-                          onValueChange={(next) =>
-                            setBudgetForm((old) => ({ ...old, rent: next }))
-                          }
-                        />
+                        <MoneyInput value={budgetForm.rent} onValueChange={(next) => setBudgetForm((old) => ({ ...old, rent: next }))}/>
                       </FormField>
 
                       <FormField label="Ngân sách chi khác">
-                        <MoneyInput
-                          value={budgetForm.other}
-                          onValueChange={(next) =>
-                            setBudgetForm((old) => ({ ...old, other: next }))
-                          }
-                        />
+                        <MoneyInput value={budgetForm.other} onValueChange={(next) => setBudgetForm((old) => ({ ...old, other: next }))}/>
                       </FormField>
 
                       <button className="primary-button">
-                        <Save size={18} />
+                        <Save size={18}/>
 
                         LƯU NGÂN SÁCH
                       </button>
 
-                      {totalBudget > 0 && (
-                        <button
-                          type="button"
-                          className="danger-button"
-                          onClick={
-                            deleteBudget
-                          }
-                        >
-                          <Trash2
-                            size={18}
-                          />
+                      {totalBudget > 0 && (<button type="button" className="danger-button" onClick={deleteBudget}>
+                          <Trash2 size={18}/>
 
                           XÓA NGÂN SÁCH
-                        </button>
-                      )}
+                        </button>)}
                     </form>
                   </section>
 
                   <section className="panel">
-                    <PanelTitle
-                      title="Theo dõi ngân sách"
-                    />
+                    <PanelTitle title="Theo dõi ngân sách"/>
 
-                    <BudgetItem
-                      title="Tiền ăn"
-                      tone="food"
-                      share={budgetShares.food}
-                      spent={totals.food}
-                      budget={
-                        currentBudget.food
-                      }
-                      percent={categoryBudgetPercent(
-                        "food"
-                      )}
-                    />
+                    <BudgetItem title="Tiền ăn" tone="food" share={budgetShares.food} spent={totals.food} budget={currentBudget.food} percent={categoryBudgetPercent("food")}/>
 
-                    <BudgetItem
-                      title="Tiền trọ"
-                      tone="rent"
-                      share={budgetShares.rent}
-                      spent={totals.rent}
-                      budget={
-                        currentBudget.rent
-                      }
-                      percent={categoryBudgetPercent(
-                        "rent"
-                      )}
-                    />
+                    <BudgetItem title="Tiền trọ" tone="rent" share={budgetShares.rent} spent={totals.rent} budget={currentBudget.rent} percent={categoryBudgetPercent("rent")}/>
 
-                    <BudgetItem
-                      title="Chi khác"
-                      tone="other"
-                      share={budgetShares.other}
-                      spent={totals.other}
-                      budget={
-                        currentBudget.other
-                      }
-                      percent={categoryBudgetPercent(
-                        "other"
-                      )}
-                    />
+                    <BudgetItem title="Chi khác" tone="other" share={budgetShares.other} spent={totals.other} budget={currentBudget.other} percent={categoryBudgetPercent("other")}/>
                   </section>
                 </div>
-              </div>
-            )}
+              </div>)}
 
             {/* =================================================
-                TÀI KHOẢN & BẢO MẬT
-            ================================================= */}
+            TÀI KHOẢN & BẢO MẬT
+        ================================================= */}
 
-            {activePage === "profile" && (
-              <>
+            {activePage === "profile" && (<>
                 <div className="profile-summary-grid">
                   <section className="profile-identity-card">
                     <div className="profile-avatar">
-                      <UserRound size={30} />
+                      <UserRound size={30}/>
                     </div>
 
                     <div>
@@ -3908,7 +2966,7 @@ export default function App() {
                   </section>
 
                   <section className="profile-security-card">
-                    <ShieldCheck size={26} />
+                    <ShieldCheck size={26}/>
                     <div>
                       <strong>Bảo mật tài khoản</strong>
                       <span>Đăng nhập bằng email và mật khẩu</span>
@@ -3918,15 +2976,12 @@ export default function App() {
 
                 <div className="profile-page-grid">
                   <section className="panel">
-                    <PanelTitle
-                      title="Thông tin tài khoản"
-                      subtitle="Thông tin đăng nhập hiện tại"
-                    />
+                    <PanelTitle title="Thông tin tài khoản" subtitle="Thông tin đăng nhập hiện tại"/>
 
                     <div className="profile-info-list">
                       <div className="profile-info-row">
                         <div className="profile-info-icon">
-                          <Mail size={18} />
+                          <Mail size={18}/>
                         </div>
                         <div>
                           <span>Email đăng nhập</span>
@@ -3936,7 +2991,7 @@ export default function App() {
 
                       <div className="profile-info-row">
                         <div className="profile-info-icon">
-                          <ShieldCheck size={18} />
+                          <ShieldCheck size={18}/>
                         </div>
                         <div>
                           <span>Trạng thái</span>
@@ -3947,156 +3002,74 @@ export default function App() {
                   </section>
 
                   <section className="panel">
-                    <PanelTitle
-                      title="Đổi mật khẩu"
-                      subtitle="Cập nhật mật khẩu đăng nhập"
-                    />
+                    <PanelTitle title="Đổi mật khẩu" subtitle="Cập nhật mật khẩu đăng nhập"/>
 
                     <form className="form" onSubmit={handleChangePassword}>
                       <FormField label="Mật khẩu mới">
-                        <input
-                          type="password"
-                          minLength="8"
-                          placeholder="Nhập mật khẩu mới"
-                          value={newPassword}
-                          onChange={(event) => setNewPassword(event.target.value)}
-                        />
+                        <input type="password" minLength="8" placeholder="Nhập mật khẩu mới" value={newPassword} onChange={(event) => setNewPassword(event.target.value)}/>
                       </FormField>
 
                       <FormField label="Xác nhận mật khẩu mới">
-                        <input
-                          type="password"
-                          minLength="8"
-                          placeholder="Nhập lại mật khẩu mới"
-                          value={confirmPassword}
-                          onChange={(event) => setConfirmPassword(event.target.value)}
-                        />
+                        <input type="password" minLength="8" placeholder="Nhập lại mật khẩu mới" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)}/>
                       </FormField>
 
-                      <button
-                        type="submit"
-                        className="primary-button"
-                        disabled={passwordSaving}
-                      >
-                        <KeyRound size={18} />
+                      <button type="submit" className="primary-button" disabled={passwordSaving}>
+                        <KeyRound size={18}/>
                         {passwordSaving ? "ĐANG CẬP NHẬT..." : "ĐỔI MẬT KHẨU"}
                       </button>
 
-                      {passwordMessage && (
-                        <div className={`profile-message ${passwordMessageType}`}>
-                          {passwordMessageType === "success" ? (
-                            <CheckCircle2 size={17} />
-                          ) : (
-                            <AlertTriangle size={17} />
-                          )}
+                      {passwordMessage && (<div className={`profile-message ${passwordMessageType}`}>
+                          {passwordMessageType === "success" ? (<CheckCircle2 size={17}/>) : (<AlertTriangle size={17}/>)}
                           <span>{passwordMessage}</span>
-                        </div>
-                      )}
+                        </div>)}
                     </form>
                   </section>
 
                   <section className="panel profile-backup-section">
-                    <PanelTitle
-                      title="Sao lưu dữ liệu"
-                      subtitle="Xuất toàn bộ dữ liệu ra file JSON để lưu trữ, hoặc nhập lại từ file đã sao lưu"
-                    />
+                    <PanelTitle title="Sao lưu dữ liệu" subtitle="Xuất toàn bộ dữ liệu ra file JSON để lưu trữ, hoặc nhập lại từ file đã sao lưu"/>
 
                     <div className="backup-actions-row">
-                      <button
-                        type="button"
-                        className="primary-button"
-                        onClick={exportData}
-                      >
-                        <Download size={18} />
+                      <button type="button" className="primary-button" onClick={exportData}>
+                        <Download size={18}/>
                         XUẤT DỮ LIỆU (.JSON)
                       </button>
 
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={triggerImportFile}
-                      >
-                        <Upload size={18} />
+                      <button type="button" className="secondary-button" onClick={triggerImportFile}>
+                        <Upload size={18}/>
                         NHẬP DỮ LIỆU TỪ FILE
                       </button>
 
-                      <input
-                        ref={importFileInputRef}
-                        type="file"
-                        accept="application/json,.json"
-                        onChange={handleImportFile}
-                        style={{ display: "none" }}
-                      />
+                      <input ref={importFileInputRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }}/>
                     </div>
 
                     <p className="backup-hint">
                       File sao lưu chứa tài khoản, giao dịch và ngân sách hiện tại. Nên xuất file định kỳ để phòng mất dữ liệu, vì dữ liệu chỉ đang được lưu trên trình duyệt này.
                     </p>
 
-                    {importMessage && (
-                      <div className={`profile-message ${importMessageType}`}>
-                        {importMessageType === "success" ? (
-                          <CheckCircle2 size={17} />
-                        ) : (
-                          <AlertTriangle size={17} />
-                        )}
+                    {importMessage && (<div className={`profile-message ${importMessageType}`}>
+                        {importMessageType === "success" ? (<CheckCircle2 size={17}/>) : (<AlertTriangle size={17}/>)}
                         <span>{importMessage}</span>
-                      </div>
-                    )}
+                      </div>)}
                   </section>
                 </div>
-              </>
-            )}
+              </>)}
 
             {/* =================================================
-                TÀI KHOẢN
-            ================================================= */}
+            TÀI KHOẢN
+        ================================================= */}
 
-            {activePage === "salary" && (
-              <SalaryPage
-                salaries={salaries}
-                setSalaries={setSalaries}
-                transactions={transactions}
-                setTransactions={setTransactions}
-                accounts={accounts}
-                playSound={playSound}
-                successSound={successSound}
-                deleteSound={deleteSound}
-                onTransactionAdded={(text) => addTxNotice({ text })}
-              />
-            )}
+            {activePage === "salary" && (<SalaryPage salaries={salaries} setSalaries={setSalaries} transactions={transactions} setTransactions={setTransactions} accounts={accounts} playSound={playSound} successSound={successSound} deleteSound={deleteSound} onTransactionAdded={(text) => addTxNotice({ text })}/>)}
 
-            {activePage === "debts" && (
-              <GoalLedger
-                kind="debt"
-                items={debts}
-                setItems={setDebts}
-                playSound={playSound}
-                successSound={successSound}
-                deleteSound={deleteSound}
-              />
-            )}
+            {activePage === "debts" && (<GoalLedger kind="debt" items={debts} setItems={setDebts} playSound={playSound} successSound={successSound} deleteSound={deleteSound}/>)}
 
-            {activePage === "savings" && (
-              <GoalLedger
-                kind="saving"
-                items={savings}
-                setItems={setSavings}
-                categories={investCategories}
-                setCategories={setInvestCategories}
-                playSound={playSound}
-                successSound={successSound}
-                deleteSound={deleteSound}
-              />
-            )}
+            {activePage === "savings" && (<GoalLedger kind="saving" items={savings} setItems={setSavings} categories={investCategories} setCategories={setInvestCategories} playSound={playSound} successSound={successSound} deleteSound={deleteSound}/>)}
 
-            {activePage === "accounts" && (
-              <>
+            {activePage === "accounts" && (<>
                 <div className="account-page-grid acc-page">
                   <section className="panel acc-form-panel">
                     <div className="acc-form-head">
                       <i>
-                        <Wallet size={21} />
+                        <Wallet size={21}/>
                       </i>
 
                       <div>
@@ -4107,16 +3080,10 @@ export default function App() {
 
                     <form className="form acc-form" onSubmit={addAccount}>
                       <FormField label="Tên tài khoản">
-                        <input
-                          placeholder="Ví dụ: MB Bank"
-                          value={accountForm.name}
-                          onChange={(event) =>
-                            setAccountForm({
-                              ...accountForm,
-                              name: event.target.value,
-                            })
-                          }
-                        />
+                        <input placeholder="Ví dụ: MB Bank" value={accountForm.name} onChange={(event) => setAccountForm({
+                ...accountForm,
+                name: event.target.value,
+            })}/>
                       </FormField>
 
                       <div className="acc-type-field">
@@ -4124,77 +3091,46 @@ export default function App() {
 
                         <div className="acc-types" role="radiogroup" aria-label="Loại tài khoản">
                           {Object.entries(accountTypes).map(([key, typeConfig]) => {
-                            const TypeIcon = typeConfig.icon;
-
-                            return (
-                              <button
-                                key={key}
-                                type="button"
-                                role="radio"
-                                aria-checked={accountForm.type === key}
-                                className={`acc-type ${key} ${
-                                  accountForm.type === key ? "active" : ""
-                                }`}
-                                onClick={() =>
-                                  setAccountForm({ ...accountForm, type: key })
-                                }
-                              >
-                                <TypeIcon size={21} />
+                const TypeIcon = typeConfig.icon;
+                return (<button key={key} type="button" role="radio" aria-checked={accountForm.type === key} className={`acc-type ${key} ${accountForm.type === key ? "active" : ""}`} onClick={() => setAccountForm({ ...accountForm, type: key })}>
+                                <TypeIcon size={21}/>
                                 <span>{typeConfig.label}</span>
-                              </button>
-                            );
-                          })}
+                              </button>);
+            })}
                         </div>
                       </div>
 
                       <FormField label="Số dư ban đầu">
-                        <MoneyInput
-                          placeholder="Nhập số dư ban đầu"
-                          value={accountForm.openingBalance}
-                          onValueChange={(next) =>
-                            setAccountForm((old) => ({
-                              ...old,
-                              openingBalance: next,
-                            }))
-                          }
-                        />
+                        <MoneyInput placeholder="Nhập số dư ban đầu" value={accountForm.openingBalance} onValueChange={(next) => setAccountForm((old) => ({
+                ...old,
+                openingBalance: next,
+            }))}/>
                       </FormField>
 
                       <button className="primary-button">
-                        <Plus size={18} />
+                        <Plus size={18}/>
                         THÊM TÀI KHOẢN
                       </button>
                     </form>
                   </section>
 
                   <section className="panel acc-list-panel">
-                    <PanelTitle title="Danh sách tài khoản" />
+                    <PanelTitle title="Danh sách tài khoản"/>
 
                     <div className="acc-grid">
-                      {accounts.length === 0 && (
-                        <Empty>Chưa có tài khoản.</Empty>
-                      )}
+                      {accounts.length === 0 && (<Empty>Chưa có tài khoản.</Empty>)}
 
                       {accounts.map((account) => {
-                        const config =
-                          accountTypes[account.type] || accountTypes.bank;
-                        const Icon = config.icon;
-                        const balance = getAccountBalance(account);
-                        const opening = Number(account.openingBalance || 0);
-                        const diff = balance - opening;
-                        const isActive =
-                          String(viewAccountId) === String(account.id);
-
-                        return (
-                          <article
-                            className={`acc-card ${account.type || "bank"} ${
-                              isActive ? "active" : ""
-                            }`}
-                            key={account.id}
-                          >
+                const config = accountTypes[account.type] || accountTypes.bank;
+                const Icon = config.icon;
+                const balance = getAccountBalance(account);
+                const opening = Number(account.openingBalance || 0);
+                const diff = balance - opening;
+                const isActive = String(viewAccountId) === String(account.id);
+                return (<article className={`acc-card ${account.type || "bank"} ${isActive ? "active" : ""}`} key={account.id}>
                             <div className="acc-card-top">
                               <i className="acc-card-ico">
-                                <Icon size={22} />
+                                <Icon size={22}/>
                               </i>
 
                               <div className="acc-card-name">
@@ -4203,85 +3139,43 @@ export default function App() {
                               </div>
 
                               <div className="acc-card-actions">
-                                <button
-                                  type="button"
-                                  className="acc-btn"
-                                  title="Xem lịch sử"
-                                  aria-label="Xem lịch sử tài khoản"
-                                  onClick={() => {
-                                    setViewAccountId(account.id);
-                                    playSound();
-                                  }}
-                                >
-                                  <Eye size={17} />
+                                <button type="button" className="acc-btn" title="Xem lịch sử" aria-label="Xem lịch sử tài khoản" onClick={() => {
+                        setViewAccountId(account.id);
+                        playSound();
+                    }}>
+                                  <Eye size={17}/>
                                 </button>
 
-                                <button
-                                  type="button"
-                                  className="acc-btn danger"
-                                  title="Xóa tài khoản"
-                                  aria-label="Xóa tài khoản"
-                                  onClick={() => deleteAccount(account.id)}
-                                >
-                                  <Trash2 size={17} />
+                                <button type="button" className="acc-btn danger" title="Xóa tài khoản" aria-label="Xóa tài khoản" onClick={() => deleteAccount(account.id)}>
+                                  <Trash2 size={17}/>
                                 </button>
                               </div>
                             </div>
 
-                            <strong
-                              className={`acc-card-balance ${
-                                balance < 0 ? "neg" : ""
-                              }`}
-                            >
+                            <strong className={`acc-card-balance ${balance < 0 ? "neg" : ""}`}>
                               {formatMoney(balance)}
                             </strong>
 
                             <div className="acc-card-foot">
                               <span>Ban đầu: {formatMoney(opening)}</span>
 
-                              {diff !== 0 && (
-                                <em className={diff > 0 ? "up" : "down"}>
+                              {diff !== 0 && (<em className={diff > 0 ? "up" : "down"}>
                                   {diff > 0 ? "+" : "-"}
                                   {formatMoney(Math.abs(diff))}
-                                </em>
-                              )}
+                                </em>)}
                             </div>
-                          </article>
-                        );
-                      })}
+                          </article>);
+            })}
                     </div>
                   </section>
                 </div>
 
-                {selectedAccount && (
-                  <section className="panel">
-                    <PanelTitle
-                      title={`Lịch sử tài khoản: ${selectedAccount.name}`}
-                      subtitle={`Số dư: ${formatMoney(
-                        getAccountBalance(
-                          selectedAccount
-                        )
-                      )}`}
-                    />
+                {selectedAccount && (<section className="panel">
+                    <PanelTitle title={`Lịch sử tài khoản: ${selectedAccount.name}`} subtitle={`Số dư: ${formatMoney(getAccountBalance(selectedAccount))}`}/>
 
-                    <TransactionTable
-                      data={
-                        selectedAccountHistory
-                      }
-                      getAccountName={
-                        getAccountName
-                      }
-                      onEdit={
-                        startEdit
-                      }
-                      onDelete={
-                        deleteTransaction
-                      }
-                    />
-                  </section>
-                )}
-              </>
-            )}
+                    <TransactionTable data={selectedAccountHistory} getAccountName={getAccountName} onEdit={startEdit} onDelete={deleteTransaction}/>
+                  </section>)}
+              </>)}
             </div>
           </div>
         </main>
@@ -4291,8 +3185,7 @@ export default function App() {
             MODAL SỬA
         =================================================== */}
 
-        {editingTransaction && (
-          <div className="modal-overlay">
+        {editingTransaction && (<div className="modal-overlay">
             <div className="modal">
               <div className="modal-header">
                 <div>
@@ -4305,55 +3198,26 @@ export default function App() {
                   </h2>
                 </div>
 
-                <button
-                  onClick={() =>
-                    setEditingTransaction(
-                      null
-                    )
-                  }
-                >
-                  <X size={21} />
+                <button onClick={() => setEditingTransaction(null)}>
+                  <X size={21}/>
                 </button>
               </div>
 
-              <form
-                className="form"
-                onSubmit={saveEdit}
-              >
+              <form className="form" onSubmit={saveEdit}>
                 <FormField label="Ngày">
-                  <DatePicker
-                    clearable
-                    value={
-                      editingTransaction.date
-                    }
-                    onChange={(event) =>
-                      setEditingTransaction({
-                        ...editingTransaction,
-
-                        date:
-                          event.target.value,
-                      })
-                    }
-                  />
+                  <DatePicker clearable value={editingTransaction.date} onChange={(event) => setEditingTransaction({
+                ...editingTransaction,
+                date: event.target.value,
+            })}/>
                 </FormField>
 
                 {editingTransaction.type ===
-                  "expense" && (
-                  <FormField label="Danh mục">
-                    <select
-                      value={
-                        editingTransaction.category
-                      }
-                      onChange={(event) =>
-                        setEditingTransaction({
-                          ...editingTransaction,
-
-                          category:
-                            event.target
-                              .value,
-                        })
-                      }
-                    >
+                "expense" && (<FormField label="Danh mục">
+                    <select value={editingTransaction.category} onChange={(event) => setEditingTransaction({
+                    ...editingTransaction,
+                    category: event.target
+                        .value,
+                })}>
                       <option value="food">
                         Tiền ăn
                       </option>
@@ -4366,27 +3230,16 @@ export default function App() {
                         Chi khác
                       </option>
                     </select>
-                  </FormField>
-                )}
+                  </FormField>)}
 
                 {editingTransaction.type ===
-                  "adjustment" && (
-                  <FormField label="Tip / Âm">
-                    <select
-                      value={
-                        editingTransaction.adjustmentDirection ||
-                        "plus"
-                      }
-                      onChange={(event) =>
-                        setEditingTransaction({
-                          ...editingTransaction,
-
-                          adjustmentDirection:
-                            event.target
-                              .value,
-                        })
-                      }
-                    >
+                "adjustment" && (<FormField label="Tip / Âm">
+                    <select value={editingTransaction.adjustmentDirection ||
+                    "plus"} onChange={(event) => setEditingTransaction({
+                    ...editingTransaction,
+                    adjustmentDirection: event.target
+                        .value,
+                })}>
                       <option value="plus">
                         Tip / Cộng (+)
                       </option>
@@ -4395,424 +3248,306 @@ export default function App() {
                         Âm / Trừ (-)
                       </option>
                     </select>
-                  </FormField>
-                )}
+                  </FormField>)}
 
                 {editingTransaction.type !==
-                "transfer" ? (
-                  <FormField label="Tài khoản">
-                    <select
-                      value={
-                        editingTransaction.accountId ||
-                        ""
-                      }
-                      onChange={(event) =>
-                        setEditingTransaction({
-                          ...editingTransaction,
-
-                          accountId:
-                            event.target
-                              .value,
-                        })
-                      }
-                    >
+                "transfer" ? (<FormField label="Tài khoản">
+                    <select value={editingTransaction.accountId ||
+                    ""} onChange={(event) => setEditingTransaction({
+                    ...editingTransaction,
+                    accountId: event.target
+                        .value,
+                })}>
                       <option value="">
                         -- Chọn tài khoản --
                       </option>
 
-                      {accounts.map(
-                        (account) => (
-                          <option
-                            key={
-                              account.id
-                            }
-                            value={
-                              account.id
-                            }
-                          >
-                            {
-                              account.name
-                            }
-                          </option>
-                        )
-                      )}
+                      {accounts.map((account) => (<option key={account.id} value={account.id}>
+                            {account.name}
+                          </option>))}
                     </select>
-                  </FormField>
-                ) : (
-                  <>
+                  </FormField>) : (<>
                     <FormField label="Từ tài khoản">
-                      <select
-                        value={
-                          editingTransaction.fromAccountId ||
-                          ""
-                        }
-                        onChange={(event) =>
-                          setEditingTransaction({
-                            ...editingTransaction,
-
-                            fromAccountId:
-                              event.target
-                                .value,
-                          })
-                        }
-                      >
+                      <select value={editingTransaction.fromAccountId ||
+                    ""} onChange={(event) => setEditingTransaction({
+                    ...editingTransaction,
+                    fromAccountId: event.target
+                        .value,
+                })}>
                         <option value="">
                           -- Tài khoản nguồn --
                         </option>
 
-                        {accounts.map(
-                          (account) => (
-                            <option
-                              key={
-                                account.id
-                              }
-                              value={
-                                account.id
-                              }
-                            >
-                              {
-                                account.name
-                              }
-                            </option>
-                          )
-                        )}
+                        {accounts.map((account) => (<option key={account.id} value={account.id}>
+                              {account.name}
+                            </option>))}
                       </select>
                     </FormField>
 
                     <FormField label="Đến tài khoản">
-                      <select
-                        value={
-                          editingTransaction.toAccountId ||
-                          ""
-                        }
-                        onChange={(event) =>
-                          setEditingTransaction({
-                            ...editingTransaction,
-
-                            toAccountId:
-                              event.target
-                                .value,
-                          })
-                        }
-                      >
+                      <select value={editingTransaction.toAccountId ||
+                    ""} onChange={(event) => setEditingTransaction({
+                    ...editingTransaction,
+                    toAccountId: event.target
+                        .value,
+                })}>
                         <option value="">
                           -- Tài khoản đích --
                         </option>
 
-                        {accounts.map(
-                          (account) => (
-                            <option
-                              key={
-                                account.id
-                              }
-                              value={
-                                account.id
-                              }
-                            >
-                              {
-                                account.name
-                              }
-                            </option>
-                          )
-                        )}
+                        {accounts.map((account) => (<option key={account.id} value={account.id}>
+                              {account.name}
+                            </option>))}
                       </select>
                     </FormField>
-                  </>
-                )}
+                  </>)}
 
                 <FormField label="Nội dung">
-                  <input
-                    value={
-                      editingTransaction.description ||
-                      ""
-                    }
-                    onChange={(event) =>
-                      setEditingTransaction({
-                        ...editingTransaction,
-
-                        description:
-                          event.target
-                            .value,
-                      })
-                    }
-                  />
+                  <input value={editingTransaction.description ||
+                ""} onChange={(event) => setEditingTransaction({
+                ...editingTransaction,
+                description: event.target
+                    .value,
+            })}/>
                 </FormField>
 
                 <FormField label="Số tiền">
-                  <MoneyInput
-                    value={
-                      editingTransaction.amount
-                    }
-                    onValueChange={(next) =>
-                      setEditingTransaction({
-                        ...editingTransaction,
-
-                        amount: next,
-                      })
-                    }
-                  />
+                  <MoneyInput value={editingTransaction.amount} onValueChange={(next) => setEditingTransaction({
+                ...editingTransaction,
+                amount: next,
+            })}/>
                 </FormField>
 
                 <div className="modal-actions">
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() =>
-                      setEditingTransaction(
-                        null
-                      )
-                    }
-                  >
-                    <X size={18} />
+                  <button type="button" className="secondary-button" onClick={() => setEditingTransaction(null)}>
+                    <X size={18}/>
 
                     Hủy
                   </button>
 
                   <button className="primary-button">
-                    <Save size={18} />
+                    <Save size={18}/>
 
                     LƯU THAY ĐỔI
                   </button>
                 </div>
               </form>
             </div>
-          </div>
-        )}
+          </div>)}
       </div>
-    </>
-  );
+    </>);
 }
-
 /* =========================================================
    COMPONENTS
 ========================================================= */
-
-
 function monotonePath(pts) {
-  const n = pts.length;
-  if (n < 2) return n ? `M${pts[0].x},${pts[0].y}` : "";
-  const dx = [], m = [], t = [];
-  for (let i = 0; i < n - 1; i++) {
-    dx[i] = pts[i + 1].x - pts[i].x;
-    m[i] = (pts[i + 1].y - pts[i].y) / dx[i];
-  }
-  t[0] = m[0];
-  t[n - 1] = m[n - 2];
-  for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
-  for (let i = 0; i < n - 1; i++) {
-    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
-    const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
-    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
-  }
-  let d = `M${pts[0].x},${pts[0].y}`;
-  for (let i = 0; i < n - 1; i++) {
-    const h = dx[i] / 3;
-    d += ` C${pts[i].x + h},${pts[i].y + t[i] * h} ${pts[i + 1].x - h},${pts[i + 1].y - t[i + 1] * h} ${pts[i + 1].x},${pts[i + 1].y}`;
-  }
-  return d;
+    const n = pts.length;
+    if (n < 2)
+        return n ? `M${pts[0].x},${pts[0].y}` : "";
+    const dx = [], m = [], t = [];
+    for (let i = 0; i < n - 1; i++) {
+        dx[i] = pts[i + 1].x - pts[i].x;
+        m[i] = (pts[i + 1].y - pts[i].y) / dx[i];
+    }
+    t[0] = m[0];
+    t[n - 1] = m[n - 2];
+    for (let i = 1; i < n - 1; i++)
+        t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+        if (m[i] === 0) {
+            t[i] = 0;
+            t[i + 1] = 0;
+            continue;
+        }
+        const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+        if (s > 9) {
+            const k = 3 / Math.sqrt(s);
+            t[i] = k * a * m[i];
+            t[i + 1] = k * b * m[i];
+        }
+    }
+    let d = `M${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < n - 1; i++) {
+        const h = dx[i] / 3;
+        d += ` C${pts[i].x + h},${pts[i].y + t[i] * h} ${pts[i + 1].x - h},${pts[i + 1].y - t[i + 1] * h} ${pts[i + 1].x},${pts[i + 1].y}`;
+    }
+    return d;
 }
-
 function niceCeil(value) {
-  if (value <= 0) return 100000;
-  const e = Math.pow(10, Math.floor(Math.log10(value)));
-  const f = value / e;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+    if (value <= 0)
+        return 100000;
+    const e = Math.pow(10, Math.floor(Math.log10(value)));
+    const f = value / e;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
 }
-
 function Sparkline({ values, tone, id }) {
-  const w = 96, h = 36, p = 3;
-  if (values.length < 2) return null;
-  const max = Math.max(...values), min = Math.min(...values), range = max - min || 1;
-  const pts = values.map((v, i) => ({
-    x: p + (i / (values.length - 1)) * (w - 2 * p),
-    y: max === min ? h / 2 : h - p - ((v - min) / range) * (h - 2 * p),
-  }));
-  const line = monotonePath(pts);
-
-  return (
-    <svg className={`rp-spark ${tone}`} width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+    const w = 96, h = 36, p = 3;
+    if (values.length < 2)
+        return null;
+    const max = Math.max(...values), min = Math.min(...values), range = max - min || 1;
+    const pts = values.map((v, i) => ({
+        x: p + (i / (values.length - 1)) * (w - 2 * p),
+        y: max === min ? h / 2 : h - p - ((v - min) / range) * (h - 2 * p),
+    }));
+    const line = monotonePath(pts);
+    return (<svg className={`rp-spark ${tone}`} width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
       <defs>
         <linearGradient id={`rp-sp-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="currentColor" stopOpacity=".3" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          <stop offset="0%" stopColor="currentColor" stopOpacity=".3"/>
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0"/>
         </linearGradient>
       </defs>
-      <path d={`${line} L${pts[pts.length - 1].x},${h} L${pts[0].x},${h} Z`} fill={`url(#rp-sp-${id})`} />
-      <path d={line} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
+      <path d={`${line} L${pts[pts.length - 1].x},${h} L${pts[0].x},${h} Z`} fill={`url(#rp-sp-${id})`}/>
+      <path d={line} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>);
 }
-
 /* Biểu đồ sóng kiểu kính tối: 2 sóng phát sáng + vùng phủ gradient, cột khối lượng theo ngày,
    rê chuột / chạm để xem từng ngày (đường dọc, chấm sáng, 2 chú thích kính mờ) */
 function WaveFlowChart({ data, monthKey, mode }) {
-  const wrapRef = useRef(null);
-  const [width, setWidth] = useState(760);
-  const [boxH, setBoxH] = useState(320);
-  const [hover, setHover] = useState(null);
-
-  useLayoutEffect(() => {
-    const node = wrapRef.current;
-    if (!node) return undefined;
-    const update = () => {
-      const r = node.getBoundingClientRect();
-      setWidth(Math.max(280, Math.round(r.width)));
-      setBoxH(Math.max(260, Math.round(r.height)));
-    };
-    update();
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", update);
-      return () => window.removeEventListener("resize", update);
+    const wrapRef = useRef(null);
+    const [width, setWidth] = useState(760);
+    const [boxH, setBoxH] = useState(320);
+    const [hover, setHover] = useState(null);
+    useLayoutEffect(() => {
+        const node = wrapRef.current;
+        if (!node)
+            return undefined;
+        const update = () => {
+            const r = node.getBoundingClientRect();
+            setWidth(Math.max(280, Math.round(r.width)));
+            setBoxH(Math.max(260, Math.round(r.height)));
+        };
+        update();
+        if (typeof ResizeObserver === "undefined") {
+            window.addEventListener("resize", update);
+            return () => window.removeEventListener("resize", update);
+        }
+        const observer = new ResizeObserver(update);
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
+    const series = useMemo(() => {
+        let inc = 0, exp = 0;
+        return data.map((d) => {
+            inc += d.income;
+            exp += d.expense;
+            return mode === "cumulative" ? { income: inc, expense: exp } : { income: d.income, expense: d.expense };
+        });
+    }, [data, mode]);
+    const compact = width < 520;
+    const height = boxH;
+    const axisH = 26;
+    const barH = Math.max(34, Math.min(56, Math.round(height * 0.17)));
+    const pad = { top: 30, right: 18, bottom: axisH + barH + 16, left: compact ? 40 : 54 };
+    const innerW = width - pad.left - pad.right;
+    const innerH = Math.max(80, height - pad.top - pad.bottom);
+    const maxRaw = Math.max(0, ...series.map((s) => Math.max(s.income, s.expense)));
+    const maxValue = niceCeil(maxRaw);
+    const x = (i) => pad.left + (i / Math.max(data.length - 1, 1)) * innerW;
+    const y = (v) => pad.top + (1 - v / maxValue) * innerH;
+    const baseY = pad.top + innerH;
+    const barBase = height - axisH;
+    const last = data.length - 1;
+    const volumes = data.map((d) => (d.income || 0) + (d.expense || 0));
+    const maxVol = Math.max(1, ...volumes);
+    const slot = innerW / Math.max(data.length, 1);
+    const barW = Math.max(2, Math.min(14, slot * 0.58));
+    const incLine = monotonePath(series.map((s, i) => ({ x: x(i), y: y(s.income) })));
+    const expLine = monotonePath(series.map((s, i) => ({ x: x(i), y: y(s.expense) })));
+    const area = (line) => `${line} L${x(last)},${baseY} L${x(0)},${baseY} Z`;
+    let defaultIndex = 0;
+    if (monthKey === currentMonthKey()) {
+        defaultIndex = Math.min(new Date().getDate(), data.length) - 1;
     }
-    const observer = new ResizeObserver(update);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  const series = useMemo(() => {
-    let inc = 0, exp = 0;
-    return data.map((d) => {
-      inc += d.income;
-      exp += d.expense;
-      return mode === "cumulative" ? { income: inc, expense: exp } : { income: d.income, expense: d.expense };
-    });
-  }, [data, mode]);
-
-  const compact = width < 520;
-  const height = boxH;
-  const axisH = 26;
-  const barH = Math.max(34, Math.min(56, Math.round(height * 0.17)));
-  const pad = { top: 30, right: 18, bottom: axisH + barH + 16, left: compact ? 40 : 54 };
-  const innerW = width - pad.left - pad.right;
-  const innerH = Math.max(80, height - pad.top - pad.bottom);
-  const maxRaw = Math.max(0, ...series.map((s) => Math.max(s.income, s.expense)));
-  const maxValue = niceCeil(maxRaw);
-  const x = (i) => pad.left + (i / Math.max(data.length - 1, 1)) * innerW;
-  const y = (v) => pad.top + (1 - v / maxValue) * innerH;
-  const baseY = pad.top + innerH;
-  const barBase = height - axisH;
-  const last = data.length - 1;
-
-  const volumes = data.map((d) => (d.income || 0) + (d.expense || 0));
-  const maxVol = Math.max(1, ...volumes);
-  const slot = innerW / Math.max(data.length, 1);
-  const barW = Math.max(2, Math.min(14, slot * 0.58));
-
-  const incLine = monotonePath(series.map((s, i) => ({ x: x(i), y: y(s.income) })));
-  const expLine = monotonePath(series.map((s, i) => ({ x: x(i), y: y(s.expense) })));
-  const area = (line) => `${line} L${x(last)},${baseY} L${x(0)},${baseY} Z`;
-
-  let defaultIndex = 0;
-  if (monthKey === currentMonthKey()) {
-    defaultIndex = Math.min(new Date().getDate(), data.length) - 1;
-  } else {
-    let best = -1;
-    series.forEach((s, i) => {
-      if (s.income + s.expense > best) { best = s.income + s.expense; defaultIndex = i; }
-    });
-  }
-  const active = Math.max(0, Math.min(hover ?? defaultIndex, last));
-  const point = series[active] || { income: 0, expense: 0 };
-  const month2 = monthKey.split("-")[1];
-  const labelStep = compact ? 10 : 5;
-  const tipRight = x(active) > width * 0.62;
-
-  const incomeHigher = point.income >= point.expense;
-  const tips = {
-    in: { cls: "in", label: `Tiền vào${mode === "cumulative" ? " · lũy kế" : ""}`, value: point.income, y: y(point.income) },
-    out: { cls: "out", label: `Tiền ra${mode === "cumulative" ? " · lũy kế" : ""}`, value: point.expense, y: y(point.expense) },
-  };
-  const hiTip = incomeHigher ? tips.in : tips.out;
-  const loTip = incomeHigher ? tips.out : tips.in;
-  const hiLeft = Math.min(Math.max(x(active), 76), width - 76);
-  const hiTop = Math.max(hiTip.y - 14, pad.top + 40);
-  const loTop = Math.max(pad.top, Math.min(loTip.y + 14, baseY - 48));
-
-  function move(event) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const ratio = (event.clientX - rect.left - pad.left) / innerW;
-    setHover(Math.max(0, Math.min(last, Math.round(ratio * last))));
-  }
-
-  return (
-    <div className="rp-chart" ref={wrapRef}>
+    else {
+        let best = -1;
+        series.forEach((s, i) => {
+            if (s.income + s.expense > best) {
+                best = s.income + s.expense;
+                defaultIndex = i;
+            }
+        });
+    }
+    const active = Math.max(0, Math.min(hover ?? defaultIndex, last));
+    const point = series[active] || { income: 0, expense: 0 };
+    const month2 = monthKey.split("-")[1];
+    const labelStep = compact ? 10 : 5;
+    const tipRight = x(active) > width * 0.62;
+    const incomeHigher = point.income >= point.expense;
+    const tips = {
+        in: { cls: "in", label: `Tiền vào${mode === "cumulative" ? " · lũy kế" : ""}`, value: point.income, y: y(point.income) },
+        out: { cls: "out", label: `Tiền ra${mode === "cumulative" ? " · lũy kế" : ""}`, value: point.expense, y: y(point.expense) },
+    };
+    const hiTip = incomeHigher ? tips.in : tips.out;
+    const loTip = incomeHigher ? tips.out : tips.in;
+    const hiLeft = Math.min(Math.max(x(active), 76), width - 76);
+    const hiTop = Math.max(hiTip.y - 14, pad.top + 40);
+    const loTop = Math.max(pad.top, Math.min(loTip.y + 14, baseY - 48));
+    function move(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const ratio = (event.clientX - rect.left - pad.left) / innerW;
+        setHover(Math.max(0, Math.min(last, Math.round(ratio * last))));
+    }
+    return (<div className="rp-chart" ref={wrapRef}>
       <svg width={width} height={height} onPointerMove={move} onPointerDown={move} onPointerLeave={() => setHover(null)} role="img" aria-label="Biểu đồ sóng tiền vào và tiền ra">
         <defs>
           <linearGradient id="fl-g-in" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" className="fl-s-in" stopOpacity=".5" />
-            <stop offset="70%" className="fl-s-in" stopOpacity=".08" />
-            <stop offset="100%" className="fl-s-in" stopOpacity="0" />
+            <stop offset="0%" className="fl-s-in" stopOpacity=".5"/>
+            <stop offset="70%" className="fl-s-in" stopOpacity=".08"/>
+            <stop offset="100%" className="fl-s-in" stopOpacity="0"/>
           </linearGradient>
           <linearGradient id="fl-g-out" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" className="fl-s-out" stopOpacity=".42" />
-            <stop offset="70%" className="fl-s-out" stopOpacity=".07" />
-            <stop offset="100%" className="fl-s-out" stopOpacity="0" />
+            <stop offset="0%" className="fl-s-out" stopOpacity=".42"/>
+            <stop offset="70%" className="fl-s-out" stopOpacity=".07"/>
+            <stop offset="100%" className="fl-s-out" stopOpacity="0"/>
           </linearGradient>
           <linearGradient id="fl-bar-on" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6ee7b7" />
-            <stop offset="100%" stopColor="#10b981" />
+            <stop offset="0%" stopColor="#6ee7b7"/>
+            <stop offset="100%" stopColor="#10b981"/>
           </linearGradient>
           <linearGradient id="fl-cursor" gradientUnits="userSpaceOnUse" x1="0" y1={pad.top} x2="0" y2={barBase}>
-            <stop offset="0%" className="fl-s-cur" stopOpacity=".05" />
-            <stop offset="45%" className="fl-s-cur" stopOpacity=".4" />
-            <stop offset="100%" className="fl-s-cur" stopOpacity=".12" />
+            <stop offset="0%" className="fl-s-cur" stopOpacity=".05"/>
+            <stop offset="45%" className="fl-s-cur" stopOpacity=".4"/>
+            <stop offset="100%" className="fl-s-cur" stopOpacity=".12"/>
           </linearGradient>
         </defs>
 
-        {[1, 0.75, 0.5, 0.25, 0].map((r) => (
-          <g key={r}>
-            <line x1={pad.left} x2={width - pad.right} y1={y(maxValue * r)} y2={y(maxValue * r)} className="fl-grid" />
+        {[1, 0.75, 0.5, 0.25, 0].map((r) => (<g key={r}>
+            <line x1={pad.left} x2={width - pad.right} y1={y(maxValue * r)} y2={y(maxValue * r)} className="fl-grid"/>
             <text x={pad.left - 10} y={y(maxValue * r) + 4} textAnchor="end" className="fl-axis">{formatCompactMoney(maxValue * r)}</text>
-          </g>
-        ))}
+          </g>))}
 
         {data.map((d, i) => {
-          const v = volumes[i];
-          const h = v > 0 ? Math.max(3, (v / maxVol) * barH) : 2;
-          return (
-            <rect
-              key={`bar-${d.day}`}
-              x={x(i) - barW / 2}
-              y={barBase - h}
-              width={barW}
-              height={h}
-              rx={Math.min(3, barW / 2)}
-              className={`fl-bar ${i === active ? "on" : ""}`}
-            />
-          );
+            const v = volumes[i];
+            const h = v > 0 ? Math.max(3, (v / maxVol) * barH) : 2;
+            return (<rect key={`bar-${d.day}`} x={x(i) - barW / 2} y={barBase - h} width={barW} height={h} rx={Math.min(3, barW / 2)} className={`fl-bar ${i === active ? "on" : ""}`}/>);
         })}
 
         {data.map((d, i) => {
-          const show = d.day === 1 || d.day === data.length || (d.day % labelStep === 0 && data.length - d.day >= 2);
-          return show ? <text key={d.day} x={x(i)} y={height - 8} textAnchor="middle" className="fl-axis">{pad2(d.day)}/{month2}</text> : null;
+            const show = d.day === 1 || d.day === data.length || (d.day % labelStep === 0 && data.length - d.day >= 2);
+            return show ? <text key={d.day} x={x(i)} y={height - 8} textAnchor="middle" className="fl-axis">{pad2(d.day)}/{month2}</text> : null;
         })}
 
-        <path d={area(expLine)} fill="url(#fl-g-out)" />
-        <path d={area(incLine)} fill="url(#fl-g-in)" />
-        <path d={expLine} className="fl-line out" />
-        <path d={incLine} className="fl-line in" />
+        <path d={area(expLine)} fill="url(#fl-g-out)"/>
+        <path d={area(incLine)} fill="url(#fl-g-in)"/>
+        <path d={expLine} className="fl-line out"/>
+        <path d={incLine} className="fl-line in"/>
 
-        <line x1={x(active)} x2={x(active)} y1={pad.top} y2={barBase} stroke="url(#fl-cursor)" strokeWidth="1.5" />
-        <circle cx={x(active)} cy={y(point.expense)} r="11" className="fl-halo out" />
-        <circle cx={x(active)} cy={y(point.income)} r="11" className="fl-halo in" />
-        <circle cx={x(active)} cy={y(point.expense)} r="5.2" className="fl-dot out" />
-        <circle cx={x(active)} cy={y(point.income)} r="5.2" className="fl-dot in" />
+        <line x1={x(active)} x2={x(active)} y1={pad.top} y2={barBase} stroke="url(#fl-cursor)" strokeWidth="1.5"/>
+        <circle cx={x(active)} cy={y(point.expense)} r="11" className="fl-halo out"/>
+        <circle cx={x(active)} cy={y(point.income)} r="11" className="fl-halo in"/>
+        <circle cx={x(active)} cy={y(point.expense)} r="5.2" className="fl-dot out"/>
+        <circle cx={x(active)} cy={y(point.income)} r="5.2" className="fl-dot in"/>
       </svg>
 
       {maxRaw === 0 && <div className="rp-chart-empty">Chưa có giao dịch trong tháng này</div>}
 
-      <div
-        className={`fl-tip ${hiTip.cls}`}
-        style={{ left: hiLeft, top: hiTop, transform: "translate(-50%, -100%)" }}
-      >
+      <div className={`fl-tip ${hiTip.cls}`} style={{ left: hiLeft, top: hiTop, transform: "translate(-50%, -100%)" }}>
         <span>{hiTip.label}</span>
         <strong>{formatMoney(hiTip.value)}</strong>
       </div>
 
-      <div
-        className={`fl-tip ${loTip.cls}`}
-        style={{ left: tipRight ? x(active) - 14 : x(active) + 14, top: loTop, transform: tipRight ? "translateX(-100%)" : "none" }}
-      >
+      <div className={`fl-tip ${loTip.cls}`} style={{ left: tipRight ? x(active) - 14 : x(active) + 14, top: loTop, transform: tipRight ? "translateX(-100%)" : "none" }}>
         <span>{loTip.label}</span>
         <strong>{formatMoney(loTip.value)}</strong>
       </div>
@@ -4820,142 +3555,116 @@ function WaveFlowChart({ data, monthKey, mode }) {
       <div className="fl-chip" style={{ left: Math.min(Math.max(x(active), 30), width - 30), top: height - axisH + 2 }}>
         {pad2(data[active]?.day || 1)}/{month2}
       </div>
-    </div>
-  );
+    </div>);
 }
-
 function pad2(value) {
-  return String(value).padStart(2, "0");
+    return String(value).padStart(2, "0");
 }
-
 function deltaInfo(cur, prev, goodWhenUp, ready) {
-  /* Chỉ hiện phần trăm tăng / giảm so với tháng trước (không dấu +/−):
-     tăng = xanh, giảm = đỏ, không có thay đổi hoặc chưa có dữ liệu = 0% */
-  const fmt = (n) =>
-    n.toLocaleString("vi-VN", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
-  const flat = { text: "0%", tone: "flat", up: null };
-  if (!ready) return flat;
-  if (prev === 0) {
-    if (cur === 0) return flat;
-    /* từ 0 lên có số: tính là 100% */
-    return { text: "100%", tone: cur > 0 ? "up" : "down", up: cur > 0 };
-  }
-  const pct = Number((((cur - prev) / Math.abs(prev)) * 100).toFixed(1));
-  if (pct === 0) return flat;
-  return {
-    text: `${fmt(Math.abs(pct))}%`,
-    tone: pct > 0 ? "up" : "down",
-    up: pct > 0,
-  };
-}
-
-function MonthlyReportPage({
-  availableMonths, selectedMonth, setSelectedMonth, transactions, totals, previousTotals,
-  hasPreviousMonthData, previousMonth, flowData, monthTransactions, calculateTotals,
-  getAccountName, onEdit, onDelete, playSound,
-}) {
-  const [mode, setMode] = useState("daily");
-  const [yearText, monthText] = selectedMonth.split("-");
-  const [prevYear, prevMonthText] = previousMonth.split("-");
-  const positive = totals.remaining >= 0;
-  const [pickerYear, setPickerYear] = useState(yearText);
-
-  useEffect(() => { setPickerYear(yearText); }, [yearText]);
-
-  const yearOptions = useMemo(() => {
-    const set = new Set([yearText, String(new Date().getFullYear()), pickerYear]);
-    availableMonths.forEach((m) => set.add(m.slice(0, 4)));
-    return Array.from(set).sort((x, y) => y.localeCompare(x));
-  }, [availableMonths, yearText, pickerYear]);
-
-  const yearSummaries = useMemo(() => {
-    const map = {};
-    for (let i = 1; i <= 12; i++) {
-      const key = `${pickerYear}-${pad2(i)}`;
-      const list = transactions.filter((item) => item.date && item.date.startsWith(key));
-      map[key] = { ...calculateTotals(list), count: list.length };
+    /* Chỉ hiện phần trăm tăng / giảm so với tháng trước (không dấu +/−):
+       tăng = xanh, giảm = đỏ, không có thay đổi hoặc chưa có dữ liệu = 0% */
+    const fmt = (n) => n.toLocaleString("vi-VN", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+    const flat = { text: "0%", tone: "flat", up: null };
+    if (!ready)
+        return flat;
+    if (prev === 0) {
+        if (cur === 0)
+            return flat;
+        /* từ 0 lên có số: tính là 100% */
+        return { text: "100%", tone: cur > 0 ? "up" : "down", up: cur > 0 };
     }
-    return map;
-  }, [transactions, pickerYear]);
-
-  function go(month) {
-    if (!month) return;
-    setSelectedMonth(month);
-    playSound();
-  }
-
-  const cumulative = (key) => {
-    let sum = 0;
-    return flowData.map((d) => (sum += d[key]));
-  };
-
-  const kpis = [
-    { id: "income", label: "Tổng đầu vào", icon: TrendingUp, value: totals.income, prev: previousTotals.income, tone: "income", good: true, series: cumulative("income"), text: formatMoney(totals.income) },
-    { id: "expense", label: "Tổng đầu ra", icon: TrendingDown, value: totals.expense, prev: previousTotals.expense, tone: "expense", good: false, series: cumulative("expense"), text: formatMoney(totals.expense) },
-    { id: "adjust", label: "Tip / Âm", icon: Gift, value: totals.adjustment, prev: previousTotals.adjustment, tone: "adjust", good: true, series: cumulative("adjustment"), text: `${totals.adjustment > 0 ? "+" : ""}${formatMoney(totals.adjustment)}`, neg: totals.adjustment < 0 },
-    { id: "net", label: positive ? "Dư tháng" : "Âm tháng", icon: CircleDollarSign, value: totals.remaining, prev: previousTotals.remaining, tone: positive ? "income" : "expense", good: true, series: flowData.map((d) => d.cumulative), text: `${positive ? "" : "-"}${formatMoney(Math.abs(totals.remaining))}`, neg: !positive },
-  ];
-
-  const catRows = [
-    { key: "food", value: totals.food },
-    { key: "rent", value: totals.rent },
-    { key: "other", value: totals.other },
-  ];
-
-  const feed = [...monthTransactions]
-    .sort((a, b) => b.date.localeCompare(a.date) || transactionCreatedAt(b) - transactionCreatedAt(a))
-    .slice(0, 6);
-
-  return (
-    <div className="rp">
+    const pct = Number((((cur - prev) / Math.abs(prev)) * 100).toFixed(1));
+    if (pct === 0)
+        return flat;
+    return {
+        text: `${fmt(Math.abs(pct))}%`,
+        tone: pct > 0 ? "up" : "down",
+        up: pct > 0,
+    };
+}
+function MonthlyReportPage({ availableMonths, selectedMonth, setSelectedMonth, transactions, totals, previousTotals, hasPreviousMonthData, previousMonth, flowData, monthTransactions, calculateTotals, getAccountName, onEdit, onDelete, playSound, }) {
+    const [mode, setMode] = useState("daily");
+    const [yearText, monthText] = selectedMonth.split("-");
+    const [prevYear, prevMonthText] = previousMonth.split("-");
+    const positive = totals.remaining >= 0;
+    const [pickerYear, setPickerYear] = useState(yearText);
+    useEffect(() => { setPickerYear(yearText); }, [yearText]);
+    const yearOptions = useMemo(() => {
+        const set = new Set([yearText, String(new Date().getFullYear()), pickerYear]);
+        availableMonths.forEach((m) => set.add(m.slice(0, 4)));
+        return Array.from(set).sort((x, y) => y.localeCompare(x));
+    }, [availableMonths, yearText, pickerYear]);
+    const yearSummaries = useMemo(() => {
+        const map = {};
+        for (let i = 1; i <= 12; i++) {
+            const key = `${pickerYear}-${pad2(i)}`;
+            const list = transactions.filter((item) => item.date && item.date.startsWith(key));
+            map[key] = { ...calculateTotals(list), count: list.length };
+        }
+        return map;
+    }, [transactions, pickerYear]);
+    function go(month) {
+        if (!month)
+            return;
+        setSelectedMonth(month);
+        playSound();
+    }
+    const cumulative = (key) => {
+        let sum = 0;
+        return flowData.map((d) => (sum += d[key]));
+    };
+    const kpis = [
+        { id: "income", label: "Tổng đầu vào", icon: TrendingUp, value: totals.income, prev: previousTotals.income, tone: "income", good: true, series: cumulative("income"), text: formatMoney(totals.income) },
+        { id: "expense", label: "Tổng đầu ra", icon: TrendingDown, value: totals.expense, prev: previousTotals.expense, tone: "expense", good: false, series: cumulative("expense"), text: formatMoney(totals.expense) },
+        { id: "adjust", label: "Tip / Âm", icon: Gift, value: totals.adjustment, prev: previousTotals.adjustment, tone: "adjust", good: true, series: cumulative("adjustment"), text: `${totals.adjustment > 0 ? "+" : ""}${formatMoney(totals.adjustment)}`, neg: totals.adjustment < 0 },
+        { id: "net", label: positive ? "Dư tháng" : "Âm tháng", icon: CircleDollarSign, value: totals.remaining, prev: previousTotals.remaining, tone: positive ? "income" : "expense", good: true, series: flowData.map((d) => d.cumulative), text: `${positive ? "" : "-"}${formatMoney(Math.abs(totals.remaining))}`, neg: !positive },
+    ];
+    const catRows = [
+        { key: "food", value: totals.food },
+        { key: "rent", value: totals.rent },
+        { key: "other", value: totals.other },
+    ];
+    const feed = [...monthTransactions]
+        .sort((a, b) => b.date.localeCompare(a.date) || transactionCreatedAt(b) - transactionCreatedAt(a))
+        .slice(0, 6);
+    return (<div className="rp">
       <div className="rp-top">
         <div className="rp-left">
         <div className="rp-cal">
           <div className="rp-cal-head">
-            <button type="button" onClick={() => setPickerYear(String(Number(pickerYear) - 1))} aria-label="Năm trước"><ChevronLeft size={16} /></button>
+            <button type="button" onClick={() => setPickerYear(String(Number(pickerYear) - 1))} aria-label="Năm trước"><ChevronLeft size={16}/></button>
             <select value={pickerYear} onChange={(event) => setPickerYear(event.target.value)} aria-label="Chọn năm">
               {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
-            <button type="button" onClick={() => setPickerYear(String(Number(pickerYear) + 1))} aria-label="Năm sau"><ChevronRight size={16} /></button>
+            <button type="button" onClick={() => setPickerYear(String(Number(pickerYear) + 1))} aria-label="Năm sau"><ChevronRight size={16}/></button>
           </div>
           <div className="rp-cal-grid">
             {Array.from({ length: 12 }, (_, i) => {
-              const key = `${pickerYear}-${pad2(i + 1)}`;
-              const s = yearSummaries[key];
-              const hasData = s && s.count > 0;
-              return (
-                <button
-                  type="button"
-                  key={key}
-                  className={`rp-cal-month ${key === selectedMonth ? "active" : ""}`}
-                  onClick={() => go(key)}
-                >
+            const key = `${pickerYear}-${pad2(i + 1)}`;
+            const s = yearSummaries[key];
+            const hasData = s && s.count > 0;
+            return (<button type="button" key={key} className={`rp-cal-month ${key === selectedMonth ? "active" : ""}`} onClick={() => go(key)}>
                   <span>Tháng {i + 1}</span>
-                  {hasData && <i className={s.remaining >= 0 ? "pos" : "neg"} />}
-                </button>
-              );
-            })}
+                  {hasData && <i className={s.remaining >= 0 ? "pos" : "neg"}/>}
+                </button>);
+        })}
           </div>
         </div>
 
           <div className="rp-kpis">
             {kpis.map((k) => {
-              const delta = deltaInfo(k.value, k.prev, k.good, hasPreviousMonthData);
-              return (
-                <article className={`rp-kpi ${k.tone}`} key={k.id}>
-                  <span className="rp-kpi-label"><k.icon size={14} /> {k.label}</span>
+            const delta = deltaInfo(k.value, k.prev, k.good, hasPreviousMonthData);
+            return (<article className={`rp-kpi ${k.tone}`} key={k.id}>
+                  <span className="rp-kpi-label"><k.icon size={14}/> {k.label}</span>
                   <strong className={k.neg ? "neg" : ""}>{k.text}</strong>
                   <div className="rp-kpi-foot">
-                    {delta ? (
-                      <em className={`rp-delta ${delta.tone}`} title={`Tăng / giảm so với T${Number(prevMonthText)}/${prevYear}`}>
-                        {delta.up === true ? <ArrowUpRight size={15} /> : delta.up === false ? <ArrowDownRight size={15} /> : null}
+                    {delta ? (<em className={`rp-delta ${delta.tone}`} title={`Tăng / giảm so với T${Number(prevMonthText)}/${prevYear}`}>
+                        {delta.up === true ? <ArrowUpRight size={15}/> : delta.up === false ? <ArrowDownRight size={15}/> : null}
                         {delta.text}
-                      </em>
-                    ) : <small>—</small>}
+                      </em>) : <small>—</small>}
                   </div>
-                </article>
-              );
-            })}
+                </article>);
+        })}
           </div>
         </div>
 
@@ -4965,15 +3674,13 @@ function MonthlyReportPage({
               <h2>Dòng tiền trong tháng</h2>
               <p>
                 Tháng {Number(monthText)}/{yearText}
-                {totals.income + totals.expense + totals.adjustment > 0 && (
-                  <span className={`rp-pill ${positive ? "ok" : "warn"}`}>{positive ? "Đang dư" : "Đang âm"} {positive ? "+" : "-"}{formatMoney(Math.abs(totals.remaining))}</span>
-                )}
+                {totals.income + totals.expense + totals.adjustment > 0 && (<span className={`rp-pill ${positive ? "ok" : "warn"}`}>{positive ? "Đang dư" : "Đang âm"} {positive ? "+" : "-"}{formatMoney(Math.abs(totals.remaining))}</span>)}
               </p>
             </div>
             <div className="rp-tools">
               <div className="rp-legend">
-                <span><i className="in" /> Tiền vào</span>
-                <span><i className="out" /> Tiền ra</span>
+                <span><i className="in"/> Tiền vào</span>
+                <span><i className="out"/> Tiền ra</span>
               </div>
               <div className="rp-seg">
                 <button type="button" className={mode === "daily" ? "on" : ""} onClick={() => setMode("daily")}>Hằng ngày</button>
@@ -4982,7 +3689,7 @@ function MonthlyReportPage({
             </div>
           </div>
 
-        <WaveFlowChart data={flowData} monthKey={selectedMonth} mode={mode} />
+        <WaveFlowChart data={flowData} monthKey={selectedMonth} mode={mode}/>
 
         </section>
       </div>
@@ -4993,26 +3700,24 @@ function MonthlyReportPage({
           <div className="rp-cats">
             <div className="rp-cat-h"><span>Danh mục</span><span>Tỷ trọng</span><span>Số tiền</span><span>%</span></div>
             {catRows.map((row) => {
-              const share = totals.expense ? (row.value / totals.expense) * 100 : 0;
-              const Icon = categories[row.key].icon;
-              const segCount = 16;
-              return (
-                <div className="rp-cat" key={row.key}>
-                  <span className="rp-cat-name"><b className={row.key}><Icon size={15} /></b>{categories[row.key].label}</span>
+            const share = totals.expense ? (row.value / totals.expense) * 100 : 0;
+            const Icon = categories[row.key].icon;
+            const segCount = 16;
+            return (<div className="rp-cat" key={row.key}>
+                  <span className="rp-cat-name"><b className={row.key}><Icon size={15}/></b>{categories[row.key].label}</span>
                   <span className="rp-segs" role="img" aria-label={`${Math.round(share)}%`}>
                     {Array.from({ length: segCount }, (_, i) => {
-                      const exact = (share / 100) * segCount;
-                      const full = Math.floor(exact);
-                      const frac = exact - full;
-                      const state = i < full ? "on" : i === full && frac > 0 && (frac >= 0.25 || full === 0) ? "part" : "";
-                      return <i key={i} className={state ? `${state} ${row.key}` : ""} />;
-                    })}
+                    const exact = (share / 100) * segCount;
+                    const full = Math.floor(exact);
+                    const frac = exact - full;
+                    const state = i < full ? "on" : i === full && frac > 0 && (frac >= 0.25 || full === 0) ? "part" : "";
+                    return <i key={i} className={state ? `${state} ${row.key}` : ""}/>;
+                })}
                   </span>
                   <span className="rp-cat-amt">{formatMoney(row.value)}</span>
                   <em>{Math.round(share)}%</em>
-                </div>
-              );
-            })}
+                </div>);
+        })}
           </div>
         </section>
 
@@ -5021,368 +3726,252 @@ function MonthlyReportPage({
           <div className="rp-feed">
             {feed.length === 0 && <Empty>Chưa có giao dịch trong tháng này.</Empty>}
             {feed.map((item) => {
-              const minus = item.type === "expense" || (item.type === "adjustment" && item.adjustmentDirection === "minus");
-              const Icon = item.type === "income" ? TrendingUp : item.type === "expense" ? TrendingDown : Gift;
-              const acc = getAccountName(item.accountId);
-              return (
-                <div className="rp-feed-item" key={item.id}>
+            const minus = item.type === "expense" || (item.type === "adjustment" && item.adjustmentDirection === "minus");
+            const Icon = item.type === "income" ? TrendingUp : item.type === "expense" ? TrendingDown : Gift;
+            const acc = getAccountName(item.accountId);
+            return (<div className="rp-feed-item" key={item.id}>
                   <time>{item.date.slice(8, 10)}/{item.date.slice(5, 7)}</time>
-                  <b className={item.type}><Icon size={14} /></b>
+                  <b className={item.type}><Icon size={14}/></b>
                   <div>
                     <strong>{item.description || typeLabels[item.type] || "Giao dịch"}</strong>
                     <small>{[acc, item.code].filter(Boolean).join(" · ")}</small>
                   </div>
                   <span className={minus ? "neg" : "pos"}>{minus ? "-" : "+"}{formatMoney(Math.abs(Number(item.amount || 0)))}</span>
-                </div>
-              );
-            })}
+                </div>);
+        })}
           </div>
         </section>
       </div>
 
       <section className="panel rp-detail">
-        <PanelTitle title="Chi tiết giao dịch" subtitle={formatMonth(selectedMonth)} />
-        <TransactionTable
-          data={[...monthTransactions].sort((a, b) => b.date.localeCompare(a.date))}
-          getAccountName={getAccountName}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <PanelTitle title="Chi tiết giao dịch" subtitle={formatMonth(selectedMonth)}/>
+        <TransactionTable data={[...monthTransactions].sort((a, b) => b.date.localeCompare(a.date))} getAccountName={getAccountName} onEdit={onEdit} onDelete={onDelete}/>
       </section>
-    </div>
-  );
+    </div>);
 }
-
 function formatCompactMoney(value) {
-  const amount = Number(value || 0);
-
-  if (amount >= 1000000) {
-    return `${(amount / 1000000).toFixed(amount % 1000000 === 0 ? 0 : 1)}tr`;
-  }
-
-  if (amount >= 1000) {
-    return `${Math.round(amount / 1000)}k`;
-  }
-
-  return `${Math.round(amount)}`;
+    const amount = Number(value || 0);
+    if (amount >= 1000000) {
+        return `${(amount / 1000000).toFixed(amount % 1000000 === 0 ? 0 : 1)}tr`;
+    }
+    if (amount >= 1000) {
+        return `${Math.round(amount / 1000)}k`;
+    }
+    return `${Math.round(amount)}`;
 }
-
 /* =========================================================
    BIỂU ĐỒ CỘT KHOẢN CHI THEO TUẦN (7 ngày, Thứ 2 → Chủ nhật)
    Mỗi cột là một ngày, có thể chứa tới 3 màu:
    Ăn uống (cam) · Tiền trọ (đen) · Chi tiêu khác (cam nhạt).
    Ngày chưa chi gì chỉ hiện cột sọc xám.
 ========================================================= */
-
 const WEEK_SHORT = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 const WEEK_FULL = [
-  "Thứ hai",
-  "Thứ ba",
-  "Thứ tư",
-  "Thứ năm",
-  "Thứ sáu",
-  "Thứ bảy",
-  "Chủ nhật",
+    "Thứ hai",
+    "Thứ ba",
+    "Thứ tư",
+    "Thứ năm",
+    "Thứ sáu",
+    "Thứ bảy",
+    "Chủ nhật",
 ];
-
 const WEEKLY_CHART_HEIGHT = 230;
-
 /* Phần chiều cao của vùng biểu đồ không phải là cột: đệm trên + hàng nhãn thứ */
 const WEEKLY_CHART_RESERVED = 46;
-
 /* Màn hình rộng: đo vùng biểu đồ (đã được ép vừa 1 màn hình) rồi co giãn cột theo đó.
    Màn hình hẹp: dùng chiều cao mặc định. */
 function useWeeklyChartHeight(ref) {
-  const [height, setHeight] = useState(WEEKLY_CHART_HEIGHT);
-
-  useEffect(() => {
-    const node = ref.current;
-
-    if (!node) return undefined;
-
-    const measure = () => {
-      if (window.innerWidth <= 1100) {
-        setHeight(WEEKLY_CHART_HEIGHT);
-        return;
-      }
-
-      const available = node.clientHeight - WEEKLY_CHART_RESERVED;
-
-      setHeight(Math.max(96, Math.min(420, Math.round(available))));
-    };
-
-    measure();
-
-    let observer = null;
-
-    if (typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(measure);
-      observer.observe(node);
-    }
-
-    window.addEventListener("resize", measure);
-
-    return () => {
-      if (observer) observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [ref]);
-
-  return height;
+    const [height, setHeight] = useState(WEEKLY_CHART_HEIGHT);
+    useEffect(() => {
+        const node = ref.current;
+        if (!node)
+            return undefined;
+        const measure = () => {
+            if (window.innerWidth <= 1100) {
+                setHeight(WEEKLY_CHART_HEIGHT);
+                return;
+            }
+            const available = node.clientHeight - WEEKLY_CHART_RESERVED;
+            setHeight(Math.max(96, Math.min(420, Math.round(available))));
+        };
+        measure();
+        let observer = null;
+        if (typeof ResizeObserver !== "undefined") {
+            observer = new ResizeObserver(measure);
+            observer.observe(node);
+        }
+        window.addEventListener("resize", measure);
+        return () => {
+            if (observer)
+                observer.disconnect();
+            window.removeEventListener("resize", measure);
+        };
+    }, [ref]);
+    return height;
 }
-
 const WEEKLY_TIP_HEIGHT = 118;
-
 function getWeekDays(offset) {
-  const now = new Date();
-  const mondayShift = (now.getDay() + 6) % 7;
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() - mondayShift + offset * 7 + index
-    );
-
-    return {
-      index,
-      key: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-        date.getDate()
-      )}`,
-      label: `${pad(date.getDate())}/${pad(date.getMonth() + 1)}`,
-    };
-  });
+    const now = new Date();
+    const mondayShift = (now.getDay() + 6) % 7;
+    return Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayShift + offset * 7 + index);
+        return {
+            index,
+            key: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+            label: `${pad(date.getDate())}/${pad(date.getMonth() + 1)}`,
+        };
+    });
 }
-
 /* Tuần (tính từ thứ 2) chứa một ngày, so với tuần hiện tại: 0 = tuần này, -1 = tuần trước... */
 function getWeekOffsetForDate(date) {
-  const now = new Date();
-
-  const monday = (d) =>
-    new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
-
-  return Math.round((monday(date) - monday(now)) / (7 * 86400000));
+    const now = new Date();
+    const monday = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+    return Math.round((monday(date) - monday(now)) / (7 * 86400000));
 }
-
 /* =========================================================
    LỊCH CHỌN THÁNG XEM (nằm ở bảng thống kê khoản chi)
    Chỉ có chế độ xem Ngày: bấm mũi tên để đổi tháng, bấm một ngày để
    biểu đồ nhảy tới tuần chứa ngày đó.
 ========================================================= */
-
 /* Chữ trên các nút ở chân lịch: muốn đổi chữ thì sửa ngay tại đây */
 const CALENDAR_FOOT_LABELS = {
-  custom: "Tuỳ chỉnh",
-  back: "Quay lại",
-  apply: "Xem ngày này",
+    custom: "Tuỳ chỉnh",
+    back: "Quay lại",
+    apply: "Xem ngày này",
 };
-
-function CalendarPicker({
-  month,
-  onChangeMonth,
-  onPickDay,
-  transactions = [],
-}) {
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("calendar");
-  const [draft, setDraft] = useState({ day: 1, month: 1, year: 2026 });
-  const wrapRef = useRef(null);
-
-  const [year, monthNumber] = month.split("-").map(Number);
-  const todayKey = todayString();
-  const thisMonth = currentMonthKey();
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const onDown = (event) => {
-      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+function CalendarPicker({ month, onChangeMonth, onPickDay, transactions = [], }) {
+    const [open, setOpen] = useState(false);
+    const [mode, setMode] = useState("calendar");
+    const [draft, setDraft] = useState({ day: 1, month: 1, year: 2026 });
+    const wrapRef = useRef(null);
+    const [year, monthNumber] = month.split("-").map(Number);
+    const todayKey = todayString();
+    const thisMonth = currentMonthKey();
+    useEffect(() => {
+        if (!open)
+            return undefined;
+        const onDown = (event) => {
+            if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+        const onKey = (event) => {
+            if (event.key === "Escape")
+                setOpen(false);
+        };
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("mousedown", onDown);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [open]);
+    /* Chi từng ngày của tháng đang xem */
+    const monthStats = useMemo(() => {
+        const dayExpense = {};
+        transactions.forEach((item) => {
+            if (!item.date || !item.date.startsWith(month))
+                return;
+            if (item.type !== "expense")
+                return;
+            const amount = Math.abs(Number(item.amount || 0));
+            dayExpense[item.date] = (dayExpense[item.date] || 0) + amount;
+        });
+        return { dayExpense };
+    }, [transactions, month]);
+    const cells = useMemo(() => {
+        const first = new Date(year, monthNumber - 1, 1).getDay();
+        const start = first === 0 ? 6 : first - 1;
+        const days = new Date(year, monthNumber, 0).getDate();
+        return [
+            ...Array(start).fill(null),
+            ...Array.from({ length: days }, (_, i) => i + 1),
+        ];
+    }, [year, monthNumber]);
+    function monthKeyOf(y, m) {
+        const date = new Date(y, m - 1, 1);
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+    }
+    /* ----- Phần Tuỳ chỉnh: chọn cụ thể ngày, tháng, năm ----- */
+    const thisYear = new Date().getFullYear();
+    const yearOptions = [];
+    for (let y = Math.min(thisYear - 5, draft.year); y <= Math.max(thisYear + 1, draft.year); y += 1) {
+        yearOptions.push(y);
+    }
+    const draftDaysInMonth = new Date(draft.year, draft.month, 0).getDate();
+    const draftDay = Math.min(draft.day, draftDaysInMonth);
+    const draftKey = `${draft.year}-${pad(draft.month)}-${pad(draftDay)}`;
+    const draftWeekday = WEEK_FULL[(new Date(draft.year, draft.month - 1, draftDay).getDay() + 6) % 7];
+    const draftSpent = useMemo(() => {
+        return transactions.reduce((sum, item) => {
+            if (item.type !== "expense" || item.date !== draftKey)
+                return sum;
+            return sum + Math.abs(Number(item.amount || 0));
+        }, 0);
+    }, [transactions, draftKey]);
+    function openCustom() {
+        setDraft({
+            day: month === thisMonth ? new Date().getDate() : 1,
+            month: monthNumber,
+            year,
+        });
+        setMode("custom");
+    }
+    function applyCustom() {
+        onChangeMonth(`${draft.year}-${pad(draft.month)}`);
+        onPickDay(draftKey);
         setOpen(false);
-      }
-    };
-
-    const onKey = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  /* Chi từng ngày của tháng đang xem */
-  const monthStats = useMemo(() => {
-    const dayExpense = {};
-
-    transactions.forEach((item) => {
-      if (!item.date || !item.date.startsWith(month)) return;
-
-      if (item.type !== "expense") return;
-
-      const amount = Math.abs(Number(item.amount || 0));
-
-      dayExpense[item.date] = (dayExpense[item.date] || 0) + amount;
-    });
-
-    return { dayExpense };
-  }, [transactions, month]);
-
-  const cells = useMemo(() => {
-    const first = new Date(year, monthNumber - 1, 1).getDay();
-    const start = first === 0 ? 6 : first - 1;
-    const days = new Date(year, monthNumber, 0).getDate();
-
-    return [
-      ...Array(start).fill(null),
-      ...Array.from({ length: days }, (_, i) => i + 1),
-    ];
-  }, [year, monthNumber]);
-
-  function monthKeyOf(y, m) {
-    const date = new Date(y, m - 1, 1);
-
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
-  }
-
-  /* ----- Phần Tuỳ chỉnh: chọn cụ thể ngày, tháng, năm ----- */
-
-  const thisYear = new Date().getFullYear();
-  const yearOptions = [];
-
-  for (
-    let y = Math.min(thisYear - 5, draft.year);
-    y <= Math.max(thisYear + 1, draft.year);
-    y += 1
-  ) {
-    yearOptions.push(y);
-  }
-
-  const draftDaysInMonth = new Date(draft.year, draft.month, 0).getDate();
-  const draftDay = Math.min(draft.day, draftDaysInMonth);
-  const draftKey = `${draft.year}-${pad(draft.month)}-${pad(draftDay)}`;
-  const draftWeekday =
-    WEEK_FULL[(new Date(draft.year, draft.month - 1, draftDay).getDay() + 6) % 7];
-
-  const draftSpent = useMemo(() => {
-    return transactions.reduce((sum, item) => {
-      if (item.type !== "expense" || item.date !== draftKey) return sum;
-
-      return sum + Math.abs(Number(item.amount || 0));
-    }, 0);
-  }, [transactions, draftKey]);
-
-  function openCustom() {
-    setDraft({
-      day: month === thisMonth ? new Date().getDate() : 1,
-      month: monthNumber,
-      year,
-    });
-    setMode("custom");
-  }
-
-  function applyCustom() {
-    onChangeMonth(`${draft.year}-${pad(draft.month)}`);
-    onPickDay(draftKey);
-    setOpen(false);
-  }
-
-  return (
-    <div className="calendar-picker" ref={wrapRef}>
-      <button
-        type="button"
-        className={`calendar-trigger ${open ? "active" : ""}`}
-        title="Chọn tháng xem"
-        aria-label="Chọn tháng xem"
-        aria-expanded={open}
-        onClick={() => {
-          setMode("calendar");
-          setOpen((old) => !old);
-        }}
-      >
-        <ModernCalendarIcon size={18} />
+    }
+    return (<div className="calendar-picker" ref={wrapRef}>
+      <button type="button" className={`calendar-trigger ${open ? "active" : ""}`} title="Chọn tháng xem" aria-label="Chọn tháng xem" aria-expanded={open} onClick={() => {
+            setMode("calendar");
+            setOpen((old) => !old);
+        }}>
+        <ModernCalendarIcon size={18}/>
       </button>
 
-      {open && (
-        <div className="calendar-pop" role="dialog" aria-label="Lịch xem tháng">
-          {mode === "calendar" ? (
-            <>
+      {open && (<div className="calendar-pop" role="dialog" aria-label="Lịch xem tháng">
+          {mode === "calendar" ? (<>
               <div className="calendar-nav">
-                <button
-                  type="button"
-                  aria-label="Tháng trước"
-                  onClick={() =>
-                    onChangeMonth(monthKeyOf(year, monthNumber - 1))
-                  }
-                >
-                  <ChevronLeft size={16} />
+                <button type="button" aria-label="Tháng trước" onClick={() => onChangeMonth(monthKeyOf(year, monthNumber - 1))}>
+                  <ChevronLeft size={16}/>
                 </button>
 
                 {/* Chỉ hiển thị chữ, không bấm để chuyển sang xem tháng / năm */}
                 <div className="calendar-nav-title">{`Tháng ${monthNumber}/${year}`}</div>
 
-                <button
-                  type="button"
-                  aria-label="Tháng sau"
-                  onClick={() =>
-                    onChangeMonth(monthKeyOf(year, monthNumber + 1))
-                  }
-                >
-                  <ChevronRight size={16} />
+                <button type="button" aria-label="Tháng sau" onClick={() => onChangeMonth(monthKeyOf(year, monthNumber + 1))}>
+                  <ChevronRight size={16}/>
                 </button>
               </div>
 
               <div className="mini-cal-days mini-cal-weekdays">
-                {WEEK_SHORT.map((label) => (
-                  <span key={label}>{label}</span>
-                ))}
+                {WEEK_SHORT.map((label) => (<span key={label}>{label}</span>))}
               </div>
 
               <div className="mini-cal-days">
                 {cells.map((day, index) => {
-                  if (!day) return <i key={`empty-${index}`} />;
-
-                  const dateKey = `${month}-${pad(day)}`;
-                  const spent = monthStats.dayExpense[dateKey] || 0;
-
-                  return (
-                    <button
-                      key={dateKey}
-                      type="button"
-                      className={`mini-cal-day ${
-                        dateKey === todayKey ? "today" : ""
-                      } ${spent > 0 ? "has-spending" : ""}`}
-                      title={
-                        spent > 0
-                          ? `${formatDate(dateKey)}: chi ${formatMoney(spent)}`
-                          : `${formatDate(dateKey)}: chưa chi`
-                      }
-                      onClick={() => {
-                        onPickDay(dateKey);
-                        setOpen(false);
-                      }}
-                    >
+                    if (!day)
+                        return <i key={`empty-${index}`}/>;
+                    const dateKey = `${month}-${pad(day)}`;
+                    const spent = monthStats.dayExpense[dateKey] || 0;
+                    return (<button key={dateKey} type="button" className={`mini-cal-day ${dateKey === todayKey ? "today" : ""} ${spent > 0 ? "has-spending" : ""}`} title={spent > 0
+                            ? `${formatDate(dateKey)}: chi ${formatMoney(spent)}`
+                            : `${formatDate(dateKey)}: chưa chi`} onClick={() => {
+                            onPickDay(dateKey);
+                            setOpen(false);
+                        }}>
                       {day}
-                    </button>
-                  );
+                    </button>);
                 })}
               </div>
 
               <div className="calendar-foot">
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={openCustom}
-                >
+                <button type="button" className="primary" onClick={openCustom}>
                   {CALENDAR_FOOT_LABELS.custom}
                 </button>
               </div>
-            </>
-          ) : (
-            <>
+            </>) : (<>
               <div className="calendar-custom">
                 <div className="calendar-custom-title">
                   {CALENDAR_FOOT_LABELS.custom}
@@ -5392,60 +3981,36 @@ function CalendarPicker({
                   <label>
                     <span>Ngày</span>
 
-                    <select
-                      value={draftDay}
-                      onChange={(event) =>
-                        setDraft({ ...draft, day: Number(event.target.value) })
-                      }
-                    >
-                      {Array.from(
-                        { length: draftDaysInMonth },
-                        (_, i) => i + 1
-                      ).map((d) => (
-                        <option key={d} value={d}>
+                    <select value={draftDay} onChange={(event) => setDraft({ ...draft, day: Number(event.target.value) })}>
+                      {Array.from({ length: draftDaysInMonth }, (_, i) => i + 1).map((d) => (<option key={d} value={d}>
                           {d}
-                        </option>
-                      ))}
+                        </option>))}
                     </select>
                   </label>
 
                   <label>
                     <span>Tháng</span>
 
-                    <select
-                      value={draft.month}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          month: Number(event.target.value),
-                        })
-                      }
-                    >
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                        <option key={m} value={m}>
+                    <select value={draft.month} onChange={(event) => setDraft({
+                    ...draft,
+                    month: Number(event.target.value),
+                })}>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (<option key={m} value={m}>
                           {m}
-                        </option>
-                      ))}
+                        </option>))}
                     </select>
                   </label>
 
                   <label>
                     <span>Năm</span>
 
-                    <select
-                      value={draft.year}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          year: Number(event.target.value),
-                        })
-                      }
-                    >
-                      {yearOptions.map((y) => (
-                        <option key={y} value={y}>
+                    <select value={draft.year} onChange={(event) => setDraft({
+                    ...draft,
+                    year: Number(event.target.value),
+                })}>
+                      {yearOptions.map((y) => (<option key={y} value={y}>
                           {y}
-                        </option>
-                      ))}
+                        </option>))}
                     </select>
                   </label>
                 </div>
@@ -5458,8 +4023,8 @@ function CalendarPicker({
 
                   <span>
                     {draftSpent > 0
-                      ? `Chi ngày này: ${formatMoney(draftSpent)}`
-                      : "Ngày này chưa chi"}
+                    ? `Chi ngày này: ${formatMoney(draftSpent)}`
+                    : "Ngày này chưa chi"}
                   </span>
                 </div>
               </div>
@@ -5469,132 +4034,97 @@ function CalendarPicker({
                   {CALENDAR_FOOT_LABELS.back}
                 </button>
 
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={applyCustom}
-                >
+                <button type="button" className="primary" onClick={applyCustom}>
                   {CALENDAR_FOOT_LABELS.apply}
                 </button>
               </div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
+            </>)}
+        </div>)}
+    </div>);
 }
-
 /* Bước chia trục tung "đẹp": 4 khoảng bằng nhau */
 function getNiceStep(maxValue) {
-  if (maxValue <= 0) return 25000;
-
-  const raw = maxValue / 4;
-  const exponent = Math.pow(10, Math.floor(Math.log10(raw)));
-  const fraction = raw / exponent;
-
-  const nice =
-    fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10;
-
-  return nice * exponent;
+    if (maxValue <= 0)
+        return 25000;
+    const raw = maxValue / 4;
+    const exponent = Math.pow(10, Math.floor(Math.log10(raw)));
+    const fraction = raw / exponent;
+    const nice = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10;
+    return nice * exponent;
 }
-
-function WeeklySpendingChart({
-  transactions,
-  selectedMonth,
-  availableMonths = [],
-  onSelectMonth = () => {},
-}) {
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [hoverIndex, setHoverIndex] = useState(null);
-  const [pickedKey, setPickedKey] = useState(null);
-
-  /* Đổi tháng ở lịch: biểu đồ nhảy tới tuần cuối của tháng đó
-     (tháng hiện tại thì về tuần này) */
-  useEffect(() => {
-    if (!selectedMonth) return;
-
-    /* Vừa chọn một ngày cụ thể (ví dụ ở phần Tuỳ chỉnh) thuộc tháng này:
-       giữ nguyên tuần đã chọn */
-    if (pickedKey && pickedKey.startsWith(selectedMonth)) return;
-
-    const [y, m] = selectedMonth.split("-").map(Number);
-    const reference =
-      selectedMonth === currentMonthKey() ? new Date() : new Date(y, m, 0);
-
-    setWeekOffset(Math.min(0, getWeekOffsetForDate(reference)));
-    setPickedKey(null);
-  }, [selectedMonth]);
-
-  function handlePickDay(dateKey) {
-    const [y, m, d] = dateKey.split("-").map(Number);
-
-    setWeekOffset(Math.min(0, getWeekOffsetForDate(new Date(y, m - 1, d))));
-    setPickedKey(dateKey);
-  }
-  const chartAreaRef = useRef(null);
-  const chartHeight = useWeeklyChartHeight(chartAreaRef);
-
-  const todayKey = todayString();
-  const days = getWeekDays(weekOffset);
-
-  const columns = days.map((day) => {
-    let food = 0;
-    let rent = 0;
-    let other = 0;
-
-    transactions.forEach((item) => {
-      if (item.type !== "expense" || item.date !== day.key) return;
-
-      const amount = Math.abs(Number(item.amount || 0));
-
-      if (item.category === "food") food += amount;
-      else if (item.category === "rent") rent += amount;
-      else other += amount;
-    });
-
-    return { ...day, food, rent, other, total: food + rent + other };
-  });
-
-  const weekTotal = columns.reduce((sum, col) => sum + col.total, 0);
-  const maxTotal = Math.max(...columns.map((col) => col.total), 0);
-  const step = getNiceStep(maxTotal);
-  const axisMax = step * 4;
-
-  const todayIndex = columns.findIndex((col) => col.key === todayKey);
-
-  /* Cột đang được chọn: cột rê chuột, nếu không thì hôm nay,
-     nếu không thì ngày chi gần nhất của tuần đó */
-  let defaultIndex = todayIndex;
-
-  if (defaultIndex < 0) {
-    for (let i = columns.length - 1; i >= 0; i -= 1) {
-      if (columns[i].total > 0) {
-        defaultIndex = i;
-        break;
-      }
+function WeeklySpendingChart({ transactions, selectedMonth, availableMonths = [], onSelectMonth = () => { }, }) {
+    const [weekOffset, setWeekOffset] = useState(0);
+    const [hoverIndex, setHoverIndex] = useState(null);
+    const [pickedKey, setPickedKey] = useState(null);
+    /* Đổi tháng ở lịch: biểu đồ nhảy tới tuần cuối của tháng đó
+       (tháng hiện tại thì về tuần này) */
+    useEffect(() => {
+        if (!selectedMonth)
+            return;
+        /* Vừa chọn một ngày cụ thể (ví dụ ở phần Tuỳ chỉnh) thuộc tháng này:
+           giữ nguyên tuần đã chọn */
+        if (pickedKey && pickedKey.startsWith(selectedMonth))
+            return;
+        const [y, m] = selectedMonth.split("-").map(Number);
+        const reference = selectedMonth === currentMonthKey() ? new Date() : new Date(y, m, 0);
+        setWeekOffset(Math.min(0, getWeekOffsetForDate(reference)));
+        setPickedKey(null);
+    }, [selectedMonth]);
+    function handlePickDay(dateKey) {
+        const [y, m, d] = dateKey.split("-").map(Number);
+        setWeekOffset(Math.min(0, getWeekOffsetForDate(new Date(y, m - 1, d))));
+        setPickedKey(dateKey);
     }
-  }
-
-  if (defaultIndex < 0) defaultIndex = 0;
-
-  const pickedIndex = pickedKey
-    ? columns.findIndex((col) => col.key === pickedKey)
-    : -1;
-
-  const activeIndex =
-    hoverIndex ?? (pickedIndex >= 0 ? pickedIndex : defaultIndex);
-
-  const activeCol = columns[activeIndex];
-
-  const categories = [
-    { id: "food", label: "Ăn uống" },
-    { id: "rent", label: "Tiền trọ" },
-    { id: "other", label: "Chi tiêu khác" },
-  ];
-
-  return (
-    <div className="weekly-chart-card">
+    const chartAreaRef = useRef(null);
+    const chartHeight = useWeeklyChartHeight(chartAreaRef);
+    const todayKey = todayString();
+    const days = getWeekDays(weekOffset);
+    const columns = days.map((day) => {
+        let food = 0;
+        let rent = 0;
+        let other = 0;
+        transactions.forEach((item) => {
+            if (item.type !== "expense" || item.date !== day.key)
+                return;
+            const amount = Math.abs(Number(item.amount || 0));
+            if (item.category === "food")
+                food += amount;
+            else if (item.category === "rent")
+                rent += amount;
+            else
+                other += amount;
+        });
+        return { ...day, food, rent, other, total: food + rent + other };
+    });
+    const weekTotal = columns.reduce((sum, col) => sum + col.total, 0);
+    const maxTotal = Math.max(...columns.map((col) => col.total), 0);
+    const step = getNiceStep(maxTotal);
+    const axisMax = step * 4;
+    const todayIndex = columns.findIndex((col) => col.key === todayKey);
+    /* Cột đang được chọn: cột rê chuột, nếu không thì hôm nay,
+       nếu không thì ngày chi gần nhất của tuần đó */
+    let defaultIndex = todayIndex;
+    if (defaultIndex < 0) {
+        for (let i = columns.length - 1; i >= 0; i -= 1) {
+            if (columns[i].total > 0) {
+                defaultIndex = i;
+                break;
+            }
+        }
+    }
+    if (defaultIndex < 0)
+        defaultIndex = 0;
+    const pickedIndex = pickedKey
+        ? columns.findIndex((col) => col.key === pickedKey)
+        : -1;
+    const activeIndex = hoverIndex ?? (pickedIndex >= 0 ? pickedIndex : defaultIndex);
+    const activeCol = columns[activeIndex];
+    const categories = [
+        { id: "food", label: "Ăn uống" },
+        { id: "rent", label: "Tiền trọ" },
+        { id: "other", label: "Chi tiêu khác" },
+    ];
+    return (<div className="weekly-chart-card">
       <div className="dashboard-panel-heading compact">
         <div>
           <div className="panel-kicker">THỐNG KÊ KHOẢN CHI</div>
@@ -5602,34 +4132,16 @@ function WeeklySpendingChart({
         </div>
 
         <div className="weekly-head-actions">
-        <CalendarPicker
-          month={selectedMonth}
-          onChangeMonth={onSelectMonth}
-          onPickDay={handlePickDay}
-          transactions={transactions}
-        />
+        <CalendarPicker month={selectedMonth} onChangeMonth={onSelectMonth} onPickDay={handlePickDay} transactions={transactions}/>
 
         </div>
       </div>
 
-      <div
-        className="weekly-chart"
-        ref={chartAreaRef}
-        onMouseLeave={() => setHoverIndex(null)}
-      >
-        <div
-          className="weekly-axis"
-          style={{ height: chartHeight }}
-          aria-hidden="true"
-        >
-          {[0, 1, 2, 3, 4].map((tick) => (
-            <span
-              key={tick}
-              style={{ bottom: `${(tick / 4) * 100}%` }}
-            >
+      <div className="weekly-chart" ref={chartAreaRef} onMouseLeave={() => setHoverIndex(null)}>
+        <div className="weekly-axis" style={{ height: chartHeight }} aria-hidden="true">
+          {[0, 1, 2, 3, 4].map((tick) => (<span key={tick} style={{ bottom: `${(tick / 4) * 100}%` }}>
               {formatCompactMoney(step * tick)}
-            </span>
-          ))}
+            </span>))}
         </div>
 
         <div className="weekly-bars">
@@ -5637,40 +4149,16 @@ function WeeklySpendingChart({
             const isActive = col.index === activeIndex;
             const isToday = col.key === todayKey;
             const hasSpending = col.total > 0;
-
             const barHeight = hasSpending
-              ? Math.max(40, (col.total / axisMax) * chartHeight)
-              : 54;
-
-            return (
-              <button
-                key={col.key}
-                type="button"
-                className={`weekly-col ${isActive ? "active" : ""} ${
-                  isToday ? "today" : ""
-                }`}
-                aria-label={`${WEEK_FULL[col.index]} ${col.label}: ${formatMoney(
-                  col.total
-                )}`}
-                onMouseEnter={() => setHoverIndex(col.index)}
-                onFocus={() => setHoverIndex(col.index)}
-                onBlur={() => setHoverIndex(null)}
-              >
-                <div
-                  className="weekly-bar-area"
-                  style={{ height: chartHeight }}
-                >
-                  {isActive && (
-                    <div
-                      className={`weekly-tip ${
-                        col.index <= 1
-                          ? "align-left"
-                          : col.index >= 5
-                          ? "align-right"
-                          : ""
-                      }`}
-                      style={{ top: -(WEEKLY_TIP_HEIGHT + 12) }}
-                    >
+                ? Math.max(40, (col.total / axisMax) * chartHeight)
+                : 54;
+            return (<button key={col.key} type="button" className={`weekly-col ${isActive ? "active" : ""} ${isToday ? "today" : ""}`} aria-label={`${WEEK_FULL[col.index]} ${col.label}: ${formatMoney(col.total)}`} onMouseEnter={() => setHoverIndex(col.index)} onFocus={() => setHoverIndex(col.index)} onBlur={() => setHoverIndex(null)}>
+                <div className="weekly-bar-area" style={{ height: chartHeight }}>
+                  {isActive && (<div className={`weekly-tip ${col.index <= 1
+                        ? "align-left"
+                        : col.index >= 5
+                            ? "align-right"
+                            : ""}`} style={{ top: -(WEEKLY_TIP_HEIGHT + 12) }}>
                       <div className="weekly-tip-head">
                         <span>
                           {isToday ? "Hôm nay" : WEEK_FULL[col.index]}
@@ -5681,47 +4169,25 @@ function WeeklySpendingChart({
                         <strong>{formatMoney(col.total)}</strong>
                       </div>
 
-                      {categories.map((category) => (
-                        <div
-                          className={`weekly-tip-row ${
-                            col[category.id] > 0 ? "" : "zero"
-                          }`}
-                          key={category.id}
-                        >
-                          <i className={`donut-dot ${category.id}`} />
+                      {categories.map((category) => (<div className={`weekly-tip-row ${col[category.id] > 0 ? "" : "zero"}`} key={category.id}>
+                          <i className={`donut-dot ${category.id}`}/>
 
                           <span>{category.label}</span>
 
                           <strong>{formatMoney(col[category.id])}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        </div>))}
+                    </div>)}
 
-                  <div
-                    className={`weekly-bar ${hasSpending ? "filled" : "empty"}`}
-                    style={{ height: barHeight }}
-                  >
-                    {categories.map((category) =>
-                      col[category.id] > 0 ? (
-                        <i
-                          key={category.id}
-                          className={`weekly-seg ${category.id}`}
-                          style={{ flexGrow: col[category.id] }}
-                        />
-                      ) : null
-                    )}
+                  <div className={`weekly-bar ${hasSpending ? "filled" : "empty"}`} style={{ height: barHeight }}>
+                    {categories.map((category) => col[category.id] > 0 ? (<i key={category.id} className={`weekly-seg ${category.id}`} style={{ flexGrow: col[category.id] }}/>) : null)}
 
-                    {isActive && hasSpending && (
-                      <b className="weekly-bar-dot" />
-                    )}
+                    {isActive && hasSpending && (<b className="weekly-bar-dot"/>)}
                   </div>
                 </div>
 
                 <span className="weekly-label">{WEEK_SHORT[col.index]}</span>
-              </button>
-            );
-          })}
+              </button>);
+        })}
         </div>
       </div>
 
@@ -5729,8 +4195,8 @@ function WeeklySpendingChart({
         <div className="weekly-summary-title">
           <strong>
             {activeCol.key === todayKey
-              ? "Hôm nay"
-              : WEEK_FULL[activeCol.index]}
+            ? "Hôm nay"
+            : WEEK_FULL[activeCol.index]}
             {" · "}
             {activeCol.label}
           </strong>
@@ -5739,15 +4205,13 @@ function WeeklySpendingChart({
         </div>
 
         <div className="weekly-legend">
-          {categories.map((category) => (
-            <div className="weekly-legend-item" key={category.id}>
-              <i className={`donut-dot ${category.id}`} />
+          {categories.map((category) => (<div className="weekly-legend-item" key={category.id}>
+              <i className={`donut-dot ${category.id}`}/>
 
               {category.label}
 
               <strong>{formatMoney(activeCol[category.id])}</strong>
-            </div>
-          ))}
+            </div>))}
         </div>
 
         <div className="weekly-week-total">
@@ -5759,37 +4223,28 @@ function WeeklySpendingChart({
           </strong>
         </div>
       </div>
-    </div>
-  );
+    </div>);
 }
-
 function SpendingDonut({ food, rent, other, total, showAmount = false }) {
-  const safeTotal = Number(total || 0);
-  const items = [
-    { label: "Ăn uống", value: Number(food || 0), className: "food" },
-    { label: "Tiền trọ", value: Number(rent || 0), className: "rent" },
-    { label: "Chi tiêu khác", value: Number(other || 0), className: "other" },
-  ];
-
-  let cursor = 0;
-  const gradient =
-    safeTotal > 0
-      ? items
-          .map((item) => {
+    const safeTotal = Number(total || 0);
+    const items = [
+        { label: "Ăn uống", value: Number(food || 0), className: "food" },
+        { label: "Tiền trọ", value: Number(rent || 0), className: "rent" },
+        { label: "Chi tiêu khác", value: Number(other || 0), className: "other" },
+    ];
+    let cursor = 0;
+    const gradient = safeTotal > 0
+        ? items
+            .map((item) => {
             const start = cursor;
             const percent = (item.value / safeTotal) * 100;
             cursor += percent;
             return `${item.className === "food" ? "var(--cat-food)" : item.className === "rent" ? "var(--cat-rent)" : "var(--cat-other)"} ${start}% ${cursor}%`;
-          })
-          .join(", ")
-      : "var(--chart-empty) 0% 100%";
-
-  return (
-    <div className="donut-content">
-      <div
-        className="donut-chart"
-        style={{ background: `conic-gradient(${gradient})` }}
-      >
+        })
+            .join(", ")
+        : "var(--chart-empty) 0% 100%";
+    return (<div className="donut-content">
+      <div className="donut-chart" style={{ background: `conic-gradient(${gradient})` }}>
         <div className="donut-hole">
           <strong>{formatMoney(safeTotal)}</strong>
           <span>Tổng chi</span>
@@ -5798,94 +4253,74 @@ function SpendingDonut({ food, rent, other, total, showAmount = false }) {
 
       <div className="donut-legend">
         {items.map((item) => {
-          const percent =
-            safeTotal > 0 ? (item.value / safeTotal) * 100 : 0;
-
-          return (
-            <div className="donut-legend-row" key={item.label}>
+            const percent = safeTotal > 0 ? (item.value / safeTotal) * 100 : 0;
+            return (<div className="donut-legend-row" key={item.label}>
               <div>
-                <i className={`donut-dot ${item.className}`} />
+                <i className={`donut-dot ${item.className}`}/>
                 <span>{item.label}</span>
               </div>
               <strong>
                 {percent.toFixed(0)}%
 
-                {showAmount && (
-                  <small>{formatMoney(item.value)}</small>
-                )}
+                {showAmount && (<small>{formatMoney(item.value)}</small>)}
               </strong>
-            </div>
-          );
+            </div>);
         })}
       </div>
-    </div>
-  );
+    </div>);
 }
-
 function DashboardRecentTransactions({ transactions, getAccountName, search = "" }) {
-  const normalizedSearch = search.trim().toLowerCase();
-
-  const data = [...transactions]
-    .filter((item) => {
-      if (!normalizedSearch) return true;
-
-      const accountText =
-        item.type === "transfer"
-          ? `${getAccountName(item.fromAccountId)} ${getAccountName(item.toAccountId)}`
-          : getAccountName(item.accountId);
-
-      const categoryText =
-        item.type === "expense"
-          ? categories[item.category]?.label || ""
-          : "";
-
-      return `${item.description || ""} ${accountText} ${categoryText}`
-        .toLowerCase()
-        .includes(normalizedSearch);
+    const normalizedSearch = search.trim().toLowerCase();
+    const data = [...transactions]
+        .filter((item) => {
+        if (!normalizedSearch)
+            return true;
+        const accountText = item.type === "transfer"
+            ? `${getAccountName(item.fromAccountId)} ${getAccountName(item.toAccountId)}`
+            : getAccountName(item.accountId);
+        const categoryText = item.type === "expense"
+            ? categories[item.category]?.label || ""
+            : "";
+        return `${item.description || ""} ${accountText} ${categoryText}`
+            .toLowerCase()
+            .includes(normalizedSearch);
     })
-    .sort((a, b) =>
-      b.date.localeCompare(a.date) || String(b.id).localeCompare(String(a.id))
-    )
-    .slice(0, 5);
-
-  if (data.length === 0) {
-    return <Empty>Chưa có giao dịch trong tháng này.</Empty>;
-  }
-
-  return (
-    <div className="dashboard-recent-list">
+        .sort((a, b) => b.date.localeCompare(a.date) || String(b.id).localeCompare(String(a.id)))
+        .slice(0, 5);
+    if (data.length === 0) {
+        return <Empty>Chưa có giao dịch trong tháng này.</Empty>;
+    }
+    return (<div className="dashboard-recent-list">
       {data.map((item) => {
-        const isIncome = item.type === "income";
-        const isAdjustment = item.type === "adjustment";
-        const isTransfer = item.type === "transfer";
-        const amount = Math.abs(Number(item.amount || 0));
-
-        let className = "expense";
-        let sign = "-";
-        let label = categories[item.category]?.label || "Chi tiêu";
-        let Icon = ArrowDownCircle;
-
-        if (isIncome) {
-          className = "income";
-          sign = "+";
-          label = "Thu nhập";
-          Icon = ArrowUpCircle;
-        } else if (isAdjustment) {
-          className = item.adjustmentDirection === "minus" ? "expense" : "adjustment";
-          sign = item.adjustmentDirection === "minus" ? "-" : "+";
-          label = item.adjustmentDirection === "minus" ? "Điều chỉnh giảm" : "Điều chỉnh tăng";
-          Icon = SlidersHorizontal;
-        } else if (isTransfer) {
-          className = "adjustment";
-          sign = "↔";
-          label = "Chuyển tiền";
-          Icon = ArrowLeftRight;
-        }
-
-        return (
-          <div className="dashboard-recent-row" key={item.id}>
+            const isIncome = item.type === "income";
+            const isAdjustment = item.type === "adjustment";
+            const isTransfer = item.type === "transfer";
+            const amount = Math.abs(Number(item.amount || 0));
+            let className = "expense";
+            let sign = "-";
+            let label = categories[item.category]?.label || "Chi tiêu";
+            let Icon = ArrowDownCircle;
+            if (isIncome) {
+                className = "income";
+                sign = "+";
+                label = "Thu nhập";
+                Icon = ArrowUpCircle;
+            }
+            else if (isAdjustment) {
+                className = item.adjustmentDirection === "minus" ? "expense" : "adjustment";
+                sign = item.adjustmentDirection === "minus" ? "-" : "+";
+                label = item.adjustmentDirection === "minus" ? "Điều chỉnh giảm" : "Điều chỉnh tăng";
+                Icon = SlidersHorizontal;
+            }
+            else if (isTransfer) {
+                className = "adjustment";
+                sign = "↔";
+                label = "Chuyển tiền";
+                Icon = ArrowLeftRight;
+            }
+            return (<div className="dashboard-recent-row" key={item.id}>
             <div className={`dashboard-transaction-icon ${className}`}>
-              <Icon size={18} />
+              <Icon size={18}/>
             </div>
 
             <div className="dashboard-recent-main">
@@ -5893,37 +4328,30 @@ function DashboardRecentTransactions({ transactions, getAccountName, search = ""
               <span>
                 {formatDate(item.date)} · {label}
                 {!isTransfer && item.accountId
-                  ? ` · ${getAccountName(item.accountId)}`
-                  : ""}
+                    ? ` · ${getAccountName(item.accountId)}`
+                    : ""}
               </span>
             </div>
 
             <strong className={`dashboard-recent-amount ${className}`}>
               {sign}{formatMoney(amount)}
             </strong>
-          </div>
-        );
-      })}
-    </div>
-  );
+          </div>);
+        })}
+    </div>);
 }
-
 function DashboardAccountBalances({ accounts, getAccountBalance }) {
-  if (accounts.length === 0) {
-    return <Empty>Chưa có tài khoản.</Empty>;
-  }
-
-  return (
-    <div className="dashboard-account-list">
+    if (accounts.length === 0) {
+        return <Empty>Chưa có tài khoản.</Empty>;
+    }
+    return (<div className="dashboard-account-list">
       {accounts.slice(0, 5).map((account) => {
-        const config = accountTypes[account.type] || accountTypes.bank;
-        const Icon = config.icon;
-        const balance = getAccountBalance(account);
-
-        return (
-          <div className="dashboard-account-row" key={account.id}>
+            const config = accountTypes[account.type] || accountTypes.bank;
+            const Icon = config.icon;
+            const balance = getAccountBalance(account);
+            return (<div className="dashboard-account-row" key={account.id}>
             <div className="dashboard-account-icon">
-              <Icon size={18} />
+              <Icon size={18}/>
             </div>
             <div>
               <strong>{account.name}</strong>
@@ -5932,43 +4360,29 @@ function DashboardAccountBalances({ accounts, getAccountBalance }) {
             <strong className={balance < 0 ? "expense" : "positive"}>
               {formatMoney(balance)}
             </strong>
-          </div>
-        );
-      })}
-    </div>
-  );
+          </div>);
+        })}
+    </div>);
 }
-
 function DashboardNotificationList({ notifications }) {
-  if (notifications.length === 0) {
-    return <Empty>Hiện chưa có cảnh báo.</Empty>;
-  }
-
-  return (
-    <div className="dashboard-notification-list">
-      {notifications.map((item) => (
-        <div
-          className={`dashboard-notification-row ${item.type}`}
-          key={item.id}
-        >
-          <div className="dashboard-notification-mark" />
+    if (notifications.length === 0) {
+        return <Empty>Hiện chưa có cảnh báo.</Empty>;
+    }
+    return (<div className="dashboard-notification-list">
+      {notifications.map((item) => (<div className={`dashboard-notification-row ${item.type}`} key={item.id}>
+          <div className="dashboard-notification-mark"/>
           <div>
             <strong>{item.title}</strong>
             <span>{item.text}</span>
           </div>
-        </div>
-      ))}
-    </div>
-  );
+        </div>))}
+    </div>);
 }
-
 function BudgetMini({ label, spent, budget }) {
-  const safeBudget = Number(budget || 0);
-  const safeSpent = Number(spent || 0);
-  const percent = safeBudget > 0 ? (safeSpent / safeBudget) * 100 : 0;
-
-  return (
-    <div className="dashboard-budget-mini">
+    const safeBudget = Number(budget || 0);
+    const safeSpent = Number(spent || 0);
+    const percent = safeBudget > 0 ? (safeSpent / safeBudget) * 100 : 0;
+    return (<div className="dashboard-budget-mini">
       <div>
         <span>{label}</span>
         <strong>{safeBudget > 0 ? `${Math.min(percent, 999).toFixed(0)}%` : "—"}</strong>
@@ -5976,377 +4390,264 @@ function BudgetMini({ label, spent, budget }) {
       <small>
         {formatMoney(safeSpent)} / {formatMoney(safeBudget)}
       </small>
-    </div>
-  );
+    </div>);
 }
-
 /* Số chạy từ giá trị hiện tại đến đúng giá trị đích */
-function CountUp({
-  value = 0,
-  format = (number) => Math.round(number).toLocaleString("vi-VN"),
-  decimals = 0,
-  duration = 1100,
-}) {
-  const target = Number(value) || 0;
-  const [display, setDisplay] = useState(0);
-  const fromRef = useRef(0);
-
-  useEffect(() => {
-    const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduceMotion) {
-      fromRef.current = target;
-      setDisplay(target);
-      return undefined;
-    }
-
-    const from = fromRef.current;
-    const startTime = performance.now();
-    let frame = 0;
-
-    function tick(time) {
-      const progress = Math.min((time - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-
-      if (progress >= 1) {
-        fromRef.current = target;
-        setDisplay(target);
-        return;
-      }
-
-      const current = from + (target - from) * eased;
-
-      fromRef.current = current;
-      setDisplay(Number(current.toFixed(decimals)));
-
-      frame = requestAnimationFrame(tick);
-    }
-
-    frame = requestAnimationFrame(tick);
-
-    return () => cancelAnimationFrame(frame);
-  }, [target, duration, decimals]);
-
-  return <>{format(display)}</>;
+function CountUp({ value = 0, format = (number) => Math.round(number).toLocaleString("vi-VN"), decimals = 0, duration = 1100, }) {
+    const target = Number(value) || 0;
+    const [display, setDisplay] = useState(0);
+    const fromRef = useRef(0);
+    useEffect(() => {
+        const reduceMotion = typeof window !== "undefined" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion) {
+            fromRef.current = target;
+            setDisplay(target);
+            return undefined;
+        }
+        const from = fromRef.current;
+        const startTime = performance.now();
+        let frame = 0;
+        function tick(time) {
+            const progress = Math.min((time - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            if (progress >= 1) {
+                fromRef.current = target;
+                setDisplay(target);
+                return;
+            }
+            const current = from + (target - from) * eased;
+            fromRef.current = current;
+            setDisplay(Number(current.toFixed(decimals)));
+            frame = requestAnimationFrame(tick);
+        }
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [target, duration, decimals]);
+    return <>{format(display)}</>;
 }
-
 /* Chạy số cho chuỗi dạng "1.250.000 đ" hoặc "12 giao dịch" */
 function AnimatedText({ text }) {
-  if (typeof text === "number") {
-    return (
-      <CountUp
-        value={text}
-        format={(number) => Math.round(number).toLocaleString("vi-VN")}
-      />
-    );
-  }
-
-  const match =
-    typeof text === "string" ? text.match(/^(-?\d[\d.]*)(.*)$/) : null;
-
-  if (!match) return <>{text}</>;
-
-  const target = Number(match[1].replace(/\./g, ""));
-
-  if (Number.isNaN(target)) return <>{text}</>;
-
-  return (
-    <CountUp
-      value={target}
-      format={(number) =>
-        `${Math.round(number).toLocaleString("vi-VN")}${match[2]}`
-      }
-    />
-  );
+    if (typeof text === "number") {
+        return (<CountUp value={text} format={(number) => Math.round(number).toLocaleString("vi-VN")}/>);
+    }
+    const match = typeof text === "string" ? text.match(/^(-?\d[\d.]*)(.*)$/) : null;
+    if (!match)
+        return <>{text}</>;
+    const target = Number(match[1].replace(/\./g, ""));
+    if (Number.isNaN(target))
+        return <>{text}</>;
+    return (<CountUp value={target} format={(number) => `${Math.round(number).toLocaleString("vi-VN")}${match[2]}`}/>);
 }
-
 function SummaryCompare({ diff, ready }) {
-  if (!ready) {
-    return (
-      <div className="summary-compare flat">
+    if (!ready) {
+        return (<div className="summary-compare flat">
         Chưa có dữ liệu tháng trước
-      </div>
-    );
-  }
-
-  /* Chênh lệch dưới 1 đ coi như bằng tháng trước */
-  if (Math.abs(diff) < 1) {
-    return (
-      <div className="summary-compare flat">
+      </div>);
+    }
+    /* Chênh lệch dưới 1 đ coi như bằng tháng trước */
+    if (Math.abs(diff) < 1) {
+        return (<div className="summary-compare flat">
         Bằng tháng trước
-      </div>
-    );
-  }
-
-  const isUp = diff > 0;
-  const ArrowIcon = isUp ? TrendingUp : TrendingDown;
-
-  return (
-    <div
-      className={`summary-compare ${isUp ? "up" : "down"}`}
-      title={`${isUp ? "Nhiều hơn" : "Ít hơn"} tháng trước ${formatMoney(
-        Math.abs(diff)
-      )}`}
-    >
-      <ArrowIcon size={13} strokeWidth={2.4} />
+      </div>);
+    }
+    const isUp = diff > 0;
+    const ArrowIcon = isUp ? TrendingUp : TrendingDown;
+    return (<div className={`summary-compare ${isUp ? "up" : "down"}`} title={`${isUp ? "Nhiều hơn" : "Ít hơn"} tháng trước ${formatMoney(Math.abs(diff))}`}>
+      <ArrowIcon size={13} strokeWidth={2.4}/>
 
       <strong>{formatCompareAmount(diff)}</strong>
-    </div>
-  );
+    </div>);
 }
-
-function SummaryCard({
-  icon: Icon,
-  title,
-  value,
-  className = "",
-  compare,
-}) {
-  return (
-    <div className="summary-card">
+function SummaryCard({ icon: Icon, title, value, className = "", compare, }) {
+    return (<div className="summary-card">
       <div className="summary-title">
-        <Icon size={20} />
+        <Icon size={20}/>
 
         {title}
       </div>
 
-      {compare ? (
-        <div className="summary-card-foot">
-          <strong
-            className={`summary-money ${className}`}
-          >
-            <CountUp value={value} format={formatMoney} />
+      {compare ? (<div className="summary-card-foot">
+          <strong className={`summary-money ${className}`}>
+            <CountUp value={value} format={formatMoney}/>
           </strong>
 
-          <SummaryCompare diff={compare.diff} ready={compare.ready} />
-        </div>
-      ) : (
-        <strong
-          className={`summary-money ${className}`}
-        >
-          <CountUp value={value} format={formatMoney} />
-        </strong>
-      )}
-    </div>
-  );
+          <SummaryCompare diff={compare.diff} ready={compare.ready}/>
+        </div>) : (<strong className={`summary-money ${className}`}>
+          <CountUp value={value} format={formatMoney}/>
+        </strong>)}
+    </div>);
 }
-
-function AnalysisSummary({
-  label,
-  value,
-  className = "",
-}) {
-  return (
-    <div className="analysis-summary-box">
+function AnalysisSummary({ label, value, className = "", }) {
+    return (<div className="analysis-summary-box">
       <span>
         {label}
       </span>
 
       <strong className={className}>
-        <CountUp value={value} format={formatMoney} />
+        <CountUp value={value} format={formatMoney}/>
       </strong>
-    </div>
-  );
+    </div>);
 }
-
-function MiniStat({
-  label,
-  value,
-  className = "",
-}) {
-  return (
-    <div className="mini-stat">
+function MiniStat({ label, value, className = "", }) {
+    return (<div className="mini-stat">
       <span>
         {label}
       </span>
 
       <strong className={className}>
-        <AnimatedText text={value} />
+        <AnimatedText text={value}/>
       </strong>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    THỐNG KÊ THÁNG
    Bảng thống kê 3 cột cân đối (Khoản · Số giao dịch · Số tiền)
    + bộ chọn tháng dạng viên thuốc ở bên phải.
 ========================================================= */
-
-function MonthlyStatistics({
-  transactions,
-  month,
-  onMonthChange,
-  calculateTotals,
-}) {
-  const [yearText, monthText] = month.split("-");
-  const year = Number(yearText);
-  const monthNumber = Number(monthText);
-
-  /* Xem nhiều năm: bấm vào "Năm ..." để mở bảng 12 năm, lật trang để xem thêm */
-  const [yearsView, setYearsView] = useState(false);
-  const [pageStart, setPageStart] = useState(Math.floor(year / 12) * 12);
-
-  const data = useMemo(
-    () =>
-      transactions.filter(
-        (item) => item.date && item.date.startsWith(month)
-      ),
-    [transactions, month]
-  );
-
-  const totals = calculateTotals(data);
-
-  const monthsWithData = useMemo(() => {
-    const set = new Set();
-
-    transactions.forEach((item) => {
-      if (item.date) set.add(item.date.slice(0, 7));
-    });
-
-    return set;
-  }, [transactions]);
-
-  const yearsWithData = useMemo(() => {
-    const set = new Set();
-
-    monthsWithData.forEach((key) => set.add(Number(key.slice(0, 4))));
-
-    return set;
-  }, [monthsWithData]);
-
-  const thisYearNumber = new Date().getFullYear();
-
-  const countOf = (test) => data.filter(test).length;
-
-  const goTo = (targetYear, targetMonth) =>
-    onMonthChange(`${targetYear}-${pad(targetMonth)}`);
-
-  const shiftYear = (step) => goTo(year + step, monthNumber);
-
-  const formatValue = (value, signed) => {
-    const number = Number(value || 0);
-
-    if (!signed) return formatMoney(Math.abs(number));
-    if (number > 0) return `+ ${formatMoney(number)}`;
-    if (number < 0) return `- ${formatMoney(Math.abs(number))}`;
-
-    return "0 đ";
-  };
-
-  const kpiTiles = [
-    {
-      label: "Tổng đầu vào",
-      sub: "Tiền được cho / lương",
-      icon: ArrowDownCircle,
-      count: countOf((i) => i.type === "income"),
-      value: totals.income,
-      tone: "income",
-    },
-    {
-      label: "Tổng đầu ra",
-      sub: "Ăn · Trọ · Chi khác",
-      icon: ArrowUpCircle,
-      count: countOf((i) => i.type === "expense"),
-      value: totals.expense,
-      tone: "expense",
-    },
-    {
-      label: "Tổng Tip / Âm",
-      sub: "Điều chỉnh trong tháng",
-      icon: SlidersHorizontal,
-      count: countOf((i) => i.type === "adjustment"),
-      value: totals.adjustment,
-      signed: true,
-      tone: "tip",
-    },
-  ];
-
-  const groups = [
-    {
-      title: "Chi tiêu",
-      items: [
+function MonthlyStatistics({ transactions, month, onMonthChange, calculateTotals, }) {
+    const [yearText, monthText] = month.split("-");
+    const year = Number(yearText);
+    const monthNumber = Number(monthText);
+    /* Xem nhiều năm: bấm vào "Năm ..." để mở bảng 12 năm, lật trang để xem thêm */
+    const [yearsView, setYearsView] = useState(false);
+    const [pageStart, setPageStart] = useState(Math.floor(year / 12) * 12);
+    const data = useMemo(() => transactions.filter((item) => item.date && item.date.startsWith(month)), [transactions, month]);
+    const totals = calculateTotals(data);
+    const monthsWithData = useMemo(() => {
+        const set = new Set();
+        transactions.forEach((item) => {
+            if (item.date)
+                set.add(item.date.slice(0, 7));
+        });
+        return set;
+    }, [transactions]);
+    const yearsWithData = useMemo(() => {
+        const set = new Set();
+        monthsWithData.forEach((key) => set.add(Number(key.slice(0, 4))));
+        return set;
+    }, [monthsWithData]);
+    const thisYearNumber = new Date().getFullYear();
+    const countOf = (test) => data.filter(test).length;
+    const goTo = (targetYear, targetMonth) => onMonthChange(`${targetYear}-${pad(targetMonth)}`);
+    const shiftYear = (step) => goTo(year + step, monthNumber);
+    const formatValue = (value, signed) => {
+        const number = Number(value || 0);
+        if (!signed)
+            return formatMoney(Math.abs(number));
+        if (number > 0)
+            return `+ ${formatMoney(number)}`;
+        if (number < 0)
+            return `- ${formatMoney(Math.abs(number))}`;
+        return "0 đ";
+    };
+    const kpiTiles = [
         {
-          label: "Tổng tiền ăn",
-          icon: Utensils,
-          count: countOf((i) => i.type === "expense" && i.category === "food"),
-          value: totals.food,
-          tone: "expense",
+            label: "Tổng đầu vào",
+            sub: "Tiền được cho / lương",
+            icon: ArrowDownCircle,
+            count: countOf((i) => i.type === "income"),
+            value: totals.income,
+            tone: "income",
         },
         {
-          label: "Tổng tiền trọ",
-          icon: House,
-          count: countOf((i) => i.type === "expense" && i.category === "rent"),
-          value: totals.rent,
-          tone: "expense",
+            label: "Tổng đầu ra",
+            sub: "Ăn · Trọ · Chi khác",
+            icon: ArrowUpCircle,
+            count: countOf((i) => i.type === "expense"),
+            value: totals.expense,
+            tone: "expense",
         },
         {
-          label: "Tổng chi khác",
-          icon: ShoppingBag,
-          count: countOf((i) => i.type === "expense" && i.category === "other"),
-          value: totals.other,
-          tone: "expense",
+            label: "Tổng Tip / Âm",
+            sub: "Điều chỉnh trong tháng",
+            icon: SlidersHorizontal,
+            count: countOf((i) => i.type === "adjustment"),
+            value: totals.adjustment,
+            signed: true,
+            tone: "tip",
         },
-      ],
-    },
-    {
-      title: "Thu nhập & điều chỉnh",
-      items: [
+    ];
+    const groups = [
         {
-          label: "Tổng Tip / Âm",
-          icon: SlidersHorizontal,
-          count: countOf((i) => i.type === "adjustment"),
-          value: totals.adjustment,
-          signed: true,
-          tone: "tip",
-        },
-        {
-          label: "Tiền được cho / Tiền lương",
-          icon: Gift,
-          count: countOf((i) => i.type === "income"),
-          value: totals.income,
-          tone: "income",
-        },
-      ],
-    },
-    {
-      title: "Tổng hợp",
-      items: [
-        {
-          label: "Tổng đầu vào",
-          icon: ArrowDownCircle,
-          count: countOf((i) => i.type === "income"),
-          value: totals.income,
-          tone: "income",
-          strong: true,
+            title: "Chi tiêu",
+            items: [
+                {
+                    label: "Tổng tiền ăn",
+                    icon: Utensils,
+                    count: countOf((i) => i.type === "expense" && i.category === "food"),
+                    value: totals.food,
+                    tone: "expense",
+                },
+                {
+                    label: "Tổng tiền trọ",
+                    icon: House,
+                    count: countOf((i) => i.type === "expense" && i.category === "rent"),
+                    value: totals.rent,
+                    tone: "expense",
+                },
+                {
+                    label: "Tổng chi khác",
+                    icon: ShoppingBag,
+                    count: countOf((i) => i.type === "expense" && i.category === "other"),
+                    value: totals.other,
+                    tone: "expense",
+                },
+            ],
         },
         {
-          label: "Tổng đầu ra",
-          icon: ArrowUpCircle,
-          count: countOf((i) => i.type === "expense"),
-          value: totals.expense,
-          tone: "expense",
-          strong: true,
+            title: "Thu nhập & điều chỉnh",
+            items: [
+                {
+                    label: "Tổng Tip / Âm",
+                    icon: SlidersHorizontal,
+                    count: countOf((i) => i.type === "adjustment"),
+                    value: totals.adjustment,
+                    signed: true,
+                    tone: "tip",
+                },
+                {
+                    label: "Tiền được cho / Tiền lương",
+                    icon: Gift,
+                    count: countOf((i) => i.type === "income"),
+                    value: totals.income,
+                    tone: "income",
+                },
+            ],
         },
         {
-          label: totals.remaining >= 0 ? "Dư cuối tháng" : "Âm cuối tháng",
-          icon: Wallet,
-          count: null,
-          value: Math.abs(totals.remaining),
-          tone: totals.remaining >= 0 ? "positive" : "expense",
-          final: true,
+            title: "Tổng hợp",
+            items: [
+                {
+                    label: "Tổng đầu vào",
+                    icon: ArrowDownCircle,
+                    count: countOf((i) => i.type === "income"),
+                    value: totals.income,
+                    tone: "income",
+                    strong: true,
+                },
+                {
+                    label: "Tổng đầu ra",
+                    icon: ArrowUpCircle,
+                    count: countOf((i) => i.type === "expense"),
+                    value: totals.expense,
+                    tone: "expense",
+                    strong: true,
+                },
+                {
+                    label: totals.remaining >= 0 ? "Dư cuối tháng" : "Âm cuối tháng",
+                    icon: Wallet,
+                    count: null,
+                    value: Math.abs(totals.remaining),
+                    tone: totals.remaining >= 0 ? "positive" : "expense",
+                    final: true,
+                },
+            ],
         },
-      ],
-    },
-  ];
-
-  const expenseRows = groups[0].items;
-
-  return (
-    <div className="ms2 ms3">
+    ];
+    const expenseRows = groups[0].items;
+    return (<div className="ms2 ms3">
       <div className="ms3-main">
         <div className={`ms2-hero ${totals.remaining >= 0 ? "ok" : "warn"}`}>
           <div className="ms2-hero-main">
@@ -6356,27 +4657,25 @@ function MonthlyStatistics({
           </div>
           <div className="ms2-split">
             <div className="ms2-split-bar">
-              <i className="in" style={{ width: `${totals.income + totals.expense ? (totals.income / (totals.income + totals.expense)) * 100 : 50}%` }} />
-              <i className="out" />
+              <i className="in" style={{ width: `${totals.income + totals.expense ? (totals.income / (totals.income + totals.expense)) * 100 : 50}%` }}/>
+              <i className="out"/>
             </div>
             <div className="ms2-split-legend">
-              <span><i className="in" /> Thu {formatMoney(totals.income)}</span>
-              <span><i className="out" /> Chi {formatMoney(totals.expense)}</span>
+              <span><i className="in"/> Thu {formatMoney(totals.income)}</span>
+              <span><i className="out"/> Chi {formatMoney(totals.expense)}</span>
             </div>
           </div>
         </div>
 
         <div className="ms3-kpis">
-          {kpiTiles.map(({ label, sub, icon: Icon, count, value, signed, tone }) => (
-            <article className={`ms3-kpi is-${tone}`} key={label}>
+          {kpiTiles.map(({ label, sub, icon: Icon, count, value, signed, tone }) => (<article className={`ms3-kpi is-${tone}`} key={label}>
               <div className="ms3-kpi-top">
-                <i className={`ms2-ico is-${tone}`}><Icon size={16} strokeWidth={2.2} /></i>
+                <i className={`ms2-ico is-${tone}`}><Icon size={16} strokeWidth={2.2}/></i>
                 <span>{label}</span>
               </div>
               <strong className={`is-${tone}`}>{formatValue(value, signed)}</strong>
               <small>{count} giao dịch · {sub}</small>
-            </article>
-          ))}
+            </article>))}
         </div>
 
         <div className="ms2-table ms3-table" role="table" aria-label="Bảng thống kê tháng">
@@ -6389,30 +4688,27 @@ function MonthlyStatistics({
 
           {expenseRows.map(({ label, icon: Icon, count, value, tone }) => {
             const share = totals.expense ? Math.round((value / totals.expense) * 100) : 0;
-
-            return (
-              <div key={label} role="row" className="ms2-row">
+            return (<div key={label} role="row" className="ms2-row">
                 <span className="ms2-label">
-                  <i className={`ms2-ico is-${tone}`}><Icon size={16} strokeWidth={2.2} /></i>
+                  <i className={`ms2-ico is-${tone}`}><Icon size={16} strokeWidth={2.2}/></i>
                   {label}
                 </span>
                 <span className="ms2-count">{count}</span>
                 <span className="ms2-share">
-                  <span className="ms2-meter"><i className={`is-${tone}`} style={{ width: `${Math.min(100, share)}%` }} /></span>
+                  <span className="ms2-meter"><i className={`is-${tone}`} style={{ width: `${Math.min(100, share)}%` }}/></span>
                   <em>{share}%</em>
                 </span>
                 <strong className={`ms2-value is-${tone}`}>{formatValue(value, false)}</strong>
-              </div>
-            );
-          })}
+              </div>);
+        })}
 
           <div role="row" className="ms2-row is-final">
             <span className="ms2-label">
-              <i className={`ms2-ico is-${totals.remaining >= 0 ? "positive" : "expense"}`}><Wallet size={16} strokeWidth={2.2} /></i>
+              <i className={`ms2-ico is-${totals.remaining >= 0 ? "positive" : "expense"}`}><Wallet size={16} strokeWidth={2.2}/></i>
               {totals.remaining >= 0 ? "Dư cuối tháng" : "Âm cuối tháng"}
             </span>
             <span className="ms2-count">—</span>
-            <span className="ms2-share" />
+            <span className="ms2-share"/>
             <strong className={`ms2-value is-${totals.remaining >= 0 ? "positive" : "expense"}`}>{formatValue(Math.abs(totals.remaining), false)}</strong>
           </div>
         </div>
@@ -6420,100 +4716,47 @@ function MonthlyStatistics({
 
         <aside className="ms-picker" aria-label="Chọn tháng thống kê">
           <div className="ms-picker-title">
-            <ModernCalendarIcon size={16} />
+            <ModernCalendarIcon size={16}/>
             Chọn tháng thống kê
           </div>
 
           <div className="ms-year-pill">
-            <button
-              type="button"
-              aria-label={yearsView ? "Các năm trước" : "Năm trước"}
-              onClick={() =>
-                yearsView ? setPageStart((value) => value - 12) : shiftYear(-1)
-              }
-            >
-              <ChevronLeft size={16} />
+            <button type="button" aria-label={yearsView ? "Các năm trước" : "Năm trước"} onClick={() => yearsView ? setPageStart((value) => value - 12) : shiftYear(-1)}>
+              <ChevronLeft size={16}/>
             </button>
 
-            <button
-              type="button"
-              className="ms-year-title"
-              title={yearsView ? "Về chọn tháng" : "Bấm để xem nhiều năm"}
-              aria-expanded={yearsView}
-              onClick={() => {
-                setPageStart(Math.floor(year / 12) * 12);
-                setYearsView((value) => !value);
-              }}
-            >
+            <button type="button" className="ms-year-title" title={yearsView ? "Về chọn tháng" : "Bấm để xem nhiều năm"} aria-expanded={yearsView} onClick={() => {
+            setPageStart(Math.floor(year / 12) * 12);
+            setYearsView((value) => !value);
+        }}>
               {yearsView ? `${pageStart} – ${pageStart + 11}` : `Năm ${year}`}
             </button>
 
-            <button
-              type="button"
-              aria-label={yearsView ? "Các năm sau" : "Năm sau"}
-              onClick={() =>
-                yearsView ? setPageStart((value) => value + 12) : shiftYear(1)
-              }
-            >
-              <ChevronRight size={16} />
+            <button type="button" aria-label={yearsView ? "Các năm sau" : "Năm sau"} onClick={() => yearsView ? setPageStart((value) => value + 12) : shiftYear(1)}>
+              <ChevronRight size={16}/>
             </button>
           </div>
 
-          {yearsView ? (
-            <div className="ms-month-grid">
-              {Array.from({ length: 12 }, (_, index) => pageStart + index).map(
-                (value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={value === year}
-                    className={`ms-month-pill ${
-                      value === year ? "active" : ""
-                    } ${yearsWithData.has(value) ? "has-data" : ""} ${
-                      value === thisYearNumber ? "is-current" : ""
-                    }`}
-                    onClick={() => {
-                      goTo(value, monthNumber);
-                      setYearsView(false);
-                    }}
-                  >
+          {yearsView ? (<div className="ms-month-grid">
+              {Array.from({ length: 12 }, (_, index) => pageStart + index).map((value) => (<button key={value} type="button" aria-pressed={value === year} className={`ms-month-pill ${value === year ? "active" : ""} ${yearsWithData.has(value) ? "has-data" : ""} ${value === thisYearNumber ? "is-current" : ""}`} onClick={() => {
+                    goTo(value, monthNumber);
+                    setYearsView(false);
+                }}>
                     {value}
-                  </button>
-                )
-              )}
-            </div>
-          ) : (
-            <div className="ms-month-grid">
+                  </button>))}
+            </div>) : (<div className="ms-month-grid">
               {Array.from({ length: 12 }, (_, index) => index + 1).map((value) => {
                 const key = `${year}-${pad(value)}`;
-
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={value === monthNumber}
-                    className={`ms-month-pill ${
-                      value === monthNumber ? "active" : ""
-                    } ${monthsWithData.has(key) ? "has-data" : ""} ${
-                      key === currentMonthKey() ? "is-current" : ""
-                    }`}
-                    onClick={() => goTo(year, value)}
-                  >
+                return (<button key={value} type="button" aria-pressed={value === monthNumber} className={`ms-month-pill ${value === monthNumber ? "active" : ""} ${monthsWithData.has(key) ? "has-data" : ""} ${key === currentMonthKey() ? "is-current" : ""}`} onClick={() => goTo(year, value)}>
                     Tháng {value}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                  </button>);
+            })}
+            </div>)}
 
-          <button
-            type="button"
-            className="ms-current-pill"
-            onClick={() => {
-              onMonthChange(currentMonthKey());
-              setYearsView(false);
-            }}
-          >
+          <button type="button" className="ms-current-pill" onClick={() => {
+            onMonthChange(currentMonthKey());
+            setYearsView(false);
+        }}>
             Về tháng hiện tại
           </button>
 
@@ -6522,70 +4765,48 @@ function MonthlyStatistics({
             <span>{data.length} giao dịch</span>
           </div>
         </aside>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    NGÂN SÁCH — khối tổng quan (vòng tiến độ + 3 chỉ số + cơ cấu ngân sách)
 ========================================================= */
-
 function BudgetHero({ total, used, remaining, percent, shares }) {
-  const pct = Math.max(0, Number(percent || 0));
-  const shown = Math.min(100, pct);
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-
-  const status =
-    total <= 0 ? "none" : pct >= 100 ? "danger" : pct >= 80 ? "warning" : "safe";
-
-  const statusText = {
-    none: "Chưa thiết lập ngân sách",
-    safe: "Trong tầm kiểm soát",
-    warning: "Sắp chạm trần ngân sách",
-    danger: "Đã vượt ngân sách",
-  }[status];
-
-  const stats = [
-    { key: "total", icon: Target, label: "Tổng ngân sách", value: total },
-    { key: "used", icon: TrendingDown, label: "Đã chi", value: used },
-    {
-      key: remaining >= 0 ? "left" : "over",
-      icon: CircleDollarSign,
-      label: remaining >= 0 ? "Ngân sách còn" : "Vượt ngân sách",
-      value: Math.abs(remaining),
-    },
-  ];
-
-  const segments = [
-    { key: "food", label: "Tiền ăn" },
-    { key: "rent", label: "Tiền trọ" },
-    { key: "other", label: "Chi khác" },
-  ];
-
-  return (
-    <section className={`bgt-hero is-${status}`}>
+    const pct = Math.max(0, Number(percent || 0));
+    const shown = Math.min(100, pct);
+    const radius = 40;
+    const circumference = 2 * Math.PI * radius;
+    const status = total <= 0 ? "none" : pct >= 100 ? "danger" : pct >= 80 ? "warning" : "safe";
+    const statusText = {
+        none: "Chưa thiết lập ngân sách",
+        safe: "Trong tầm kiểm soát",
+        warning: "Sắp chạm trần ngân sách",
+        danger: "Đã vượt ngân sách",
+    }[status];
+    const stats = [
+        { key: "total", icon: Target, label: "Tổng ngân sách", value: total },
+        { key: "used", icon: TrendingDown, label: "Đã chi", value: used },
+        {
+            key: remaining >= 0 ? "left" : "over",
+            icon: CircleDollarSign,
+            label: remaining >= 0 ? "Ngân sách còn" : "Vượt ngân sách",
+            value: Math.abs(remaining),
+        },
+    ];
+    const segments = [
+        { key: "food", label: "Tiền ăn" },
+        { key: "rent", label: "Tiền trọ" },
+        { key: "other", label: "Chi khác" },
+    ];
+    return (<section className={`bgt-hero is-${status}`}>
       <div className="bgt-ring">
         <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle className="bgt-ring-bg" cx="50" cy="50" r={radius} />
-          <circle
-            className="bgt-ring-fg"
-            cx="50"
-            cy="50"
-            r={radius}
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - shown / 100)}
-            transform="rotate(-90 50 50)"
-          />
+          <circle className="bgt-ring-bg" cx="50" cy="50" r={radius}/>
+          <circle className="bgt-ring-fg" cx="50" cy="50" r={radius} strokeDasharray={circumference} strokeDashoffset={circumference * (1 - shown / 100)} transform="rotate(-90 50 50)"/>
         </svg>
 
         <div className="bgt-ring-text">
           <strong>
-            <CountUp
-              value={percent}
-              decimals={1}
-              format={(number) => `${number.toFixed(1)}%`}
-            />
+            <CountUp value={percent} decimals={1} format={(number) => `${number.toFixed(1)}%`}/>
           </strong>
           <span>đã dùng</span>
         </div>
@@ -6599,186 +4820,128 @@ function BudgetHero({ total, used, remaining, percent, shares }) {
           </span>
 
           <div className="bgt-legend">
-            {segments.map((segment) => (
-              <span key={segment.key}>
-                <i className={segment.key} />
+            {segments.map((segment) => (<span key={segment.key}>
+                <i className={segment.key}/>
                 {segment.label}{" "}
                 <b>{total > 0 ? formatShare(shares[segment.key]) : "—"}</b>
-              </span>
-            ))}
+              </span>))}
           </div>
         </div>
 
         <div className="bgt-stats">
-          {stats.map(({ key, icon: StatIcon, label, value }) => (
-            <div className={`bgt-stat ${key}`} key={key}>
+          {stats.map(({ key, icon: StatIcon, label, value }) => (<div className={`bgt-stat ${key}`} key={key}>
               <i className="bgt-stat-ico">
-                <StatIcon size={18} />
+                <StatIcon size={18}/>
               </i>
               <div>
                 <span>{label}</span>
                 <strong>
-                  <CountUp value={value} format={formatMoney} />
+                  <CountUp value={value} format={formatMoney}/>
                 </strong>
               </div>
-            </div>
-          ))}
+            </div>))}
         </div>
 
         <div className="bgt-alloc-bar" aria-hidden="true">
           {total > 0 &&
-            segments.map((segment) => (
-              <i
-                key={segment.key}
-                className={segment.key}
-                style={{ width: `${shares[segment.key]}%` }}
-              />
-            ))}
+            segments.map((segment) => (<i key={segment.key} className={segment.key} style={{ width: `${shares[segment.key]}%` }}/>))}
         </div>
       </div>
-    </section>
-  );
+    </section>);
 }
-
 /* =========================================================
    NGÂN SÁCH — tỷ lệ (tổng = 100%) và chọn tháng bằng lịch
 ========================================================= */
-
 /* Chia tỷ lệ từng khoản trên tổng ngân sách, làm tròn 0,1% sao cho cộng lại đúng 100% */
 function getBudgetShares(budget) {
-  const keys = ["food", "rent", "other"];
-  const values = keys.map((key) =>
-    Math.max(0, Number((budget && budget[key]) || 0))
-  );
-  const total = values.reduce((sum, value) => sum + value, 0);
-
-  if (total <= 0) return { food: 0, rent: 0, other: 0 };
-
-  const raw = values.map((value) => (value / total) * 1000);
-  const floors = raw.map(Math.floor);
-  let left = 1000 - floors.reduce((sum, value) => sum + value, 0);
-
-  raw
-    .map((value, index) => ({ index, fraction: value - floors[index] }))
-    .sort((a, b) => b.fraction - a.fraction)
-    .forEach(({ index }) => {
-      if (left > 0) {
-        floors[index] += 1;
-        left -= 1;
-      }
+    const keys = ["food", "rent", "other"];
+    const values = keys.map((key) => Math.max(0, Number((budget && budget[key]) || 0)));
+    const total = values.reduce((sum, value) => sum + value, 0);
+    if (total <= 0)
+        return { food: 0, rent: 0, other: 0 };
+    const raw = values.map((value) => (value / total) * 1000);
+    const floors = raw.map(Math.floor);
+    let left = 1000 - floors.reduce((sum, value) => sum + value, 0);
+    raw
+        .map((value, index) => ({ index, fraction: value - floors[index] }))
+        .sort((a, b) => b.fraction - a.fraction)
+        .forEach(({ index }) => {
+        if (left > 0) {
+            floors[index] += 1;
+            left -= 1;
+        }
     });
-
-  return {
-    food: floors[0] / 10,
-    rent: floors[1] / 10,
-    other: floors[2] / 10,
-  };
+    return {
+        food: floors[0] / 10,
+        rent: floors[1] / 10,
+        other: floors[2] / 10,
+    };
 }
-
 function formatShare(value) {
-  return `${Number(Number(value || 0).toFixed(1))}%`;
+    return `${Number(Number(value || 0).toFixed(1))}%`;
 }
-
 function BudgetMonthPicker({ month, budgets, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [viewYear, setViewYear] = useState(Number(month.split("-")[0]));
-  const wrapRef = useRef(null);
-
-  const activeMonth = Number(month.split("-")[1]);
-  const activeYear = Number(month.split("-")[0]);
-
-  useEffect(() => {
-    if (open) setViewYear(Number(month.split("-")[0]));
-  }, [open, month]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const onPointer = (event) => {
-      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
-        setOpen(false);
-      }
+    const [open, setOpen] = useState(false);
+    const [viewYear, setViewYear] = useState(Number(month.split("-")[0]));
+    const wrapRef = useRef(null);
+    const activeMonth = Number(month.split("-")[1]);
+    const activeYear = Number(month.split("-")[0]);
+    useEffect(() => {
+        if (open)
+            setViewYear(Number(month.split("-")[0]));
+    }, [open, month]);
+    useEffect(() => {
+        if (!open)
+            return undefined;
+        const onPointer = (event) => {
+            if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+        const onKey = (event) => {
+            if (event.key === "Escape")
+                setOpen(false);
+        };
+        document.addEventListener("pointerdown", onPointer);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("pointerdown", onPointer);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [open]);
+    const hasBudget = (key) => {
+        const item = budgets[key];
+        return (!!item &&
+            Number(item.food || 0) + Number(item.rent || 0) + Number(item.other || 0) > 0);
     };
-
-    const onKey = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("keydown", onKey);
-
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  const hasBudget = (key) => {
-    const item = budgets[key];
-
-    return (
-      !!item &&
-      Number(item.food || 0) + Number(item.rent || 0) + Number(item.other || 0) > 0
-    );
-  };
-
-  return (
-    <div className="bmp" ref={wrapRef}>
-      <button
-        type="button"
-        className={`bmp-trigger ${open ? "active" : ""}`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={`Chọn tháng thiết lập ngân sách, đang chọn ${formatMonth(month)}`}
-        title={formatMonth(month)}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <ModernCalendarIcon size={18} />
+    return (<div className="bmp" ref={wrapRef}>
+      <button type="button" className={`bmp-trigger ${open ? "active" : ""}`} aria-haspopup="dialog" aria-expanded={open} aria-label={`Chọn tháng thiết lập ngân sách, đang chọn ${formatMonth(month)}`} title={formatMonth(month)} onClick={() => setOpen((value) => !value)}>
+        <ModernCalendarIcon size={18}/>
       </button>
 
-      {open && (
-        <div className="bmp-pop" role="dialog" aria-label="Chọn tháng thiết lập ngân sách">
+      {open && (<div className="bmp-pop" role="dialog" aria-label="Chọn tháng thiết lập ngân sách">
           <div className="bmp-year">
-            <button
-              type="button"
-              aria-label="Năm trước"
-              onClick={() => setViewYear((value) => value - 1)}
-            >
-              <ChevronLeft size={16} />
+            <button type="button" aria-label="Năm trước" onClick={() => setViewYear((value) => value - 1)}>
+              <ChevronLeft size={16}/>
             </button>
 
             <strong>Năm {viewYear}</strong>
 
-            <button
-              type="button"
-              aria-label="Năm sau"
-              onClick={() => setViewYear((value) => value + 1)}
-            >
-              <ChevronRight size={16} />
+            <button type="button" aria-label="Năm sau" onClick={() => setViewYear((value) => value + 1)}>
+              <ChevronRight size={16}/>
             </button>
           </div>
 
           <div className="bmp-grid">
             {Array.from({ length: 12 }, (_, index) => index + 1).map((value) => {
-              const key = `${viewYear}-${pad(value)}`;
-              const selected = viewYear === activeYear && value === activeMonth;
-
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={selected}
-                  className={`bmp-month ${selected ? "active" : ""} ${
-                    hasBudget(key) ? "has-budget" : ""
-                  }`}
-                  onClick={() => {
-                    onChange(key);
-                    setOpen(false);
-                  }}
-                >
+                const key = `${viewYear}-${pad(value)}`;
+                const selected = viewYear === activeYear && value === activeMonth;
+                return (<button key={value} type="button" aria-pressed={selected} className={`bmp-month ${selected ? "active" : ""} ${hasBudget(key) ? "has-budget" : ""}`} onClick={() => {
+                        onChange(key);
+                        setOpen(false);
+                    }}>
                   Tháng {value}
-                </button>
-              );
+                </button>);
             })}
           </div>
 
@@ -6786,189 +4949,111 @@ function BudgetMonthPicker({ month, budgets, onChange }) {
             <i />
             Tháng đã thiết lập ngân sách
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>)}
+    </div>);
 }
-
 /* =========================================================
    LOGO LỊCH HIỆN ĐẠI + Ô CHỌN NGÀY (BẢNG LỊCH TRONG 1 Ô VUÔNG)
 ========================================================= */
-
 function ModernCalendarIcon({ size = 18 }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      style={{ flex: "0 0 auto" }}
-    >
-      <rect
-        x="3"
-        y="4.5"
-        width="18"
-        height="16.5"
-        rx="5.5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-      <path d="M3.4 9.6h17.2" stroke="currentColor" strokeWidth="1.7" />
-      <path
-        d="M8 2.8v3.6M16 2.8v3.6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <circle cx="8.2" cy="13.6" r="1.15" fill="currentColor" />
-      <circle cx="12" cy="13.6" r="1.15" fill="currentColor" />
-      <circle cx="15.8" cy="13.6" r="1.15" fill="currentColor" />
-      <circle cx="8.2" cy="17.2" r="1.15" fill="currentColor" />
-      <circle cx="12" cy="17.2" r="1.15" fill="currentColor" />
-    </svg>
-  );
+    return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flex: "0 0 auto" }}>
+      <rect x="3" y="4.5" width="18" height="16.5" rx="5.5" stroke="currentColor" strokeWidth="1.7"/>
+      <path d="M3.4 9.6h17.2" stroke="currentColor" strokeWidth="1.7"/>
+      <path d="M8 2.8v3.6M16 2.8v3.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="8.2" cy="13.6" r="1.15" fill="currentColor"/>
+      <circle cx="12" cy="13.6" r="1.15" fill="currentColor"/>
+      <circle cx="15.8" cy="13.6" r="1.15" fill="currentColor"/>
+      <circle cx="8.2" cy="17.2" r="1.15" fill="currentColor"/>
+      <circle cx="12" cy="17.2" r="1.15" fill="currentColor"/>
+    </svg>);
 }
-
 /* =========================================================
    MENU TÀI KHOẢN — nút "v" mở ô vuông nhỏ bên cạnh
 ========================================================= */
-
 const ACCOUNT_MENU_SIZE = 284;
-
 function AccountMenuButton({ accounts, selectedId, onSelect, getBalance }) {
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0, height: ACCOUNT_MENU_SIZE });
-  const buttonRef = useRef(null);
-  const popRef = useRef(null);
-
-  function toggle() {
-    if (open) {
-      setOpen(false);
-
-      return;
+    const [open, setOpen] = useState(false);
+    const [pos, setPos] = useState({ top: 0, left: 0, height: ACCOUNT_MENU_SIZE });
+    const buttonRef = useRef(null);
+    const popRef = useRef(null);
+    function toggle() {
+        if (open) {
+            setOpen(false);
+            return;
+        }
+        const rect = buttonRef.current.getBoundingClientRect();
+        const card = buttonRef.current.closest(".qa-card");
+        const box = card
+            ? card.getBoundingClientRect()
+            : { left: 8, top: 8, right: window.innerWidth - 8, bottom: window.innerHeight - 8 };
+        /* Ô danh sách nằm gọn trong bảng Thêm giao dịch, ngay bên phải nút "v" */
+        const height = Math.min(ACCOUNT_MENU_SIZE, Math.max(200, box.bottom - box.top - 16));
+        let left = rect.right + 8;
+        if (left + ACCOUNT_MENU_SIZE > box.right - 8) {
+            left = Math.max(box.left + 8, box.right - ACCOUNT_MENU_SIZE - 8);
+        }
+        let top = rect.top + rect.height / 2 - height / 2;
+        top = Math.min(Math.max(box.top + 8, top), box.bottom - height - 8);
+        setPos({ top, left, height });
+        setOpen(true);
     }
-
-    const rect = buttonRef.current.getBoundingClientRect();
-    const card = buttonRef.current.closest(".qa-card");
-    const box = card
-      ? card.getBoundingClientRect()
-      : { left: 8, top: 8, right: window.innerWidth - 8, bottom: window.innerHeight - 8 };
-
-    /* Ô danh sách nằm gọn trong bảng Thêm giao dịch, ngay bên phải nút "v" */
-    const height = Math.min(
-      ACCOUNT_MENU_SIZE,
-      Math.max(200, box.bottom - box.top - 16)
-    );
-
-    let left = rect.right + 8;
-
-    if (left + ACCOUNT_MENU_SIZE > box.right - 8) {
-      left = Math.max(box.left + 8, box.right - ACCOUNT_MENU_SIZE - 8);
-    }
-
-    let top = rect.top + rect.height / 2 - height / 2;
-
-    top = Math.min(Math.max(box.top + 8, top), box.bottom - height - 8);
-
-    setPos({ top, left, height });
-    setOpen(true);
-  }
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const onDown = (event) => {
-      if (
-        popRef.current &&
-        !popRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    const onKey = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    const onScroll = (event) => {
-      if (popRef.current && popRef.current.contains(event.target)) return;
-
-      setOpen(false);
-    };
-
-    const close = () => setOpen(false);
-
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("resize", close);
-    window.addEventListener("scroll", onScroll, true);
-
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", close);
-      window.removeEventListener("scroll", onScroll, true);
-    };
-  }, [open]);
-
-  return (
-    <>
-      <button
-        type="button"
-        ref={buttonRef}
-        className={`qa-acc-more ${open ? "open" : ""}`}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label="Xem tất cả tài khoản"
-        title="Xem tất cả tài khoản"
-        onClick={toggle}
-      >
-        <ChevronDown size={18} />
+    useEffect(() => {
+        if (!open)
+            return undefined;
+        const onDown = (event) => {
+            if (popRef.current &&
+                !popRef.current.contains(event.target) &&
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+        const onKey = (event) => {
+            if (event.key === "Escape")
+                setOpen(false);
+        };
+        const onScroll = (event) => {
+            if (popRef.current && popRef.current.contains(event.target))
+                return;
+            setOpen(false);
+        };
+        const close = () => setOpen(false);
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        window.addEventListener("resize", close);
+        window.addEventListener("scroll", onScroll, true);
+        return () => {
+            document.removeEventListener("mousedown", onDown);
+            document.removeEventListener("keydown", onKey);
+            window.removeEventListener("resize", close);
+            window.removeEventListener("scroll", onScroll, true);
+        };
+    }, [open]);
+    return (<>
+      <button type="button" ref={buttonRef} className={`qa-acc-more ${open ? "open" : ""}`} aria-haspopup="listbox" aria-expanded={open} aria-label="Xem tất cả tài khoản" title="Xem tất cả tài khoản" onClick={toggle}>
+        <ChevronDown size={18}/>
       </button>
 
       {open &&
-        createPortal(
-          <div
-            ref={popRef}
-            className="qa-pop"
-            role="listbox"
-            aria-label="Tất cả tài khoản"
-            style={{
-              top: pos.top,
-              left: pos.left,
-              width: ACCOUNT_MENU_SIZE,
-              height: pos.height || ACCOUNT_MENU_SIZE,
-            }}
-          >
+            createPortal(<div ref={popRef} className="qa-pop" role="listbox" aria-label="Tất cả tài khoản" style={{
+                    top: pos.top,
+                    left: pos.left,
+                    width: ACCOUNT_MENU_SIZE,
+                    height: pos.height || ACCOUNT_MENU_SIZE,
+                }}>
             <div className="qa-pop-title">Tất cả tài khoản</div>
 
             <div className="qa-pop-list">
               {accounts.map((account) => {
-                const accConfig =
-                  accountTypes[account.type] || accountTypes.bank;
-                const AccIcon = accConfig.icon;
-                const on = String(selectedId) === String(account.id);
-
-                return (
-                  <button
-                    key={account.id}
-                    type="button"
-                    role="option"
-                    aria-selected={on}
-                    className={`qa-pop-item ${account.type || "bank"} ${
-                      on ? "active" : ""
-                    }`}
-                    onClick={() => {
-                      onSelect(account);
-                      setOpen(false);
-                    }}
-                  >
+                    const accConfig = accountTypes[account.type] || accountTypes.bank;
+                    const AccIcon = accConfig.icon;
+                    const on = String(selectedId) === String(account.id);
+                    return (<button key={account.id} type="button" role="option" aria-selected={on} className={`qa-pop-item ${account.type || "bank"} ${on ? "active" : ""}`} onClick={() => {
+                            onSelect(account);
+                            setOpen(false);
+                        }}>
                     <i>
-                      <AccIcon size={15} />
+                      <AccIcon size={15}/>
                     </i>
 
                     <span>
@@ -6976,257 +5061,163 @@ function AccountMenuButton({ accounts, selectedId, onSelect, getBalance }) {
                       <small>{formatMoney(getBalance(account))}</small>
                     </span>
 
-                    {on && <CheckCircle2 size={15} />}
-                  </button>
-                );
-              })}
+                    {on && <CheckCircle2 size={15}/>}
+                  </button>);
+                })}
             </div>
-          </div>,
-          document.body
-        )}
-    </>
-  );
+          </div>, document.body)}
+    </>);
 }
-
 const DATEPICKER_SIZE = 328;
-
-function DatePicker({
-  value,
-  onChange,
-  className = "",
-  placeholder = "dd/mm/yyyy",
-  clearable = false,
-  customizable = false,
-}) {
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("calendar");
-  const [draft, setDraft] = useState({ day: 1, month: 1, year: 2026 });
-  const [view, setView] = useState(currentMonthKey());
-  const [pos, setPos] = useState({ top: 0, left: 0 });
-  const buttonRef = useRef(null);
-  const popRef = useRef(null);
-
-  const [viewYear, viewMonth] = view.split("-").map(Number);
-  const todayKey = todayString();
-
-  function emit(next) {
-    if (onChange) onChange({ target: { value: next } });
-  }
-
-  function openPicker() {
-    const rect = buttonRef.current.getBoundingClientRect();
-    const left = Math.min(
-      Math.max(8, rect.left),
-      Math.max(8, window.innerWidth - DATEPICKER_SIZE - 8)
-    );
-
-    let top = rect.bottom + 8;
-
-    if (top + DATEPICKER_SIZE > window.innerHeight - 8) {
-      top = Math.max(8, rect.top - DATEPICKER_SIZE - 8);
+function DatePicker({ value, onChange, className = "", placeholder = "dd/mm/yyyy", clearable = false, customizable = false, }) {
+    const [open, setOpen] = useState(false);
+    const [mode, setMode] = useState("calendar");
+    const [draft, setDraft] = useState({ day: 1, month: 1, year: 2026 });
+    const [view, setView] = useState(currentMonthKey());
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+    const buttonRef = useRef(null);
+    const popRef = useRef(null);
+    const [viewYear, viewMonth] = view.split("-").map(Number);
+    const todayKey = todayString();
+    function emit(next) {
+        if (onChange)
+            onChange({ target: { value: next } });
     }
-
-    setPos({ top, left });
-    setView(value ? String(value).slice(0, 7) : currentMonthKey());
-    setMode("calendar");
-    setOpen(true);
-  }
-
-  /* ----- Phần Tuỳ chỉnh: chọn ngày, tháng, năm tuỳ ý ----- */
-
-  const thisYear = new Date().getFullYear();
-  const draftYearOptions = [];
-
-  for (
-    let y = Math.min(thisYear - 30, draft.year);
-    y <= Math.max(thisYear + 10, draft.year);
-    y += 1
-  ) {
-    draftYearOptions.push(y);
-  }
-
-  const draftDaysInMonth = new Date(draft.year, draft.month, 0).getDate();
-  const draftDay = Math.min(draft.day, draftDaysInMonth);
-  const draftKey = `${draft.year}-${pad(draft.month)}-${pad(draftDay)}`;
-  const draftWeekday =
-    WEEK_FULL[
-      (new Date(draft.year, draft.month - 1, draftDay).getDay() + 6) % 7
-    ];
-
-  function openCustom() {
-    const base = value ? String(value) : todayKey;
-    const [y, m, d] = base.split("-").map(Number);
-
-    setDraft({ day: d || 1, month: m || 1, year: y || thisYear });
-    setMode("custom");
-  }
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const onDown = (event) => {
-      if (
-        popRef.current &&
-        !popRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    const onKey = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    const close = () => setOpen(false);
-
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("resize", close);
-    window.addEventListener("scroll", close, true);
-
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", close);
-      window.removeEventListener("scroll", close, true);
-    };
-  }, [open]);
-
-  const cells = useMemo(() => {
-    const first = new Date(viewYear, viewMonth - 1, 1).getDay();
-    const start = first === 0 ? 6 : first - 1;
-    const days = new Date(viewYear, viewMonth, 0).getDate();
-
-    return [
-      ...Array(start).fill(null),
-      ...Array.from({ length: days }, (_, i) => i + 1),
-    ];
-  }, [viewYear, viewMonth]);
-
-  function shiftMonth(step) {
-    const date = new Date(viewYear, viewMonth - 1 + step, 1);
-
-    setView(`${date.getFullYear()}-${pad(date.getMonth() + 1)}`);
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        ref={buttonRef}
-        className={`dp-trigger ${open ? "open" : ""} ${className}`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => (open ? setOpen(false) : openPicker())}
-      >
+    function openPicker() {
+        const rect = buttonRef.current.getBoundingClientRect();
+        const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - DATEPICKER_SIZE - 8));
+        let top = rect.bottom + 8;
+        if (top + DATEPICKER_SIZE > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - DATEPICKER_SIZE - 8);
+        }
+        setPos({ top, left });
+        setView(value ? String(value).slice(0, 7) : currentMonthKey());
+        setMode("calendar");
+        setOpen(true);
+    }
+    /* ----- Phần Tuỳ chỉnh: chọn ngày, tháng, năm tuỳ ý ----- */
+    const thisYear = new Date().getFullYear();
+    const draftYearOptions = [];
+    for (let y = Math.min(thisYear - 30, draft.year); y <= Math.max(thisYear + 10, draft.year); y += 1) {
+        draftYearOptions.push(y);
+    }
+    const draftDaysInMonth = new Date(draft.year, draft.month, 0).getDate();
+    const draftDay = Math.min(draft.day, draftDaysInMonth);
+    const draftKey = `${draft.year}-${pad(draft.month)}-${pad(draftDay)}`;
+    const draftWeekday = WEEK_FULL[(new Date(draft.year, draft.month - 1, draftDay).getDay() + 6) % 7];
+    function openCustom() {
+        const base = value ? String(value) : todayKey;
+        const [y, m, d] = base.split("-").map(Number);
+        setDraft({ day: d || 1, month: m || 1, year: y || thisYear });
+        setMode("custom");
+    }
+    useEffect(() => {
+        if (!open)
+            return undefined;
+        const onDown = (event) => {
+            if (popRef.current &&
+                !popRef.current.contains(event.target) &&
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+        const onKey = (event) => {
+            if (event.key === "Escape")
+                setOpen(false);
+        };
+        const close = () => setOpen(false);
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        window.addEventListener("resize", close);
+        window.addEventListener("scroll", close, true);
+        return () => {
+            document.removeEventListener("mousedown", onDown);
+            document.removeEventListener("keydown", onKey);
+            window.removeEventListener("resize", close);
+            window.removeEventListener("scroll", close, true);
+        };
+    }, [open]);
+    const cells = useMemo(() => {
+        const first = new Date(viewYear, viewMonth - 1, 1).getDay();
+        const start = first === 0 ? 6 : first - 1;
+        const days = new Date(viewYear, viewMonth, 0).getDate();
+        return [
+            ...Array(start).fill(null),
+            ...Array.from({ length: days }, (_, i) => i + 1),
+        ];
+    }, [viewYear, viewMonth]);
+    function shiftMonth(step) {
+        const date = new Date(viewYear, viewMonth - 1 + step, 1);
+        setView(`${date.getFullYear()}-${pad(date.getMonth() + 1)}`);
+    }
+    return (<>
+      <button type="button" ref={buttonRef} className={`dp-trigger ${open ? "open" : ""} ${className}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => (open ? setOpen(false) : openPicker())}>
         <span className={value ? "" : "dp-placeholder"}>
           {value ? formatDate(value) : placeholder}
         </span>
 
-        <ModernCalendarIcon size={17} />
+        <ModernCalendarIcon size={17}/>
       </button>
 
       {open &&
-        createPortal(
-          <div
-            ref={popRef}
-            className="dp-pop"
-            role="dialog"
-            aria-label="Chọn ngày"
-            style={{
-              top: pos.top,
-              left: pos.left,
-              width: DATEPICKER_SIZE,
-              height: DATEPICKER_SIZE,
-            }}
-          >
-            {mode === "calendar" ? (
-              <>
+            createPortal(<div ref={popRef} className="dp-pop" role="dialog" aria-label="Chọn ngày" style={{
+                    top: pos.top,
+                    left: pos.left,
+                    width: DATEPICKER_SIZE,
+                    height: DATEPICKER_SIZE,
+                }}>
+            {mode === "calendar" ? (<>
                 <div className="dp-head">
-                  <button
-                    type="button"
-                    aria-label="Tháng trước"
-                    onClick={() => shiftMonth(-1)}
-                  >
-                    <ChevronLeft size={17} />
+                  <button type="button" aria-label="Tháng trước" onClick={() => shiftMonth(-1)}>
+                    <ChevronLeft size={17}/>
                   </button>
 
                   <strong>{`Tháng ${viewMonth}/${viewYear}`}</strong>
 
-                  <button
-                    type="button"
-                    aria-label="Tháng sau"
-                    onClick={() => shiftMonth(1)}
-                  >
-                    <ChevronRight size={17} />
+                  <button type="button" aria-label="Tháng sau" onClick={() => shiftMonth(1)}>
+                    <ChevronRight size={17}/>
                   </button>
                 </div>
 
                 <div className="dp-weekdays">
-                  {WEEK_SHORT.map((label) => (
-                    <span key={label}>{label}</span>
-                  ))}
+                  {WEEK_SHORT.map((label) => (<span key={label}>{label}</span>))}
                 </div>
 
                 <div className="dp-grid">
                   {cells.map((day, index) => {
-                    if (!day) return <i key={`empty-${index}`} />;
-
-                    const key = `${view}-${pad(day)}`;
-
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        className={`dp-day ${key === value ? "selected" : ""} ${
-                          key === todayKey ? "today" : ""
-                        }`}
-                        onClick={() => {
-                          emit(key);
-                          setOpen(false);
-                        }}
-                      >
+                        if (!day)
+                            return <i key={`empty-${index}`}/>;
+                        const key = `${view}-${pad(day)}`;
+                        return (<button key={key} type="button" className={`dp-day ${key === value ? "selected" : ""} ${key === todayKey ? "today" : ""}`} onClick={() => {
+                                emit(key);
+                                setOpen(false);
+                            }}>
                         {day}
-                      </button>
-                    );
-                  })}
+                      </button>);
+                    })}
                 </div>
 
                 <div className="dp-foot">
-                  {customizable && (
-                    <button type="button" onClick={openCustom}>
+                  {customizable && (<button type="button" onClick={openCustom}>
                       Tuỳ chỉnh
-                    </button>
-                  )}
+                    </button>)}
 
-                  <button
-                    type="button"
-                    className="primary"
-                    onClick={() => {
-                      emit(todayKey);
-                      setOpen(false);
-                    }}
-                  >
+                  <button type="button" className="primary" onClick={() => {
+                        emit(todayKey);
+                        setOpen(false);
+                    }}>
                     Hôm nay
                   </button>
 
-                  {clearable && value && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        emit("");
-                        setOpen(false);
-                      }}
-                    >
+                  {clearable && value && (<button type="button" onClick={() => {
+                            emit("");
+                            setOpen(false);
+                        }}>
                       Xóa
-                    </button>
-                  )}
+                    </button>)}
                 </div>
-              </>
-            ) : (
-              <>
+              </>) : (<>
                 <div className="dp-custom">
                   <div className="dp-custom-title">Tuỳ chỉnh</div>
 
@@ -7234,65 +5225,39 @@ function DatePicker({
                     <label>
                       <span>Ngày</span>
 
-                      <select
-                        value={draftDay}
-                        onChange={(event) =>
-                          setDraft({
-                            ...draft,
-                            day: Number(event.target.value),
-                          })
-                        }
-                      >
-                        {Array.from(
-                          { length: draftDaysInMonth },
-                          (_, i) => i + 1
-                        ).map((d) => (
-                          <option key={d} value={d}>
+                      <select value={draftDay} onChange={(event) => setDraft({
+                        ...draft,
+                        day: Number(event.target.value),
+                    })}>
+                        {Array.from({ length: draftDaysInMonth }, (_, i) => i + 1).map((d) => (<option key={d} value={d}>
                             {d}
-                          </option>
-                        ))}
+                          </option>))}
                       </select>
                     </label>
 
                     <label>
                       <span>Tháng</span>
 
-                      <select
-                        value={draft.month}
-                        onChange={(event) =>
-                          setDraft({
-                            ...draft,
-                            month: Number(event.target.value),
-                          })
-                        }
-                      >
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                          (m) => (
-                            <option key={m} value={m}>
+                      <select value={draft.month} onChange={(event) => setDraft({
+                        ...draft,
+                        month: Number(event.target.value),
+                    })}>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (<option key={m} value={m}>
                               {m}
-                            </option>
-                          )
-                        )}
+                            </option>))}
                       </select>
                     </label>
 
                     <label>
                       <span>Năm</span>
 
-                      <select
-                        value={draft.year}
-                        onChange={(event) =>
-                          setDraft({
-                            ...draft,
-                            year: Number(event.target.value),
-                          })
-                        }
-                      >
-                        {draftYearOptions.map((y) => (
-                          <option key={y} value={y}>
+                      <select value={draft.year} onChange={(event) => setDraft({
+                        ...draft,
+                        year: Number(event.target.value),
+                    })}>
+                        {draftYearOptions.map((y) => (<option key={y} value={y}>
                             {y}
-                          </option>
-                        ))}
+                          </option>))}
                       </select>
                     </label>
                   </div>
@@ -7312,108 +5277,65 @@ function DatePicker({
                     Quay lại
                   </button>
 
-                  <button
-                    type="button"
-                    className="primary"
-                    onClick={() => {
-                      emit(draftKey);
-                      setOpen(false);
-                    }}
-                  >
+                  <button type="button" className="primary" onClick={() => {
+                        emit(draftKey);
+                        setOpen(false);
+                    }}>
                     Chọn ngày này
                   </button>
                 </div>
-              </>
-            )}
-          </div>,
-          document.body
-        )}
-    </>
-  );
+              </>)}
+          </div>, document.body)}
+    </>);
 }
-
 /* =========================================================
    Ô NHẬP SỐ TIỀN — tự thêm dấu chấm ngăn cách mỗi 3 số từ cuối lên
    (giá trị lưu trong state vẫn là chuỗi chữ số thuần, ví dụ "1500000")
 ========================================================= */
-
 function formatThousands(value) {
-  const digits = String(value ?? "")
-    .replace(/\D/g, "")
-    .replace(/^0+(?=\d)/, "");
-
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const digits = String(value ?? "")
+        .replace(/\D/g, "")
+        .replace(/^0+(?=\d)/, "");
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
-
 function MoneyInput({ value, onValueChange, ...rest }) {
-  const inputRef = useRef(null);
-  const caretDigits = useRef(null);
-  const display = formatThousands(value);
-
-  /* Giữ con trỏ đúng vị trí sau khi chèn thêm dấu chấm */
-  useLayoutEffect(() => {
-    const element = inputRef.current;
-
-    if (caretDigits.current === null || !element) return;
-
-    let remaining = caretDigits.current;
-    let position = 0;
-
-    while (position < display.length && remaining > 0) {
-      if (/\d/.test(display[position])) remaining -= 1;
-      position += 1;
-    }
-
-    element.setSelectionRange(position, position);
-    caretDigits.current = null;
-  }, [display]);
-
-  return (
-    <input
-      {...rest}
-      ref={inputRef}
-      type="text"
-      inputMode="numeric"
-      autoComplete="off"
-      value={display}
-      onChange={(event) => {
-        const raw = event.target.value;
-        const caret = event.target.selectionStart ?? raw.length;
-
-        caretDigits.current = raw.slice(0, caret).replace(/\D/g, "").length;
-
-        onValueChange(raw.replace(/\D/g, "").replace(/^0+(?=\d)/, ""));
-      }}
-    />
-  );
+    const inputRef = useRef(null);
+    const caretDigits = useRef(null);
+    const display = formatThousands(value);
+    /* Giữ con trỏ đúng vị trí sau khi chèn thêm dấu chấm */
+    useLayoutEffect(() => {
+        const element = inputRef.current;
+        if (caretDigits.current === null || !element)
+            return;
+        let remaining = caretDigits.current;
+        let position = 0;
+        while (position < display.length && remaining > 0) {
+            if (/\d/.test(display[position]))
+                remaining -= 1;
+            position += 1;
+        }
+        element.setSelectionRange(position, position);
+        caretDigits.current = null;
+    }, [display]);
+    return (<input {...rest} ref={inputRef} type="text" inputMode="numeric" autoComplete="off" value={display} onChange={(event) => {
+            const raw = event.target.value;
+            const caret = event.target.selectionStart ?? raw.length;
+            caretDigits.current = raw.slice(0, caret).replace(/\D/g, "").length;
+            onValueChange(raw.replace(/\D/g, "").replace(/^0+(?=\d)/, ""));
+        }}/>);
 }
-
 /* Huy hiệu hiển thị tháng đang xem (thay cho dòng chữ đơn lẻ) */
 function MonthBadge({ month, label = "", compact = false, live = false }) {
-  return (
-    <div
-      className={`month-badge ${compact ? "compact" : ""}`}
-      title={`Đang xem ${formatMonth(month)}`}
-    >
-      {live ? (
-        <i className="month-badge-dot" />
-      ) : (
-        <ModernCalendarIcon size={compact ? 13 : 15} />
-      )}
+    return (<div className={`month-badge ${compact ? "compact" : ""}`} title={`Đang xem ${formatMonth(month)}`}>
+      {live ? (<i className="month-badge-dot"/>) : (<ModernCalendarIcon size={compact ? 13 : 15}/>)}
 
       {label && <em>{label}</em>}
 
       <strong>{formatMonth(month)}</strong>
-    </div>
-  );
+    </div>);
 }
-
-function PanelTitle({
-  title,
-  subtitle,
-}) {
-  return (
-    <div className="panel-title">
+function PanelTitle({ title, subtitle, }) {
+    return (<div className="panel-title">
       <h2>
         {title}
       </h2>
@@ -7421,57 +5343,26 @@ function PanelTitle({
       <span>
         {subtitle}
       </span>
-    </div>
-  );
+    </div>);
 }
-
-function FormField({
-  label,
-  children,
-}) {
-  return (
-    <label className="form-field">
+function FormField({ label, children, }) {
+    return (<label className="form-field">
       <span>
         {label}
       </span>
 
       {children}
-    </label>
-  );
+    </label>);
 }
-
-function TabButton({
-  active,
-  onClick,
-  icon: Icon,
-  children,
-}) {
-  return (
-    <button
-      type="button"
-      className={`tab-button ${
-        active ? "active" : ""
-      }`}
-      onClick={onClick}
-    >
-      <Icon size={17} />
+function TabButton({ active, onClick, icon: Icon, children, }) {
+    return (<button type="button" className={`tab-button ${active ? "active" : ""}`} onClick={onClick}>
+      <Icon size={17}/>
 
       {children}
-    </button>
-  );
+    </button>);
 }
-
-function MoneyRow({
-  label,
-  value,
-  strong = false,
-}) {
-  return (
-    <div
-      className={`money-row ${
-        strong ? "strong" : ""
-      }`}
-    >
+function MoneyRow({ label, value, strong = false, }) {
+    return (<div className={`money-row ${strong ? "strong" : ""}`}>
       <span>
         {label}
       </span>
@@ -7479,18 +5370,10 @@ function MoneyRow({
       <strong>
         {formatMoney(value)}
       </strong>
-    </div>
-  );
+    </div>);
 }
-
-function CalculationRow({
-  label,
-  sign,
-  value,
-  className = "",
-}) {
-  return (
-    <div className="calculation-row">
+function CalculationRow({ label, sign, value, className = "", }) {
+    return (<div className="calculation-row">
       <span>
         {label}
       </span>
@@ -7498,408 +5381,309 @@ function CalculationRow({
       <strong className={className}>
         {sign} {formatMoney(value)}
       </strong>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    NỢ / VAY  và  TIẾT KIỆM
    Dùng chung một giao diện: "total" là số nợ / số cho vay / mục tiêu,
    "done" là số đã trả / đã thu / đã tiết kiệm.
    Trang Vay / Nợ có 2 chiều: "owe" (tôi nợ) và "lend" (tôi cho vay).
 ========================================================= */
-
 const goalConfigs = {
-  debt: {
-    icon: CreditCard,
-    listTitle: "Danh sách khoản vay / nợ",
-    listSubtitle: "",
-    empty: "Chưa có khoản vay / nợ nào.",
-    capAtTotal: true,
-  },
-
-  saving: {
-    icon: TrendingUp,
-    addTitle: "Thêm khoản đầu tư",
-    addSubtitle: "",
-    nameLabel: "Tên khoản đầu tư",
-    namePlaceholder: "Ví dụ: Sổ tiết kiệm 12 tháng",
-    totalLabel: "Số tiền mục tiêu",
-    doneLabel: "Đã đầu tư",
-    dateLabel: "Ngày dự kiến (không bắt buộc)",
-    addButton: "THÊM KHOẢN ĐẦU TƯ",
-    listTitle: "Danh sách khoản đầu tư",
-    listSubtitle: "Theo dõi lãi suất, kỳ hạn và tiến độ từng khoản",
-    empty: "Chưa có khoản đầu tư nào.",
-    statTotal: "TỔNG MỤC TIÊU",
-    statDone: "ĐÃ ĐẦU TƯ",
-    statRemain: "CÒN THIẾU",
-    remainLabel: "Còn thiếu",
-    actionLabel: "Góp thêm",
-    actionPlaceholder: "Số tiền góp",
-    dateInfo: "Dự kiến",
-    actionDateLabel: "Ngày góp",
-    finished: "Đạt mục tiêu",
-    capAtTotal: false,
-  },
+    debt: {
+        icon: CreditCard,
+        listTitle: "Danh sách khoản vay / nợ",
+        listSubtitle: "",
+        empty: "Chưa có khoản vay / nợ nào.",
+        capAtTotal: true,
+    },
+    saving: {
+        icon: TrendingUp,
+        addTitle: "Thêm khoản đầu tư",
+        addSubtitle: "",
+        nameLabel: "Tên khoản đầu tư",
+        namePlaceholder: "Ví dụ: Sổ tiết kiệm 12 tháng",
+        totalLabel: "Số tiền mục tiêu",
+        doneLabel: "Đã đầu tư",
+        dateLabel: "Ngày dự kiến (không bắt buộc)",
+        addButton: "THÊM KHOẢN ĐẦU TƯ",
+        listTitle: "Danh sách khoản đầu tư",
+        listSubtitle: "Theo dõi lãi suất, kỳ hạn và tiến độ từng khoản",
+        empty: "Chưa có khoản đầu tư nào.",
+        statTotal: "TỔNG MỤC TIÊU",
+        statDone: "ĐÃ ĐẦU TƯ",
+        statRemain: "CÒN THIẾU",
+        remainLabel: "Còn thiếu",
+        actionLabel: "Góp thêm",
+        actionPlaceholder: "Số tiền góp",
+        dateInfo: "Dự kiến",
+        actionDateLabel: "Ngày góp",
+        finished: "Đạt mục tiêu",
+        capAtTotal: false,
+    },
 };
-
 /* Ý nghĩa:
    - "Khoản vay" (key lend): bạn đã vay của người khác  → thuộc ô PHẢI TRẢ
    - "Khoản nợ"  (key owe) : người khác nợ bạn          → thuộc ô PHẢI THU
    Giữ nguyên key cũ để dữ liệu đã lưu không bị đổi. */
 const debtDirections = {
-  lend: {
-    tag: "Khoản vay",
-    addTitle: "",
-    addSubtitle: "",
-    nameLabel: "Ai vay",
-    namePlaceholder: "Ví dụ: Bạn Minh",
-    totalLabel: "Số tiền",
-    doneLabel: "Đã trả",
-    dateLabel: "Ngày vay",
-    addButton: "THÊM KHOẢN VAY",
-    remainLabel: "Còn phải trả",
-    actionLabel: "Ghi trả",
-    actionPlaceholder: "Số tiền trả",
-    dateInfo: "Ngày vay",
-    actionDateLabel: "Ngày trả",
-    finished: "Đã trả hết",
-  },
-
-  owe: {
-    tag: "Khoản nợ",
-    addTitle: "",
-    addSubtitle: "",
-    nameLabel: "Nợ ai",
-    namePlaceholder: "Ví dụ: Bạn Minh",
-    totalLabel: "Số tiền",
-    doneLabel: "Đã thu hồi",
-    dateLabel: "Ngày nợ",
-    addButton: "THÊM KHOẢN NỢ",
-    remainLabel: "Còn phải thu",
-    actionLabel: "Ghi thu",
-    actionPlaceholder: "Số tiền thu",
-    dateInfo: "Ngày nợ",
-    actionDateLabel: "Ngày thu",
-    finished: "Đã thu đủ",
-  },
+    lend: {
+        tag: "Khoản vay",
+        addTitle: "",
+        addSubtitle: "",
+        nameLabel: "Ai vay",
+        namePlaceholder: "Ví dụ: Bạn Minh",
+        totalLabel: "Số tiền",
+        doneLabel: "Đã trả",
+        dateLabel: "Ngày vay",
+        addButton: "THÊM KHOẢN VAY",
+        remainLabel: "Còn phải trả",
+        actionLabel: "Ghi trả",
+        actionPlaceholder: "Số tiền trả",
+        dateInfo: "Ngày vay",
+        actionDateLabel: "Ngày trả",
+        finished: "Đã trả hết",
+    },
+    owe: {
+        tag: "Khoản nợ",
+        addTitle: "",
+        addSubtitle: "",
+        nameLabel: "Nợ ai",
+        namePlaceholder: "Ví dụ: Bạn Minh",
+        totalLabel: "Số tiền",
+        doneLabel: "Đã thu hồi",
+        dateLabel: "Ngày nợ",
+        addButton: "THÊM KHOẢN NỢ",
+        remainLabel: "Còn phải thu",
+        actionLabel: "Ghi thu",
+        actionPlaceholder: "Số tiền thu",
+        dateInfo: "Ngày nợ",
+        actionDateLabel: "Ngày thu",
+        finished: "Đã thu đủ",
+    },
 };
-
 function getGoalLabels(kind, direction) {
-  if (kind === "debt") {
-    return {
-      ...goalConfigs.debt,
-      ...(debtDirections[direction] || debtDirections.owe),
-    };
-  }
-
-  return goalConfigs[kind];
+    if (kind === "debt") {
+        return {
+            ...goalConfigs.debt,
+            ...(debtDirections[direction] || debtDirections.owe),
+        };
+    }
+    return goalConfigs[kind];
 }
-
 /* Ngày hoạt động gần nhất của một khoản (ngày ghi trả/thu cuối, hoặc ngày tạo) */
 function getGoalLastDate(item) {
-  const dates = (item.history || []).map((entry) => String(entry.date || ""));
-
-  dates.sort();
-
-  return dates[dates.length - 1] || item.date || item.createdAt || "";
+    const dates = (item.history || []).map((entry) => String(entry.date || ""));
+    dates.sort();
+    return dates[dates.length - 1] || item.date || item.createdAt || "";
 }
-
 function isGoalFinished(item) {
-  const total = Number(item.total || 0);
-
-  return total > 0 && Number(item.done || 0) >= total;
+    const total = Number(item.total || 0);
+    return total > 0 && Number(item.done || 0) >= total;
 }
-
 /* ---------- Đầu tư: nhãn theo danh mục + tính đáo hạn ---------- */
 function investLabels(cat) {
-  if (cat === "bank-loan") {
-    return { name: "Tên khoản vay", ph: "Ví dụ: Vay mua xe - Vietcombank", total: "Số tiền vay", done: "Đã trả", remain: "Còn nợ", rate: "Lãi suất vay (%/năm)", dateLabel: "Ngày giải ngân", interest: "Lãi ước tính", action: "Trả nợ", actionPh: "Số tiền trả", finished: "Đã tất toán", icon: Landmark, tone: "loan" };
-  }
-  if (cat === "saving") {
-    return { name: "Tên sổ tiết kiệm", ph: "Ví dụ: Sổ tiết kiệm 12 tháng", total: "Số tiền gửi", done: "Đã gửi", remain: "Còn thiếu", rate: "Lãi suất gửi (%/năm)", dateLabel: "Ngày gửi", interest: "Lãi dự kiến", action: "Gửi thêm", actionPh: "Số tiền gửi", finished: "Đủ tiền gửi", icon: PiggyBank, tone: "save" };
-  }
-  return { name: "Tên khoản đầu tư", ph: "Ví dụ: Vàng, chứng chỉ quỹ...", total: "Số tiền mục tiêu", done: "Đã đầu tư", remain: "Còn thiếu", rate: "Lãi suất / lợi nhuận (%/năm)", dateLabel: "Ngày bắt đầu (không bắt buộc)", interest: "Lãi dự kiến", action: "Góp thêm", actionPh: "Số tiền góp", finished: "Đạt mục tiêu", icon: TrendingUp, tone: "other" };
+    if (cat === "bank-loan") {
+        return { name: "Tên khoản vay", ph: "Ví dụ: Vay mua xe - Vietcombank", total: "Số tiền vay", done: "Đã trả", remain: "Còn nợ", rate: "Lãi suất vay (%/năm)", dateLabel: "Ngày giải ngân", interest: "Lãi ước tính", action: "Trả nợ", actionPh: "Số tiền trả", finished: "Đã tất toán", icon: Landmark, tone: "loan" };
+    }
+    if (cat === "saving") {
+        return { name: "Tên sổ tiết kiệm", ph: "Ví dụ: Sổ tiết kiệm 12 tháng", total: "Số tiền gửi", done: "Đã gửi", remain: "Còn thiếu", rate: "Lãi suất gửi (%/năm)", dateLabel: "Ngày gửi", interest: "Lãi dự kiến", action: "Gửi thêm", actionPh: "Số tiền gửi", finished: "Đủ tiền gửi", icon: PiggyBank, tone: "save" };
+    }
+    return { name: "Tên khoản đầu tư", ph: "Ví dụ: Vàng, chứng chỉ quỹ...", total: "Số tiền mục tiêu", done: "Đã đầu tư", remain: "Còn thiếu", rate: "Lãi suất / lợi nhuận (%/năm)", dateLabel: "Ngày bắt đầu (không bắt buộc)", interest: "Lãi dự kiến", action: "Góp thêm", actionPh: "Số tiền góp", finished: "Đạt mục tiêu", icon: TrendingUp, tone: "other" };
 }
-
 function upperFirst(text) {
-  const value = String(text || "");
-
-  return value.charAt(0).toLocaleUpperCase("vi-VN") + value.slice(1);
+    const value = String(text || "");
+    return value.charAt(0).toLocaleUpperCase("vi-VN") + value.slice(1);
 }
-
 function addMonthsToDate(dateStr, months) {
-  const [y, m, d] = String(dateStr || "").split("-").map(Number);
-  if (!y || !m || !d) return "";
-  const target = new Date(y, m - 1 + months, 1);
-  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
-  return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(Math.min(d, last))}`;
+    const [y, m, d] = String(dateStr || "").split("-").map(Number);
+    if (!y || !m || !d)
+        return "";
+    const target = new Date(y, m - 1 + months, 1);
+    const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(Math.min(d, last))}`;
 }
-
 function daysUntil(dateStr) {
-  const [y, m, d] = String(dateStr).split("-").map(Number);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((new Date(y, m - 1, d) - today) / 86400000);
+    const [y, m, d] = String(dateStr).split("-").map(Number);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((new Date(y, m - 1, d) - today) / 86400000);
 }
-
-function GoalLedger({
-  kind,
-  items,
-  setItems,
-  categories = [],
-  setCategories,
-  playSound,
-  successSound,
-  deleteSound,
-}) {
-  const baseConfig = goalConfigs[kind];
-  const Icon = baseConfig.icon;
-  const isDebt = kind === "debt";
-
-  const [form, setForm] = useState({
-    direction: "lend",
-    category: categories[0]?.id || "saving",
-    name: "",
-    total: "",
-    done: "",
-    date: "",
-    rate: "",
-    term: "",
-    termUnit: "month",
-  });
-
-  const [amounts, setAmounts] = useState({});
-  const [payDates, setPayDates] = useState({});
-
-  /* ----- Trang Đầu tư: danh mục ----- */
-  const [catFilter, setCatFilter] = useState("all");
-  const [addingCategory, setAddingCategory] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
-
-  const categoryOf = (item) => item.category || "saving";
-
-  const categoryName = (id) =>
-    categories.find((category) => category.id === id)?.name ||
-    "Chưa phân loại";
-
-  /* Danh mục đang chọn trong form luôn phải còn tồn tại */
-  const formCategory = categories.some((c) => c.id === form.category)
-    ? form.category
-    : categories[0]?.id || "";
-
-  function addCategory(event) {
-    event.preventDefault();
-
-    const name = newCategory.trim().slice(0, 40);
-
-    if (!name) return;
-
-    if (
-      categories.some(
-        (category) => category.name.toLowerCase() === name.toLowerCase()
-      )
-    ) {
-      alert("Danh mục này đã có.");
-      return;
+function GoalLedger({ kind, items, setItems, categories = [], setCategories, playSound, successSound, deleteSound, }) {
+    const baseConfig = goalConfigs[kind];
+    const Icon = baseConfig.icon;
+    const isDebt = kind === "debt";
+    const [form, setForm] = useState({
+        direction: "lend",
+        category: categories[0]?.id || "saving",
+        name: "",
+        total: "",
+        done: "",
+        date: "",
+        rate: "",
+        term: "",
+        termUnit: "month",
+    });
+    const [amounts, setAmounts] = useState({});
+    const [payDates, setPayDates] = useState({});
+    /* ----- Trang Đầu tư: danh mục ----- */
+    const [catFilter, setCatFilter] = useState("all");
+    const [addingCategory, setAddingCategory] = useState(false);
+    const [newCategory, setNewCategory] = useState("");
+    const categoryOf = (item) => item.category || "saving";
+    const categoryName = (id) => categories.find((category) => category.id === id)?.name ||
+        "Chưa phân loại";
+    /* Danh mục đang chọn trong form luôn phải còn tồn tại */
+    const formCategory = categories.some((c) => c.id === form.category)
+        ? form.category
+        : categories[0]?.id || "";
+    function addCategory(event) {
+        event.preventDefault();
+        const name = newCategory.trim().slice(0, 40);
+        if (!name)
+            return;
+        if (categories.some((category) => category.name.toLowerCase() === name.toLowerCase())) {
+            alert("Danh mục này đã có.");
+            return;
+        }
+        const category = { id: `cat-${createId()}`, name };
+        setCategories((old) => [...old, category]);
+        setCatFilter(category.id);
+        setForm((old) => ({ ...old, category: category.id }));
+        setNewCategory("");
+        setAddingCategory(false);
+        successSound();
     }
-
-    const category = { id: `cat-${createId()}`, name };
-
-    setCategories((old) => [...old, category]);
-    setCatFilter(category.id);
-    setForm((old) => ({ ...old, category: category.id }));
-    setNewCategory("");
-    setAddingCategory(false);
-    successSound();
-  }
-
-  function removeCategory(id) {
-    const used = items.some((item) => categoryOf(item) === id);
-
-    if (used) {
-      alert(
-        "Danh mục này đang có khoản đầu tư. Hãy xoá hoặc chuyển các khoản đó trước."
-      );
-      return;
+    function removeCategory(id) {
+        const used = items.some((item) => categoryOf(item) === id);
+        if (used) {
+            alert("Danh mục này đang có khoản đầu tư. Hãy xoá hoặc chuyển các khoản đó trước.");
+            return;
+        }
+        if (!window.confirm(`Xóa danh mục "${categoryName(id)}"?`))
+            return;
+        setCategories((old) => old.filter((category) => category.id !== id));
+        setCatFilter("all");
+        deleteSound();
     }
-
-    if (!window.confirm(`Xóa danh mục "${categoryName(id)}"?`)) return;
-
-    setCategories((old) => old.filter((category) => category.id !== id));
-    setCatFilter("all");
-    deleteSound();
-  }
-
-  /* Trang Vay / Nợ: nút nào đang được chọn thì danh sách hiện theo nút đó
-     "pay" = Phải trả (các khoản vay) · "collect" = Phải thu (các khoản nợ) · "history" = Lịch sử */
-  const [tab, setTab] = useState("pay");
-
-  /* Nhãn của form thay đổi theo chiều đang chọn (khoản vay / khoản nợ) */
-  const formConfig = getGoalLabels(kind, form.direction);
-
-  /* Cộng dồn: số còn lại và đã trả/thu */
-  const sumBy = (list) =>
-    list.reduce(
-      (sum, item) => {
+    /* Trang Vay / Nợ: nút nào đang được chọn thì danh sách hiện theo nút đó
+       "pay" = Phải trả (các khoản vay) · "collect" = Phải thu (các khoản nợ) · "history" = Lịch sử */
+    const [tab, setTab] = useState("pay");
+    /* Nhãn của form thay đổi theo chiều đang chọn (khoản vay / khoản nợ) */
+    const formConfig = getGoalLabels(kind, form.direction);
+    /* Cộng dồn: số còn lại và đã trả/thu */
+    const sumBy = (list) => list.reduce((sum, item) => {
         const total = Number(item.total || 0);
         const done = Number(item.done || 0);
-
         return {
-          total: sum.total + total,
-          done: sum.done + done,
-          remain: sum.remain + Math.max(0, total - done),
+            total: sum.total + total,
+            done: sum.done + done,
+            remain: sum.remain + Math.max(0, total - done),
         };
-      },
-      { total: 0, done: 0, remain: 0 }
-    );
-
-  const allTotals = sumBy(items);
-
-  /* Chỉ những khoản CHƯA ghi xong mới nằm trong danh sách;
-     khoản ghi xong tự chuyển sang Lịch sử */
-  /* Phải trả = khoản vay (bạn vay người khác) · Phải thu = khoản nợ (người khác nợ bạn) */
-  const payOpen = items.filter(
-    (item) => item.direction === "lend" && !isGoalFinished(item)
-  );
-
-  const collectOpen = items.filter(
-    (item) => (item.direction || "owe") === "owe" && !isGoalFinished(item)
-  );
-
-  const finishedItems = items
-    .filter(isGoalFinished)
-    .sort((a, b) =>
-      getGoalLastDate(b).localeCompare(getGoalLastDate(a))
-    );
-
-  const payTotals = sumBy(payOpen);
-  const collectTotals = sumBy(collectOpen);
-  const finishedTotals = sumBy(finishedItems);
-
-  function addItem(event) {
-    event.preventDefault();
-
-    const name = form.name.trim();
-    const total = Math.abs(Number(form.total));
-    let done = Math.abs(Number(form.done || 0));
-
-    if (!name || !total) {
-      alert(
-        `Vui lòng nhập ${formConfig.nameLabel.toLowerCase()} và ${formConfig.totalLabel.toLowerCase()}.`
-      );
-      return;
-    }
-
-    if (baseConfig.capAtTotal) {
-      done = Math.min(done, total);
-    }
-
-    /* Đầu tư / gửi tiết kiệm: không còn nhập "đã gửi" lúc tạo — bắt đầu từ 0 */
-    if (!isDebt && formCategory !== "bank-loan") done = 0;
-
-    setItems((old) => [
-      {
-        id: createId(),
-        ...(isDebt
-          ? { direction: form.direction }
-          : {
-              category: formCategory,
-              rate: Number(form.rate) || 0,
-              term: Math.floor(Number(form.term)) || 0,
-              termUnit: form.termUnit,
-            }),
-        name,
-        total,
-        done,
-        date: form.date || "",
-        createdAt: todayString(),
-      },
-      ...old,
-    ]);
-
-    /* Thêm xong thì chuyển danh sách sang đúng loại vừa thêm */
-    if (isDebt) setTab(form.direction === "lend" ? "pay" : "collect");
-    else if (catFilter !== "all") setCatFilter(formCategory);
-
-    setForm({ ...form, name: "", total: "", done: "", date: "", rate: "", term: "" });
-    successSound();
-  }
-
-  function addAmount(item) {
-    const value = Number(amounts[item.id]);
-
-    if (!value) return;
-
-    setItems((old) =>
-      old.map((current) => {
-        if (current.id !== item.id) return current;
-
-        let nextDone = Math.max(0, Number(current.done || 0) + value);
-
-        if (baseConfig.capAtTotal) {
-          nextDone = Math.min(nextDone, Number(current.total || 0));
+    }, { total: 0, done: 0, remain: 0 });
+    const allTotals = sumBy(items);
+    /* Chỉ những khoản CHƯA ghi xong mới nằm trong danh sách;
+       khoản ghi xong tự chuyển sang Lịch sử */
+    /* Phải trả = khoản vay (bạn vay người khác) · Phải thu = khoản nợ (người khác nợ bạn) */
+    const payOpen = items.filter((item) => item.direction === "lend" && !isGoalFinished(item));
+    const collectOpen = items.filter((item) => (item.direction || "owe") === "owe" && !isGoalFinished(item));
+    const finishedItems = items
+        .filter(isGoalFinished)
+        .sort((a, b) => getGoalLastDate(b).localeCompare(getGoalLastDate(a)));
+    const payTotals = sumBy(payOpen);
+    const collectTotals = sumBy(collectOpen);
+    const finishedTotals = sumBy(finishedItems);
+    function addItem(event) {
+        event.preventDefault();
+        const name = form.name.trim();
+        const total = Math.abs(Number(form.total));
+        let done = Math.abs(Number(form.done || 0));
+        if (!name || !total) {
+            alert(`Vui lòng nhập ${formConfig.nameLabel.toLowerCase()} và ${formConfig.totalLabel.toLowerCase()}.`);
+            return;
         }
-
-        return {
-          ...current,
-          done: nextDone,
-          history: [
-            ...(current.history || []),
+        if (baseConfig.capAtTotal) {
+            done = Math.min(done, total);
+        }
+        /* Đầu tư / gửi tiết kiệm: không còn nhập "đã gửi" lúc tạo — bắt đầu từ 0 */
+        if (!isDebt && formCategory !== "bank-loan")
+            done = 0;
+        setItems((old) => [
             {
-              id: createId(),
-              date: payDates[item.id] || todayString(),
-              amount: value,
+                id: createId(),
+                ...(isDebt
+                    ? { direction: form.direction }
+                    : {
+                        category: formCategory,
+                        rate: Number(form.rate) || 0,
+                        term: Math.floor(Number(form.term)) || 0,
+                        termUnit: form.termUnit,
+                    }),
+                name,
+                total,
+                done,
+                date: form.date || "",
+                createdAt: todayString(),
             },
-          ],
-        };
-      })
-    );
-
-    setAmounts((old) => ({ ...old, [item.id]: "" }));
-    successSound();
-  }
-
-  function removeItem(item) {
-    if (!window.confirm(`Xóa "${item.name}"?`)) return;
-
-    setItems((old) => old.filter((current) => current.id !== item.id));
-    deleteSound();
-  }
-
-  /* Một dòng trong danh sách. readOnly = dòng trong Lịch sử (đã ghi xong, không còn ô ghi thêm) */
-  function renderRow(item, readOnly = false, forcedDirection = null) {
-    const rowConfig = getGoalLabels(
-      kind,
-      forcedDirection || item.direction || "owe"
-    );
-
-    const total = Number(item.total || 0);
-    const done = Number(item.done || 0);
-    const remain = Math.max(0, total - done);
-    const percent = total
-      ? Math.min(100, Math.round((done / total) * 100))
-      : 0;
-
-    const isFinished = isGoalFinished(item);
-
-    const history = [...(item.history || [])].sort(
-      (a, b) =>
-        String(b.date).localeCompare(String(a.date)) ||
-        String(b.id).localeCompare(String(a.id))
-    );
-
-    return (
-      <div
-        className={`goal-row ${readOnly ? "is-history" : ""} ${
-          isDebt ? `dir-${item.direction || "owe"}` : ""
-        }`}
-        key={item.id}
-      >
+            ...old,
+        ]);
+        /* Thêm xong thì chuyển danh sách sang đúng loại vừa thêm */
+        if (isDebt)
+            setTab(form.direction === "lend" ? "pay" : "collect");
+        else if (catFilter !== "all")
+            setCatFilter(formCategory);
+        setForm({ ...form, name: "", total: "", done: "", date: "", rate: "", term: "" });
+        successSound();
+    }
+    function addAmount(item) {
+        const value = Number(amounts[item.id]);
+        if (!value)
+            return;
+        setItems((old) => old.map((current) => {
+            if (current.id !== item.id)
+                return current;
+            let nextDone = Math.max(0, Number(current.done || 0) + value);
+            if (baseConfig.capAtTotal) {
+                nextDone = Math.min(nextDone, Number(current.total || 0));
+            }
+            return {
+                ...current,
+                done: nextDone,
+                history: [
+                    ...(current.history || []),
+                    {
+                        id: createId(),
+                        date: payDates[item.id] || todayString(),
+                        amount: value,
+                    },
+                ],
+            };
+        }));
+        setAmounts((old) => ({ ...old, [item.id]: "" }));
+        successSound();
+    }
+    function removeItem(item) {
+        if (!window.confirm(`Xóa "${item.name}"?`))
+            return;
+        setItems((old) => old.filter((current) => current.id !== item.id));
+        deleteSound();
+    }
+    /* Một dòng trong danh sách. readOnly = dòng trong Lịch sử (đã ghi xong, không còn ô ghi thêm) */
+    function renderRow(item, readOnly = false, forcedDirection = null) {
+        const rowConfig = getGoalLabels(kind, forcedDirection || item.direction || "owe");
+        const total = Number(item.total || 0);
+        const done = Number(item.done || 0);
+        const remain = Math.max(0, total - done);
+        const percent = total
+            ? Math.min(100, Math.round((done / total) * 100))
+            : 0;
+        const isFinished = isGoalFinished(item);
+        const history = [...(item.history || [])].sort((a, b) => String(b.date).localeCompare(String(a.date)) ||
+            String(b.id).localeCompare(String(a.id)));
+        return (<div className={`goal-row ${readOnly ? "is-history" : ""} ${isDebt ? `dir-${item.direction || "owe"}` : ""}`} key={item.id}>
         <div className="goal-row-top">
           <div className="account-icon">
-            <Icon size={22} />
+            <Icon size={22}/>
           </div>
 
           <div className="account-main">
@@ -7918,17 +5702,10 @@ function GoalLedger({
             </span>
           </div>
 
-          {isFinished && (
-            <span className="goal-tag done">{rowConfig.finished}</span>
-          )}
+          {isFinished && (<span className="goal-tag done">{rowConfig.finished}</span>)}
 
-          <button
-            type="button"
-            className="icon-button delete"
-            title="Xóa"
-            onClick={() => removeItem(item)}
-          >
-            <Trash2 size={17} />
+          <button type="button" className="icon-button delete" title="Xóa" onClick={() => removeItem(item)}>
+            <Trash2 size={17}/>
           </button>
         </div>
 
@@ -7941,410 +5718,269 @@ function GoalLedger({
         </div>
 
         <div className="progress goal-progress">
-          <div
-            className={isFinished ? "safe" : "warning"}
-            style={{ width: `${percent}%` }}
-          />
+          <div className={isFinished ? "safe" : "warning"} style={{ width: `${percent}%` }}/>
         </div>
 
-        {!readOnly && (
-          <div className="goal-row-bottom">
+        {!readOnly && (<div className="goal-row-bottom">
             <span className="goal-remain">
               {rowConfig.remainLabel}: {formatMoney(remain)}
             </span>
 
             <div className="goal-add">
-              <DatePicker
-                customizable
-                className="goal-pay-date"
-                value={payDates[item.id] ?? todayString()}
-                onChange={(event) =>
-                  setPayDates((old) => ({
+              <DatePicker customizable className="goal-pay-date" value={payDates[item.id] ?? todayString()} onChange={(event) => setPayDates((old) => ({
                     ...old,
                     [item.id]: event.target.value,
-                  }))
-                }
-              />
+                }))}/>
 
-              <MoneyInput
-                placeholder={rowConfig.actionPlaceholder}
-                value={amounts[item.id] ?? ""}
-                onValueChange={(next) =>
-                  setAmounts((old) => ({
+              <MoneyInput placeholder={rowConfig.actionPlaceholder} value={amounts[item.id] ?? ""} onValueChange={(next) => setAmounts((old) => ({
                     ...old,
                     [item.id]: next,
-                  }))
-                }
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") addAmount(item);
-                }}
-              />
+                }))} onKeyDown={(event) => {
+                    if (event.key === "Enter")
+                        addAmount(item);
+                }}/>
 
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => addAmount(item)}
-              >
+              <button type="button" className="secondary-button" onClick={() => addAmount(item)}>
                 {rowConfig.actionLabel}
               </button>
             </div>
-          </div>
-        )}
+          </div>)}
 
-        {history.length > 0 && (
-          <div className="goal-history">
+        {history.length > 0 && (<div className="goal-history">
             <div className="goal-history-title">
               Lịch sử {rowConfig.actionLabel.toLowerCase()}
             </div>
 
-            {history.map((entry) => (
-              <div className="goal-history-row" key={entry.id}>
+            {history.map((entry) => (<div className="goal-history-row" key={entry.id}>
                 <span>
                   {rowConfig.actionDateLabel}: <b>{formatDate(entry.date)}</b>
                 </span>
 
                 <strong>{formatMoney(entry.amount)}</strong>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  /* ----- Đầu tư: một thẻ khoản đầu tư (hiển thị theo danh mục) ----- */
-  function renderInvestRow(item) {
-    const cat = categoryOf(item);
-    const lb = investLabels(cat);
-    const CatIcon = lb.icon;
-    const total = Number(item.total || 0);
-    const done = Number(item.done || 0);
-    const remain = Math.max(0, total - done);
-    const percent = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-    const finished = isGoalFinished(item);
-    const rate = Number(item.rate || 0);
-    const term = Number(item.term || 0);
-    const termMonths = item.termUnit === "year" ? term * 12 : term;
-    const maturity = item.date && termMonths ? addMonthsToDate(item.date, termMonths) : "";
-    const left = maturity ? daysUntil(maturity) : null;
-    const interest = rate && termMonths ? Math.round((total * rate * termMonths) / 1200) : 0;
-    const history = [...(item.history || [])].sort(
-      (a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id))
-    );
-
-    /* Bảng chỉ số: gửi tiết kiệm / đầu tư bỏ "đã gửi" + "còn thiếu", đáo hạn và lãi xếp cuối hàng;
-       vay ngân hàng giữ "đã trả" + "còn nợ" */
-    const isLoan = cat === "bank-loan";
-    const metrics = [
-      { key: "total", label: lb.total, value: formatMoney(total) },
-      ...(isLoan
-        ? [
-            { key: "done", label: lb.done, value: formatMoney(done), pos: true },
-            { key: "remain", label: lb.remain, value: formatMoney(remain) },
-          ]
-        : []),
-      ...(rate > 0
-        ? [{ key: "rate", label: "Lãi suất", value: `${rate.toLocaleString("vi-VN", { maximumFractionDigits: 2 })}%/năm` }]
-        : []),
-      ...(term > 0
-        ? [{ key: "term", label: "Kỳ hạn", value: `${term} ${item.termUnit === "year" ? "năm" : "tháng"}` }]
-        : []),
-      ...(item.date
-        ? [{ key: "start", label: isLoan ? "Giải ngân" : "Bắt đầu", value: formatDate(item.date) }]
-        : []),
-      ...(maturity
-        ? [
-            {
-              key: "maturity",
-              label: "Đáo hạn",
-              value: formatDate(maturity),
-              note: finished
-                ? null
-                : {
-                    text: left > 0 ? `còn ${left} ngày` : left === 0 ? "hôm nay" : `quá hạn ${-left} ngày`,
-                    late: left < 0,
-                  },
-            },
-          ]
-        : []),
-      ...(interest > 0
-        ? [{ key: "interest", label: lb.interest, value: formatMoney(interest), pos: true }]
-        : []),
-    ];
-
-    return (
-      <div className={`inv-card tone-${lb.tone}`} key={item.id}>
+              </div>))}
+          </div>)}
+      </div>);
+    }
+    /* ----- Đầu tư: một thẻ khoản đầu tư (hiển thị theo danh mục) ----- */
+    function renderInvestRow(item) {
+        const cat = categoryOf(item);
+        const lb = investLabels(cat);
+        const CatIcon = lb.icon;
+        const total = Number(item.total || 0);
+        const done = Number(item.done || 0);
+        const remain = Math.max(0, total - done);
+        const percent = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
+        const finished = isGoalFinished(item);
+        const rate = Number(item.rate || 0);
+        const term = Number(item.term || 0);
+        const termMonths = item.termUnit === "year" ? term * 12 : term;
+        const maturity = item.date && termMonths ? addMonthsToDate(item.date, termMonths) : "";
+        const left = maturity ? daysUntil(maturity) : null;
+        const interest = rate && termMonths ? Math.round((total * rate * termMonths) / 1200) : 0;
+        const history = [...(item.history || [])].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
+        /* Bảng chỉ số: gửi tiết kiệm / đầu tư bỏ "đã gửi" + "còn thiếu", đáo hạn và lãi xếp cuối hàng;
+           vay ngân hàng giữ "đã trả" + "còn nợ" */
+        const isLoan = cat === "bank-loan";
+        const metrics = [
+            { key: "total", label: lb.total, value: formatMoney(total) },
+            ...(isLoan
+                ? [
+                    { key: "done", label: lb.done, value: formatMoney(done), pos: true },
+                    { key: "remain", label: lb.remain, value: formatMoney(remain) },
+                ]
+                : []),
+            ...(rate > 0
+                ? [{ key: "rate", label: "Lãi suất", value: `${rate.toLocaleString("vi-VN", { maximumFractionDigits: 2 })}%/năm` }]
+                : []),
+            ...(term > 0
+                ? [{ key: "term", label: "Kỳ hạn", value: `${term} ${item.termUnit === "year" ? "năm" : "tháng"}` }]
+                : []),
+            ...(item.date
+                ? [{ key: "start", label: isLoan ? "Giải ngân" : "Bắt đầu", value: formatDate(item.date) }]
+                : []),
+            ...(maturity
+                ? [
+                    {
+                        key: "maturity",
+                        label: "Đáo hạn",
+                        value: formatDate(maturity),
+                        note: finished
+                            ? null
+                            : {
+                                text: left > 0 ? `còn ${left} ngày` : left === 0 ? "hôm nay" : `quá hạn ${-left} ngày`,
+                                late: left < 0,
+                            },
+                    },
+                ]
+                : []),
+            ...(interest > 0
+                ? [{ key: "interest", label: lb.interest, value: formatMoney(interest), pos: true }]
+                : []),
+        ];
+        return (<div className={`inv-card tone-${lb.tone}`} key={item.id}>
         <div className="inv-top">
-          <div className="inv-ico"><CatIcon size={20} /></div>
+          <div className="inv-ico"><CatIcon size={20}/></div>
           <div className="inv-title">
             <strong>{upperFirst(item.name)}</strong>
           </div>
           {finished && <span className="goal-tag done">{lb.finished}</span>}
           <button type="button" className="icon-button delete" title="Xóa" onClick={() => removeItem(item)}>
-            <Trash2 size={17} />
+            <Trash2 size={17}/>
           </button>
         </div>
 
         <div className="inv-metrics">
           <div className="inv-metrics-in">
-            {metrics.map((metric) => (
-              <div key={metric.key}>
+            {metrics.map((metric) => (<div key={metric.key}>
                 <span>{metric.label}</span>
                 <strong className={metric.pos ? "pos" : ""}>{metric.value}</strong>
                 {metric.note && <small className={metric.note.late ? "late" : ""}>{metric.note.text}</small>}
-              </div>
-            ))}
+              </div>))}
           </div>
         </div>
 
         <div className="inv-progress">
-          <div className="progress goal-progress"><div className={finished ? "safe" : "warning"} style={{ width: `${percent}%` }} /></div>
+          <div className="progress goal-progress"><div className={finished ? "safe" : "warning"} style={{ width: `${percent}%` }}/></div>
           <em>{percent}%</em>
         </div>
 
         <div className="goal-row-bottom">
           <div className="goal-add">
-            <DatePicker
-              customizable
-              className="goal-pay-date"
-              value={payDates[item.id] ?? todayString()}
-              onChange={(event) => setPayDates((old) => ({ ...old, [item.id]: event.target.value }))}
-            />
-            <MoneyInput
-              placeholder={lb.actionPh}
-              value={amounts[item.id] ?? ""}
-              onValueChange={(next) => setAmounts((old) => ({ ...old, [item.id]: next }))}
-              onKeyDown={(event) => { if (event.key === "Enter") addAmount(item); }}
-            />
+            <DatePicker customizable className="goal-pay-date" value={payDates[item.id] ?? todayString()} onChange={(event) => setPayDates((old) => ({ ...old, [item.id]: event.target.value }))}/>
+            <MoneyInput placeholder={lb.actionPh} value={amounts[item.id] ?? ""} onValueChange={(next) => setAmounts((old) => ({ ...old, [item.id]: next }))} onKeyDown={(event) => { if (event.key === "Enter")
+            addAmount(item); }}/>
             <button type="button" className="secondary-button" onClick={() => addAmount(item)}>{lb.action}</button>
           </div>
         </div>
 
-        {history.length > 0 && (
-          <div className="goal-history">
+        {history.length > 0 && (<div className="goal-history">
             <div className="goal-history-title">Lịch sử {lb.action.toLowerCase()}</div>
-            {history.map((entry) => (
-              <div className="goal-history-row" key={entry.id}>
+            {history.map((entry) => (<div className="goal-history-row" key={entry.id}>
                 <span>Ngày: <b>{formatDate(entry.date)}</b></span>
                 <strong>{formatMoney(entry.amount)}</strong>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  /* Form thêm khoản (dùng chung cho Vay / Nợ và Đầu tư) */
-  const inv = investLabels(formCategory);
-
-  const formPanel = (
-    <section className="panel">
+              </div>))}
+          </div>)}
+      </div>);
+    }
+    /* Form thêm khoản (dùng chung cho Vay / Nợ và Đầu tư) */
+    const inv = investLabels(formCategory);
+    const formPanel = (<section className="panel">
       {!isDebt && <h2 className="inv-form-title">{formConfig.addTitle}</h2>}
 
       <form className={`form ${isDebt ? "" : "inv-form"}`} onSubmit={addItem}>
-        {isDebt && (
-          <div className="goal-direction-pills">
-            {Object.entries(debtDirections).map(([key, item]) => (
-              <button
-                key={key}
-                type="button"
-                className={`goal-dir-pill ${key} ${form.direction === key ? "active" : ""}`}
-                onClick={() => setForm({ ...form, direction: key })}
-              >
+        {isDebt && (<div className="goal-direction-pills">
+            {Object.entries(debtDirections).map(([key, item]) => (<button key={key} type="button" className={`goal-dir-pill ${key} ${form.direction === key ? "active" : ""}`} onClick={() => setForm({ ...form, direction: key })}>
                 {item.tag}
-              </button>
-            ))}
-          </div>
-        )}
+              </button>))}
+          </div>)}
 
-        {!isDebt && (
-          <FormField label="Danh mục">
+        {!isDebt && (<FormField label="Danh mục">
             <select value={formCategory} onChange={(event) => setForm({ ...form, category: event.target.value })}>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
+              {categories.map((category) => (<option key={category.id} value={category.id}>{category.name}</option>))}
             </select>
-          </FormField>
-        )}
+          </FormField>)}
 
         <FormField label={isDebt ? formConfig.nameLabel : inv.name}>
-          <input
-            placeholder={isDebt ? formConfig.namePlaceholder : inv.ph}
-            value={form.name}
-            onChange={(event) => setForm({ ...form, name: event.target.value })}
-          />
+          <input placeholder={isDebt ? formConfig.namePlaceholder : inv.ph} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })}/>
         </FormField>
 
-        {!isDebt && formCategory === "bank-loan" ? (
-          <div className="inv-form-row">
+        {!isDebt && formCategory === "bank-loan" ? (<div className="inv-form-row">
             <FormField label={inv.total}>
-              <MoneyInput value={form.total} onValueChange={(next) => setForm({ ...form, total: next })} />
+              <MoneyInput value={form.total} onValueChange={(next) => setForm({ ...form, total: next })}/>
             </FormField>
 
             <FormField label={inv.done}>
-              <MoneyInput value={form.done} onValueChange={(next) => setForm({ ...form, done: next })} />
+              <MoneyInput value={form.done} onValueChange={(next) => setForm({ ...form, done: next })}/>
             </FormField>
-          </div>
-        ) : (
-          <FormField label={isDebt ? formConfig.totalLabel : inv.total}>
-            <MoneyInput value={form.total} onValueChange={(next) => setForm({ ...form, total: next })} />
-          </FormField>
-        )}
+          </div>) : (<FormField label={isDebt ? formConfig.totalLabel : inv.total}>
+            <MoneyInput value={form.total} onValueChange={(next) => setForm({ ...form, total: next })}/>
+          </FormField>)}
 
-        {!isDebt && (
-          <div className="inv-form-row">
+        {!isDebt && (<div className="inv-form-row">
             <FormField label={inv.rate}>
-              <input
-                inputMode="decimal"
-                placeholder="Ví dụ: 6.5"
-                value={form.rate}
-                onChange={(event) => setForm({ ...form, rate: event.target.value.replace(",", ".").replace(/[^0-9.]/g, "") })}
-              />
+              <input inputMode="decimal" placeholder="Ví dụ: 6.5" value={form.rate} onChange={(event) => setForm({ ...form, rate: event.target.value.replace(",", ".").replace(/[^0-9.]/g, "") })}/>
             </FormField>
 
             <FormField label="Kỳ hạn">
               <div className="inv-term">
-                <input
-                  inputMode="numeric"
-                  placeholder="12"
-                  value={form.term}
-                  onChange={(event) => setForm({ ...form, term: event.target.value.replace(/\D/g, "") })}
-                />
+                <input inputMode="numeric" placeholder="12" value={form.term} onChange={(event) => setForm({ ...form, term: event.target.value.replace(/\D/g, "") })}/>
                 <select value={form.termUnit} onChange={(event) => setForm({ ...form, termUnit: event.target.value })}>
                   <option value="month">Tháng</option>
                   <option value="year">Năm</option>
                 </select>
               </div>
             </FormField>
-          </div>
-        )}
+          </div>)}
 
         <FormField label={isDebt ? formConfig.dateLabel : inv.dateLabel}>
-          <DatePicker
-            clearable
-            customizable
-            value={form.date}
-            onChange={(event) => setForm({ ...form, date: event.target.value })}
-          />
+          <DatePicker clearable customizable value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })}/>
         </FormField>
 
         <button className="primary-button">
-          <Plus size={18} />
+          <Plus size={18}/>
           {formConfig.addButton}
         </button>
       </form>
-    </section>
-  );
-
-  /* ---------- Trang Tiết kiệm (giữ nguyên bố cục cũ) ---------- */
-
-  if (!isDebt) {
-    const visibleItems =
-      catFilter === "all"
-        ? items
-        : items.filter((item) => categoryOf(item) === catFilter);
-
-    return (
-      <>
+    </section>);
+    /* ---------- Trang Tiết kiệm (giữ nguyên bố cục cũ) ---------- */
+    if (!isDebt) {
+        const visibleItems = catFilter === "all"
+            ? items
+            : items.filter((item) => categoryOf(item) === catFilter);
+        return (<>
         <div className="invest-cats">
           <div className="invest-cat-list" role="tablist" aria-label="Danh mục đầu tư">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={catFilter === "all"}
-              className={`invest-cat ${catFilter === "all" ? "active" : ""}`}
-              onClick={() => {
+            <button type="button" role="tab" aria-selected={catFilter === "all"} className={`invest-cat ${catFilter === "all" ? "active" : ""}`} onClick={() => {
                 setCatFilter("all");
                 playSound();
-              }}
-            >
+            }}>
               Tất cả
               <em>{items.length}</em>
             </button>
 
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                role="tab"
-                aria-selected={catFilter === category.id}
-                className={`invest-cat ${
-                  catFilter === category.id ? "active" : ""
-                }`}
-                onClick={() => {
-                  setCatFilter(category.id);
-                  setForm((old) => ({ ...old, category: category.id }));
-                  playSound();
-                }}
-              >
+            {categories.map((category) => (<button key={category.id} type="button" role="tab" aria-selected={catFilter === category.id} className={`invest-cat ${catFilter === category.id ? "active" : ""}`} onClick={() => {
+                    setCatFilter(category.id);
+                    setForm((old) => ({ ...old, category: category.id }));
+                    playSound();
+                }}>
                 {category.name}
                 <em>
                   {items.filter((item) => categoryOf(item) === category.id).length}
                 </em>
-              </button>
-            ))}
+              </button>))}
 
-            {addingCategory ? (
-              <form className="invest-cat-add" onSubmit={addCategory}>
-                <input
-                  autoFocus
-                  value={newCategory}
-                  maxLength={40}
-                  placeholder="Tên danh mục mới"
-                  onChange={(event) => setNewCategory(event.target.value)}
-                />
+            {addingCategory ? (<form className="invest-cat-add" onSubmit={addCategory}>
+                <input autoFocus value={newCategory} maxLength={40} placeholder="Tên danh mục mới" onChange={(event) => setNewCategory(event.target.value)}/>
 
                 <button type="submit" className="ok">
                   Thêm
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
+                <button type="button" onClick={() => {
                     setAddingCategory(false);
                     setNewCategory("");
-                  }}
-                >
+                }}>
                   Huỷ
                 </button>
-              </form>
-            ) : (
-              <button
-                type="button"
-                className="invest-cat add"
-                onClick={() => setAddingCategory(true)}
-              >
-                <Plus size={15} />
+              </form>) : (<button type="button" className="invest-cat add" onClick={() => setAddingCategory(true)}>
+                <Plus size={15}/>
                 Thêm danh mục
-              </button>
-            )}
+              </button>)}
           </div>
 
-          {catFilter !== "all" && (
-            <button
-              type="button"
-              className="invest-cat-remove"
-              onClick={() => removeCategory(catFilter)}
-            >
-              <Trash2 size={14} />
+          {catFilter !== "all" && (<button type="button" className="invest-cat-remove" onClick={() => removeCategory(catFilter)}>
+              <Trash2 size={14}/>
               Xoá danh mục này
-            </button>
-          )}
+            </button>)}
         </div>
 
         <div className="account-page-grid">
           {formPanel}
 
           <section className="panel">
-            <PanelTitle
-              title={
-                catFilter === "all"
-                  ? baseConfig.listTitle
-                  : `${categoryName(catFilter)}`
-              }
-              subtitle={baseConfig.listSubtitle}
-            />
+            <PanelTitle title={catFilter === "all"
+                ? baseConfig.listTitle
+                : `${categoryName(catFilter)}`} subtitle={baseConfig.listSubtitle}/>
 
             <div className="goal-list">
               {visibleItems.length === 0 && <Empty>{baseConfig.empty}</Empty>}
@@ -8353,93 +5989,70 @@ function GoalLedger({
             </div>
           </section>
         </div>
-      </>
-    );
-  }
-
-  /* ---------- Trang Vay / Nợ ---------- */
-
-  const tiles = [
-    {
-      key: "pay",
-      label: "PHẢI TRẢ",
-      value: formatMoney(payTotals.remain),
-      sub: `${payOpen.length} khoản vay chưa trả xong`,
-      icon: ArrowUpCircle,
-    },
-    {
-      key: "collect",
-      label: "PHẢI THU",
-      value: formatMoney(collectTotals.remain),
-      sub: `${collectOpen.length} khoản nợ chưa thu xong`,
-      icon: ArrowDownCircle,
-    },
-    {
-      key: "history",
-      label: "LỊCH SỬ",
-      value: `${finishedItems.length} khoản`,
-      sub: `Đã ghi xong ${formatMoney(finishedTotals.total)}`,
-      icon: CheckCircle2,
-    },
-  ];
-
-  const tabInfo = {
-    pay: {
-      title: "Khoản phải trả",
-      subtitle: "Các khoản bạn đã vay và chưa trả xong",
-      empty: "Chưa có khoản vay nào cần trả.",
-      list: payOpen,
-      forced: "lend",
-    },
-    collect: {
-      title: "Khoản phải thu",
-      subtitle: "Các khoản người khác nợ bạn và chưa thu xong",
-      empty: "Chưa có khoản nợ nào cần thu.",
-      list: collectOpen,
-      forced: "owe",
-    },
-    history: {
-      title: "Lịch sử",
-      subtitle: "Các khoản đã ghi xong",
-      empty: "Chưa có khoản nào được ghi xong.",
-      list: finishedItems,
-      forced: null,
-    },
-  };
-
-  const current = tabInfo[tab];
-
-  return (
-    <div className="debt-page">
+      </>);
+    }
+    /* ---------- Trang Vay / Nợ ---------- */
+    const tiles = [
+        {
+            key: "pay",
+            label: "PHẢI TRẢ",
+            value: formatMoney(payTotals.remain),
+            sub: `${payOpen.length} khoản vay chưa trả xong`,
+            icon: ArrowUpCircle,
+        },
+        {
+            key: "collect",
+            label: "PHẢI THU",
+            value: formatMoney(collectTotals.remain),
+            sub: `${collectOpen.length} khoản nợ chưa thu xong`,
+            icon: ArrowDownCircle,
+        },
+        {
+            key: "history",
+            label: "LỊCH SỬ",
+            value: `${finishedItems.length} khoản`,
+            sub: `Đã ghi xong ${formatMoney(finishedTotals.total)}`,
+            icon: CheckCircle2,
+        },
+    ];
+    const tabInfo = {
+        pay: {
+            title: "Khoản phải trả",
+            subtitle: "Các khoản bạn đã vay và chưa trả xong",
+            empty: "Chưa có khoản vay nào cần trả.",
+            list: payOpen,
+            forced: "lend",
+        },
+        collect: {
+            title: "Khoản phải thu",
+            subtitle: "Các khoản người khác nợ bạn và chưa thu xong",
+            empty: "Chưa có khoản nợ nào cần thu.",
+            list: collectOpen,
+            forced: "owe",
+        },
+        history: {
+            title: "Lịch sử",
+            subtitle: "Các khoản đã ghi xong",
+            empty: "Chưa có khoản nào được ghi xong.",
+            list: finishedItems,
+            forced: null,
+        },
+    };
+    const current = tabInfo[tab];
+    return (<div className="debt-page">
       <div className="debt-top">
         {formPanel}
 
         <div className="debt-board">
-          <div
-            className="debt-tiles"
-            role="tablist"
-            aria-label="Chọn danh sách"
-            aria-orientation="vertical"
-          >
+          <div className="debt-tiles" role="tablist" aria-label="Chọn danh sách" aria-orientation="vertical">
             {tiles.map((tile) => {
-              const TileIcon = tile.icon;
-
-              return (
-                <button
-                  key={tile.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === tile.key}
-                  className={`debt-tile ${tile.key} ${
-                    tab === tile.key ? "active" : ""
-                  }`}
-                  onClick={() => {
+            const TileIcon = tile.icon;
+            return (<button key={tile.key} type="button" role="tab" aria-selected={tab === tile.key} className={`debt-tile ${tile.key} ${tab === tile.key ? "active" : ""}`} onClick={() => {
                     setTab(tile.key);
                     playSound();
-                  }}
-                >
+                }}>
                   <span className="debt-tile-icon">
-                    <TileIcon size={17} strokeWidth={2.3} />
+                    <TileIcon size={17} strokeWidth={2.3}/>
                   </span>
 
                   <span className="debt-tile-text">
@@ -8449,28 +6062,23 @@ function GoalLedger({
 
                     <span className="debt-tile-sub">{tile.sub}</span>
                   </span>
-                </button>
-              );
-            })}
+                </button>);
+        })}
           </div>
 
           <div className="debt-board-list">
-            <PanelTitle title={current.title} subtitle={current.subtitle} />
+            <PanelTitle title={current.title} subtitle={current.subtitle}/>
 
             <div className="goal-list">
               {current.list.length === 0 && <Empty>{current.empty}</Empty>}
 
-              {current.list.map((item) =>
-                renderRow(item, tab === "history", current.forced)
-              )}
+              {current.list.map((item) => renderRow(item, tab === "history", current.forced))}
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    LƯƠNG
    Ghi nhận lương từng kỳ: lương cơ bản + phụ cấp + thưởng − khấu trừ
@@ -8478,97 +6086,66 @@ function GoalLedger({
    "Đầu vào" trong Nhật ký giao dịch (xoá bản ghi lương sẽ xoá luôn
    giao dịch đó).
 ========================================================= */
-
-function SalaryPage({
-  salaries,
-  setSalaries,
-  transactions,
-  setTransactions,
-  accounts,
-  playSound,
-  successSound,
-  deleteSound,
-  onTransactionAdded,
-}) {
-  const [form, setForm] = useState({
-    date: todayString(),
-    base: "",
-    allowance: "",
-    bonus: "",
-    deduction: "",
-    accountId: "",
-    note: "",
-  });
-
-  const num = (value) => Number(value || 0);
-
-  const net =
-    num(form.base) + num(form.allowance) + num(form.bonus) - num(form.deduction);
-
-  const thisMonthKey = currentMonthKey();
-
-  const sorted = useMemo(
-    () =>
-      [...salaries].sort(
-        (a, b) =>
-          String(b.date).localeCompare(String(a.date)) ||
-          String(b.id).localeCompare(String(a.id))
-      ),
-    [salaries]
-  );
-
-  /* ---------- Lịch sử lương theo tháng ---------- */
-  const [view, setView] = useState("record");
-  const [histYear, setHistYear] = useState(null);
-  const [histMonth, setHistMonth] = useState("all");
-  const [pickOpen, setPickOpen] = useState(false);
-  const [pickStart, setPickStart] = useState(0);
-
-  const monthOf = (item) => String(item.month || item.date || "").slice(0, 7);
-
-  const years = useMemo(() => {
-    const set = new Set([thisMonthKey.slice(0, 4)]);
-    salaries.forEach((item) => monthOf(item) && set.add(monthOf(item).slice(0, 4)));
-    return Array.from(set).sort((a, b) => b.localeCompare(a));
-  }, [salaries, thisMonthKey]);
-
-  const activeYear = histYear || years[0];
-  const pickYears = Array.from({ length: 12 }, (_, i) => pickStart + i);
-
-  const monthStats = useMemo(() => {
-    const stats = {};
-    for (let m = 1; m <= 12; m++) stats[`${activeYear}-${pad(m)}`] = { count: 0, net: 0 };
-    salaries.forEach((item) => {
-      const s = stats[monthOf(item)];
-      if (s) { s.count += 1; s.net += num(item.net); }
+function SalaryPage({ salaries, setSalaries, transactions, setTransactions, accounts, playSound, successSound, deleteSound, onTransactionAdded, }) {
+    const [form, setForm] = useState({
+        date: todayString(),
+        base: "",
+        allowance: "",
+        bonus: "",
+        deduction: "",
+        accountId: "",
+        note: "",
     });
-    return stats;
-  }, [salaries, activeYear]);
-
-  const yearTotal = Object.values(monthStats).reduce((sum, s) => sum + s.net, 0);
-
-  const visible = sorted.filter((item) =>
-    histMonth === "all" ? monthOf(item).startsWith(activeYear) : monthOf(item) === histMonth
-  );
-  const visibleNet = visible.reduce((sum, item) => sum + num(item.net), 0);
-
-  const groups = useMemo(() => {
-    const map = new Map();
-    visible.forEach((item) => {
-      const key = monthOf(item);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(item);
-    });
-    return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
-  }, [visible]);
-
-  function renderSalaryRow(item) {
-    const [y, m] = monthOf(item).split("-");
-
-    return (
-      <div className="goal-row salary-row" key={item.id}>
+    const num = (value) => Number(value || 0);
+    const net = num(form.base) + num(form.allowance) + num(form.bonus) - num(form.deduction);
+    const thisMonthKey = currentMonthKey();
+    const sorted = useMemo(() => [...salaries].sort((a, b) => String(b.date).localeCompare(String(a.date)) ||
+        String(b.id).localeCompare(String(a.id))), [salaries]);
+    /* ---------- Lịch sử lương theo tháng ---------- */
+    const [view, setView] = useState("record");
+    const [histYear, setHistYear] = useState(null);
+    const [histMonth, setHistMonth] = useState("all");
+    const [pickOpen, setPickOpen] = useState(false);
+    const [pickStart, setPickStart] = useState(0);
+    const monthOf = (item) => String(item.month || item.date || "").slice(0, 7);
+    const years = useMemo(() => {
+        const set = new Set([thisMonthKey.slice(0, 4)]);
+        salaries.forEach((item) => monthOf(item) && set.add(monthOf(item).slice(0, 4)));
+        return Array.from(set).sort((a, b) => b.localeCompare(a));
+    }, [salaries, thisMonthKey]);
+    const activeYear = histYear || years[0];
+    const pickYears = Array.from({ length: 12 }, (_, i) => pickStart + i);
+    const monthStats = useMemo(() => {
+        const stats = {};
+        for (let m = 1; m <= 12; m++)
+            stats[`${activeYear}-${pad(m)}`] = { count: 0, net: 0 };
+        salaries.forEach((item) => {
+            const s = stats[monthOf(item)];
+            if (s) {
+                s.count += 1;
+                s.net += num(item.net);
+            }
+        });
+        return stats;
+    }, [salaries, activeYear]);
+    const yearTotal = Object.values(monthStats).reduce((sum, s) => sum + s.net, 0);
+    const visible = sorted.filter((item) => histMonth === "all" ? monthOf(item).startsWith(activeYear) : monthOf(item) === histMonth);
+    const visibleNet = visible.reduce((sum, item) => sum + num(item.net), 0);
+    const groups = useMemo(() => {
+        const map = new Map();
+        visible.forEach((item) => {
+            const key = monthOf(item);
+            if (!map.has(key))
+                map.set(key, []);
+            map.get(key).push(item);
+        });
+        return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+    }, [visible]);
+    function renderSalaryRow(item) {
+        const [y, m] = monthOf(item).split("-");
+        return (<div className="goal-row salary-row" key={item.id}>
         <div className="goal-row-top">
-          <div className="account-icon"><Banknote size={22} /></div>
+          <div className="account-icon"><Banknote size={22}/></div>
           <div className="account-main">
             <strong>{`Lương tháng ${m}/${y}`}</strong>
             <span>
@@ -8578,7 +6155,7 @@ function SalaryPage({
             </span>
           </div>
           <button type="button" className="icon-button delete" title="Xóa" onClick={() => removeSalary(item)}>
-            <Trash2 size={17} />
+            <Trash2 size={17}/>
           </button>
         </div>
         <div className="goal-amounts">
@@ -8592,195 +6169,130 @@ function SalaryPage({
           {num(item.deduction) > 0 && <span className="minus">Khấu trừ <b>- {formatMoney(item.deduction)}</b></span>}
         </div>
         {item.note && <div className="salary-note">{item.note}</div>}
-      </div>
-    );
-  }
-
-  const accountName = (id) =>
-    accounts.find((account) => account.id === id)?.name || "";
-
-  function addSalary(event) {
-    event.preventDefault();
-
-    if (!form.date) {
-      alert("Vui lòng chọn ngày nhận lương.");
-      return;
+      </div>);
     }
-
-    if (num(form.base) + num(form.allowance) + num(form.bonus) <= 0) {
-      alert("Vui lòng nhập ít nhất một khoản lương.");
-      return;
+    const accountName = (id) => accounts.find((account) => account.id === id)?.name || "";
+    function addSalary(event) {
+        event.preventDefault();
+        if (!form.date) {
+            alert("Vui lòng chọn ngày nhận lương.");
+            return;
+        }
+        if (num(form.base) + num(form.allowance) + num(form.bonus) <= 0) {
+            alert("Vui lòng nhập ít nhất một khoản lương.");
+            return;
+        }
+        if (net <= 0) {
+            alert("Khoản khấu trừ đang lớn hơn tổng lương.");
+            return;
+        }
+        const month = form.date.slice(0, 7);
+        const [year, monthText] = month.split("-");
+        const title = `Lương tháng ${monthText}/${year}`;
+        const salary = {
+            id: createId(),
+            month,
+            date: form.date,
+            base: num(form.base),
+            allowance: num(form.allowance),
+            bonus: num(form.bonus),
+            deduction: num(form.deduction),
+            net,
+            accountId: form.accountId,
+            note: form.note.trim(),
+        };
+        /* Có chọn tài khoản nhận: tạo luôn giao dịch Đầu vào */
+        if (form.accountId) {
+            const code = getNextTransactionCode(transactions, form.date, "L");
+            const transaction = {
+                id: createId(),
+                code,
+                type: "income",
+                date: form.date,
+                description: salary.note ? `${title} - ${salary.note}` : title,
+                amount: net,
+                accountId: form.accountId,
+            };
+            salary.transactionId = transaction.id;
+            salary.code = code;
+            setTransactions((old) => [...old, transaction]);
+            if (onTransactionAdded) {
+                onTransactionAdded(`${typeLabels.income} · ${formatMoney(net)} · ${code}`);
+            }
+        }
+        setSalaries((old) => [salary, ...old]);
+        setForm({
+            ...form,
+            base: "",
+            allowance: "",
+            bonus: "",
+            deduction: "",
+            note: "",
+        });
+        successSound();
     }
-
-    if (net <= 0) {
-      alert("Khoản khấu trừ đang lớn hơn tổng lương.");
-      return;
+    function removeSalary(item) {
+        const linked = item.transactionId
+            ? " và giao dịch Đầu vào đã tạo cùng lúc"
+            : "";
+        if (!window.confirm(`Xóa bản ghi lương này${linked}?`))
+            return;
+        setSalaries((old) => old.filter((current) => current.id !== item.id));
+        if (item.transactionId) {
+            setTransactions((old) => old.filter((transaction) => transaction.id !== item.transactionId));
+        }
+        deleteSound();
     }
-
-    const month = form.date.slice(0, 7);
-    const [year, monthText] = month.split("-");
-    const title = `Lương tháng ${monthText}/${year}`;
-
-    const salary = {
-      id: createId(),
-      month,
-      date: form.date,
-      base: num(form.base),
-      allowance: num(form.allowance),
-      bonus: num(form.bonus),
-      deduction: num(form.deduction),
-      net,
-      accountId: form.accountId,
-      note: form.note.trim(),
-    };
-
-    /* Có chọn tài khoản nhận: tạo luôn giao dịch Đầu vào */
-    if (form.accountId) {
-      const code = getNextTransactionCode(transactions, form.date, "L");
-
-      const transaction = {
-        id: createId(),
-        code,
-        type: "income",
-        date: form.date,
-        description: salary.note ? `${title} - ${salary.note}` : title,
-        amount: net,
-        accountId: form.accountId,
-      };
-
-      salary.transactionId = transaction.id;
-      salary.code = code;
-
-      setTransactions((old) => [...old, transaction]);
-
-      if (onTransactionAdded) {
-        onTransactionAdded(`${typeLabels.income} · ${formatMoney(net)} · ${code}`);
-      }
-    }
-
-    setSalaries((old) => [salary, ...old]);
-
-    setForm({
-      ...form,
-      base: "",
-      allowance: "",
-      bonus: "",
-      deduction: "",
-      note: "",
-    });
-
-    successSound();
-  }
-
-  function removeSalary(item) {
-    const linked = item.transactionId
-      ? " và giao dịch Đầu vào đã tạo cùng lúc"
-      : "";
-
-    if (!window.confirm(`Xóa bản ghi lương này${linked}?`)) return;
-
-    setSalaries((old) => old.filter((current) => current.id !== item.id));
-
-    if (item.transactionId) {
-      setTransactions((old) =>
-        old.filter((transaction) => transaction.id !== item.transactionId)
-      );
-    }
-
-    deleteSound();
-  }
-
-  const [previewYear, previewMonth] = (form.date || thisMonthKey)
-    .slice(0, 7)
-    .split("-");
-
-  return (
-    <>
+    const [previewYear, previewMonth] = (form.date || thisMonthKey)
+        .slice(0, 7)
+        .split("-");
+    return (<>
       <div className="sal-tabs" role="tablist">
         <button type="button" role="tab" aria-selected={view === "record"} className={view === "record" ? "active" : ""} onClick={() => { setView("record"); playSound(); }}>
-          <Plus size={16} /> Ghi nhận lương
+          <Plus size={16}/> Ghi nhận lương
         </button>
         <button type="button" role="tab" aria-selected={view === "history"} className={view === "history" ? "active" : ""} onClick={() => { setView("history"); playSound(); }}>
-          <HistoryIcon size={16} /> Lịch sử <em>{salaries.length}</em>
+          <HistoryIcon size={16}/> Lịch sử <em>{salaries.length}</em>
         </button>
       </div>
 
-      {view === "record" && (
-      <div className="account-page-grid">
+      {view === "record" && (<div className="account-page-grid">
         <section className="panel">
-          <PanelTitle
-            title="Ghi nhận lương"
-            subtitle={`Kỳ lương tháng ${previewMonth}/${previewYear}`}
-          />
+          <PanelTitle title="Ghi nhận lương" subtitle={`Kỳ lương tháng ${previewMonth}/${previewYear}`}/>
 
           <form className="form" onSubmit={addSalary}>
             <FormField label="Ngày nhận lương">
-              <DatePicker
-                customizable
-                value={form.date}
-                onChange={(event) =>
-                  setForm({ ...form, date: event.target.value })
-                }
-              />
+              <DatePicker customizable value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })}/>
             </FormField>
 
             <FormField label="Lương cơ bản">
-              <MoneyInput
-                value={form.base}
-                onValueChange={(next) => setForm({ ...form, base: next })}
-              />
+              <MoneyInput value={form.base} onValueChange={(next) => setForm({ ...form, base: next })}/>
             </FormField>
 
             <FormField label="Phụ cấp">
-              <MoneyInput
-                value={form.allowance}
-                onValueChange={(next) =>
-                  setForm({ ...form, allowance: next })
-                }
-              />
+              <MoneyInput value={form.allowance} onValueChange={(next) => setForm({ ...form, allowance: next })}/>
             </FormField>
 
             <FormField label="Thưởng / Hoa hồng">
-              <MoneyInput
-                value={form.bonus}
-                onValueChange={(next) => setForm({ ...form, bonus: next })}
-              />
+              <MoneyInput value={form.bonus} onValueChange={(next) => setForm({ ...form, bonus: next })}/>
             </FormField>
 
             <FormField label="Khấu trừ (bảo hiểm, thuế...)">
-              <MoneyInput
-                value={form.deduction}
-                onValueChange={(next) =>
-                  setForm({ ...form, deduction: next })
-                }
-              />
+              <MoneyInput value={form.deduction} onValueChange={(next) => setForm({ ...form, deduction: next })}/>
             </FormField>
 
             <FormField label="Tài khoản nhận lương">
-              <select
-                value={form.accountId}
-                onChange={(event) =>
-                  setForm({ ...form, accountId: event.target.value })
-                }
-              >
+              <select value={form.accountId} onChange={(event) => setForm({ ...form, accountId: event.target.value })}>
                 <option value="">-- Không ghi vào tài khoản --</option>
 
-                {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
+                {accounts.map((account) => (<option key={account.id} value={account.id}>
                     {account.name}
-                  </option>
-                ))}
+                  </option>))}
               </select>
             </FormField>
 
             <FormField label="Ghi chú">
-              <input
-                placeholder="Ví dụ: Lương kỳ 1"
-                value={form.note}
-                onChange={(event) =>
-                  setForm({ ...form, note: event.target.value })
-                }
-              />
+              <input placeholder="Ví dụ: Lương kỳ 1" value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })}/>
             </FormField>
 
             <div className="salary-preview">
@@ -8790,13 +6302,13 @@ function SalaryPage({
 
               <small>
                 {form.accountId
-                  ? "Sẽ tự ghi một giao dịch Đầu vào vào tài khoản đã chọn"
-                  : "Chỉ lưu bản ghi lương, chưa ghi vào tài khoản"}
+                ? "Sẽ tự ghi một giao dịch Đầu vào vào tài khoản đã chọn"
+                : "Chỉ lưu bản ghi lương, chưa ghi vào tài khoản"}
               </small>
             </div>
 
             <button className="primary-button">
-              <Plus size={18} />
+              <Plus size={18}/>
 
               GHI NHẬN LƯƠNG
             </button>
@@ -8804,56 +6316,48 @@ function SalaryPage({
         </section>
 
         <section className="panel">
-          <PanelTitle title="Kỳ lương gần đây" subtitle="3 kỳ mới nhất" />
+          <PanelTitle title="Kỳ lương gần đây" subtitle="3 kỳ mới nhất"/>
 
           <div className="goal-list">
             {sorted.length === 0 && <Empty>Chưa có kỳ lương nào.</Empty>}
             {sorted.slice(0, 3).map(renderSalaryRow)}
           </div>
 
-          {sorted.length > 3 && (
-            <button type="button" className="sal-more" onClick={() => { setView("history"); playSound(); }}>
-              Xem toàn bộ lịch sử <ChevronRight size={16} />
-            </button>
-          )}
+          {sorted.length > 3 && (<button type="button" className="sal-more" onClick={() => { setView("history"); playSound(); }}>
+              Xem toàn bộ lịch sử <ChevronRight size={16}/>
+            </button>)}
         </section>
-      </div>
-      )}
+      </div>)}
 
-      {view === "history" && (
-        <section className="panel sal-history">
+      {view === "history" && (<section className="panel sal-history">
           <div className="sal-hist-head">
-            <PanelTitle title="Lịch sử lương" subtitle="Chọn tháng để xem các kỳ lương" />
+            <PanelTitle title="Lịch sử lương" subtitle="Chọn tháng để xem các kỳ lương"/>
             <div className="sal-year">
-              <button type="button" onClick={() => { setHistYear(String(Number(activeYear) - 1)); setHistMonth("all"); }} aria-label="Năm trước"><ChevronLeft size={16} /></button>
+              <button type="button" onClick={() => { setHistYear(String(Number(activeYear) - 1)); setHistMonth("all"); }} aria-label="Năm trước"><ChevronLeft size={16}/></button>
               <strong>{activeYear}</strong>
-              <button type="button" onClick={() => { setHistYear(String(Number(activeYear) + 1)); setHistMonth("all"); }} aria-label="Năm sau"><ChevronRight size={16} /></button>
+              <button type="button" onClick={() => { setHistYear(String(Number(activeYear) + 1)); setHistMonth("all"); }} aria-label="Năm sau"><ChevronRight size={16}/></button>
 
               <div className="sal-yearpick">
                 <button type="button" className="sal-cal-btn" aria-label="Xem nhiều năm" title="Xem nhiều năm" onClick={() => { setPickStart(Number(activeYear) - (Number(activeYear) % 12)); setPickOpen((open) => !open); }}>
-                  <ModernCalendarIcon size={18} />
+                  <ModernCalendarIcon size={18}/>
                 </button>
 
-                {pickOpen && (
-                  <>
-                    <div className="sal-yearpop-bg" onClick={() => setPickOpen(false)} />
+                {pickOpen && (<>
+                    <div className="sal-yearpop-bg" onClick={() => setPickOpen(false)}/>
                     <div className="sal-yearpop">
                       <div className="sal-yearpop-head">
-                        <button type="button" onClick={() => setPickStart(pickStart - 12)} aria-label="12 năm trước"><ChevronLeft size={15} /></button>
+                        <button type="button" onClick={() => setPickStart(pickStart - 12)} aria-label="12 năm trước"><ChevronLeft size={15}/></button>
                         <strong>{pickStart} – {pickStart + 11}</strong>
-                        <button type="button" onClick={() => setPickStart(pickStart + 12)} aria-label="12 năm sau"><ChevronRight size={15} /></button>
+                        <button type="button" onClick={() => setPickStart(pickStart + 12)} aria-label="12 năm sau"><ChevronRight size={15}/></button>
                       </div>
                       <div className="sal-yearpop-grid">
-                        {pickYears.map((y) => (
-                          <button type="button" key={y} className={String(y) === activeYear ? "active" : ""} onClick={() => { setHistYear(String(y)); setHistMonth("all"); setPickOpen(false); playSound(); }}>
+                        {pickYears.map((y) => (<button type="button" key={y} className={String(y) === activeYear ? "active" : ""} onClick={() => { setHistYear(String(y)); setHistMonth("all"); setPickOpen(false); playSound(); }}>
                             {y}
                             {salaries.some((item) => monthOf(item).startsWith(String(y))) && <i />}
-                          </button>
-                        ))}
+                          </button>))}
                       </div>
                     </div>
-                  </>
-                )}
+                  </>)}
               </div>
             </div>
           </div>
@@ -8863,13 +6367,11 @@ function SalaryPage({
               <span>Cả năm</span>
               <b>{yearTotal > 0 ? formatCompactMoney(yearTotal) : "—"}</b>
             </button>
-            {Object.entries(monthStats).map(([key, s]) => (
-              <button type="button" key={key} className={`sal-month ${histMonth === key ? "active" : ""} ${s.count ? "" : "empty"}`} onClick={() => { setHistMonth(key); playSound(); }}>
+            {Object.entries(monthStats).map(([key, s]) => (<button type="button" key={key} className={`sal-month ${histMonth === key ? "active" : ""} ${s.count ? "" : "empty"}`} onClick={() => { setHistMonth(key); playSound(); }}>
                 <span>T{Number(key.slice(5))}</span>
                 <b>{s.count ? formatCompactMoney(s.net) : "—"}</b>
                 {s.count > 1 && <i>{s.count} kỳ</i>}
-              </button>
-            ))}
+              </button>))}
           </div>
 
           <div className="sal-stats">
@@ -8878,81 +6380,43 @@ function SalaryPage({
             <div><span>Trung bình mỗi kỳ</span><strong>{formatMoney(visible.length ? Math.round(visibleNet / visible.length) : 0)}</strong></div>
           </div>
 
-          {groups.length === 0 && (
-            <Empty>{histMonth === "all" ? `Chưa có kỳ lương nào trong năm ${activeYear}.` : "Không có kỳ lương nào trong tháng này."}</Empty>
-          )}
+          {groups.length === 0 && (<Empty>{histMonth === "all" ? `Chưa có kỳ lương nào trong năm ${activeYear}.` : "Không có kỳ lương nào trong tháng này."}</Empty>)}
 
-          {groups.map(([key, list]) => (
-            <div className="sal-group" key={key}>
+          {groups.map(([key, list]) => (<div className="sal-group" key={key}>
               <div className="sal-group-head">
                 <strong>Tháng {Number(key.slice(5))}/{key.slice(0, 4)}</strong>
                 <span>{list.length} kỳ · {formatMoney(list.reduce((sum, item) => sum + num(item.net), 0))}</span>
               </div>
               <div className="goal-list">{list.map(renderSalaryRow)}</div>
-            </div>
-          ))}
-        </section>
-      )}
-    </>
-  );
+            </div>))}
+        </section>)}
+    </>);
 }
-
-function Empty({
-  children,
-}) {
-  return (
-    <div className="empty">
+function Empty({ children, }) {
+    return (<div className="empty">
       {children}
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    THỐNG KÊ BẢNG THÁNG
 ========================================================= */
-
-function MonthlyStatRow({
-  label,
-  value,
-  className = "",
-  signed = false,
-  strong = false,
-  extraStrong = false,
-}) {
-  const number =
-    Number(value || 0);
-
-  let display =
-    formatMoney(Math.abs(number));
-
-  if (signed) {
-    if (number > 0) {
-      display = `+ ${formatMoney(
-        number
-      )}`;
+function MonthlyStatRow({ label, value, className = "", signed = false, strong = false, extraStrong = false, }) {
+    const number = Number(value || 0);
+    let display = formatMoney(Math.abs(number));
+    if (signed) {
+        if (number > 0) {
+            display = `+ ${formatMoney(number)}`;
+        }
+        if (number < 0) {
+            display = `- ${formatMoney(Math.abs(number))}`;
+        }
+        if (number === 0) {
+            display = "0 đ";
+        }
     }
-
-    if (number < 0) {
-      display = `- ${formatMoney(
-        Math.abs(number)
-      )}`;
-    }
-
-    if (number === 0) {
-      display = "0 đ";
-    }
-  }
-
-  return (
-    <div
-      className={`monthly-stat-row ${
-        strong ? "strong" : ""
-      } ${
-        extraStrong
-          ? "extra-strong"
-          : ""
-      }`}
-    >
+    return (<div className={`monthly-stat-row ${strong ? "strong" : ""} ${extraStrong
+            ? "extra-strong"
+            : ""}`}>
       <span>
         {label}
       </span>
@@ -8960,48 +6424,28 @@ function MonthlyStatRow({
       <strong className={className}>
         {display}
       </strong>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    PHÂN TÍCH DANH MỤC
 ========================================================= */
-
-function SpendingAnalysisItem({
-  title,
-  spent,
-  totalExpense,
-  budget,
-}) {
-  const expensePercent =
-    totalExpense > 0
-      ? (spent / totalExpense) * 100
-      : 0;
-
-  const budgetNumber =
-    Number(budget || 0);
-
-  const budgetPercent =
-    budgetNumber > 0
-      ? (spent / budgetNumber) * 100
-      : 0;
-
-  const remaining =
-    budgetNumber - spent;
-
-  let status = "safe";
-
-  if (budgetPercent >= 100) {
-    status = "danger";
-  } else if (
-    budgetPercent >= 80
-  ) {
-    status = "warning";
-  }
-
-  return (
-    <div className="analysis-item">
+function SpendingAnalysisItem({ title, spent, totalExpense, budget, }) {
+    const expensePercent = totalExpense > 0
+        ? (spent / totalExpense) * 100
+        : 0;
+    const budgetNumber = Number(budget || 0);
+    const budgetPercent = budgetNumber > 0
+        ? (spent / budgetNumber) * 100
+        : 0;
+    const remaining = budgetNumber - spent;
+    let status = "safe";
+    if (budgetPercent >= 100) {
+        status = "danger";
+    }
+    else if (budgetPercent >= 80) {
+        status = "warning";
+    }
+    return (<div className="analysis-item">
       <div className="analysis-item-header">
         <div>
           <strong>
@@ -9010,9 +6454,7 @@ function SpendingAnalysisItem({
 
           <span>
             Chiếm{" "}
-            {expensePercent.toFixed(
-              1
-            )}
+            {expensePercent.toFixed(1)}
             % tổng chi
           </span>
         </div>
@@ -9025,116 +6467,70 @@ function SpendingAnalysisItem({
       <div className="analysis-detail">
         <span>
           Ngân sách:{" "}
-          {formatMoney(
-            budgetNumber
-          )}
+          {formatMoney(budgetNumber)}
         </span>
 
-        <span
-          className={
-            status === "danger"
-              ? "expense"
-              : status ===
+        <span className={status === "danger"
+            ? "expense"
+            : status ===
                 "warning"
-              ? "adjustment"
-              : "positive"
-          }
-        >
+                ? "adjustment"
+                : "positive"}>
           {budgetNumber > 0
-            ? `${budgetPercent.toFixed(
-                1
-              )}%`
+            ? `${budgetPercent.toFixed(1)}%`
             : "Chưa đặt"}
         </span>
       </div>
 
       <div className="progress">
-        <div
-          className={status}
-          style={{
-            width: `${
-              budgetNumber > 0
-                ? Math.min(
-                    budgetPercent,
-                    100
-                  )
-                : 0
-            }%`,
-          }}
-        />
+        <div className={status} style={{
+            width: `${budgetNumber > 0
+                ? Math.min(budgetPercent, 100)
+                : 0}%`,
+        }}/>
       </div>
 
       <div className="analysis-footer">
-        {budgetNumber <= 0 ? (
-          <span>
+        {budgetNumber <= 0 ? (<span>
             Chưa thiết lập ngân sách
-          </span>
-        ) : remaining >= 0 ? (
-          <span>
+          </span>) : remaining >= 0 ? (<span>
             Còn{" "}
             <strong className="positive">
-              {formatMoney(
-                remaining
-              )}
+              {formatMoney(remaining)}
             </strong>
-          </span>
-        ) : (
-          <span>
+          </span>) : (<span>
             Vượt{" "}
             <strong className="expense">
-              {formatMoney(
-                Math.abs(
-                  remaining
-                )
-              )}
+              {formatMoney(Math.abs(remaining))}
             </strong>
-          </span>
-        )}
+          </span>)}
       </div>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    BUDGET ITEM
 ========================================================= */
-
-function BudgetItem({
-  title,
-  tone,
-  spent,
-  budget,
-  percent,
-  share = 0,
-}) {
-  const budgetNumber = Number(budget || 0);
-  const spentNumber = Number(spent || 0);
-  const remaining = budgetNumber - spentNumber;
-
-  /* Thang 100%: 100% = toàn bộ ngân sách của khoản này */
-  const shownPercent = Math.min(Math.max(Number(percent || 0), 0), 100);
-
-  let status = "safe";
-
-  if (budgetNumber > 0 && percent >= 100) {
-    status = "danger";
-  } else if (budgetNumber > 0 && percent >= 80) {
-    status = "warning";
-  }
-
-  return (
-    <div className="budget-item">
+function BudgetItem({ title, tone, spent, budget, percent, share = 0, }) {
+    const budgetNumber = Number(budget || 0);
+    const spentNumber = Number(spent || 0);
+    const remaining = budgetNumber - spentNumber;
+    /* Thang 100%: 100% = toàn bộ ngân sách của khoản này */
+    const shownPercent = Math.min(Math.max(Number(percent || 0), 0), 100);
+    let status = "safe";
+    if (budgetNumber > 0 && percent >= 100) {
+        status = "danger";
+    }
+    else if (budgetNumber > 0 && percent >= 80) {
+        status = "warning";
+    }
+    return (<div className="budget-item">
       <div className="budget-item-header">
         <div>
           <strong>{title}</strong>
           <span>Đã tiêu {formatMoney(spentNumber)}</span>
         </div>
 
-        <em
-          className={`bi-chip ${
-            budgetNumber <= 0 ? "is-muted" : `is-${status}`
-          }`}
-        >
+        <em className={`bi-chip ${budgetNumber <= 0 ? "is-muted" : `is-${status}`}`}>
           {budgetNumber > 0
             ? `Đã dùng ${Number(shownPercent.toFixed(1))}%`
             : "Chưa đặt"}
@@ -9142,12 +6538,9 @@ function BudgetItem({
       </div>
 
       <div className="progress">
-        <div
-          className={`tone-${tone}`}
-          style={{
+        <div className={`tone-${tone}`} style={{
             width: `${budgetNumber > 0 ? shownPercent : 0}%`,
-          }}
-        />
+        }}/>
       </div>
 
       <div className="budget-detail-grid">
@@ -9167,513 +6560,307 @@ function BudgetItem({
           <span>Trạng thái</span>
           <strong className={budgetNumber > 0 && remaining < 0 ? "is-over" : ""}>
             {budgetNumber > 0
-              ? remaining >= 0
+            ? remaining >= 0
                 ? `Còn ${formatMoney(remaining)}`
                 : `Vượt ${formatMoney(Math.abs(remaining))}`
-              : "Chưa thiết lập"}
+            : "Chưa thiết lập"}
           </strong>
         </div>
       </div>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    TRANSACTION TABLE
 ========================================================= */
-
 /* Kích thước dùng để chia trang nhật ký vừa 1 màn hình */
 const LOG_ROW_HEIGHT = 54;
 const LOG_HEAD_HEIGHT = 46;
-
 /* Các loại có thể thêm / lọc (đã bỏ Chuyển tiền) */
 const logTypeKeys = ["income", "expense", "adjustment"];
-
 const typeLabels = {
-  income: "Đầu vào",
-  expense: "Đầu ra",
-  adjustment: "Tip / Âm",
-  transfer: "Chuyển tiền",
+    income: "Đầu vào",
+    expense: "Đầu ra",
+    adjustment: "Tip / Âm",
+    transfer: "Chuyển tiền",
 };
-
 /* =========================================================
    BỘ CHỌN THÁNG / NĂM CHO NHẬT KÝ (nút lịch + bảng chọn nổi)
    mode "month": chọn tháng, bấm tiêu đề năm để nhảy sang bất kỳ năm nào
    mode "year" : chọn năm, lật từng trang 12 năm để xem mọi năm
    Tháng / năm đã có giao dịch được đánh dấu chấm cam.
 ========================================================= */
-
-function PeriodPicker({
-  mode,
-  value,
-  onChange,
-  monthsWithData,
-  yearsWithData,
-}) {
-  const [open, setOpen] = useState(false);
-  const [view, setView] = useState(mode === "year" ? "years" : "months");
-  const wrapRef = useRef(null);
-
-  const activeYear = Number(String(value).slice(0, 4));
-  const activeMonth = mode === "month" ? Number(String(value).split("-")[1]) : 0;
-
-  const [viewYear, setViewYear] = useState(activeYear);
-  const [pageStart, setPageStart] = useState(Math.floor(activeYear / 12) * 12);
-
-  const thisYear = new Date().getFullYear();
-  const thisMonthKey = currentMonthKey();
-
-  function openPicker() {
-    setView(mode === "year" ? "years" : "months");
-    setViewYear(activeYear);
-    setPageStart(Math.floor(activeYear / 12) * 12);
-    setOpen(true);
-  }
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const onPointer = (event) => {
-      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
-        setOpen(false);
-      }
-    };
-
-    const onKey = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("keydown", onKey);
-
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  const label =
-    mode === "year" ? `Năm ${activeYear}` : `Tháng ${activeMonth} / ${activeYear}`;
-
-  return (
-    <div className="pp" ref={wrapRef}>
-      <button
-        type="button"
-        className={`pp-trigger ${open ? "open" : ""}`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        title={mode === "year" ? "Chọn năm xem" : "Chọn tháng / năm xem"}
-        onClick={() => (open ? setOpen(false) : openPicker())}
-      >
-        <ModernCalendarIcon size={18} />
+function PeriodPicker({ mode, value, onChange, monthsWithData, yearsWithData, }) {
+    const [open, setOpen] = useState(false);
+    const [view, setView] = useState(mode === "year" ? "years" : "months");
+    const wrapRef = useRef(null);
+    const activeYear = Number(String(value).slice(0, 4));
+    const activeMonth = mode === "month" ? Number(String(value).split("-")[1]) : 0;
+    const [viewYear, setViewYear] = useState(activeYear);
+    const [pageStart, setPageStart] = useState(Math.floor(activeYear / 12) * 12);
+    const thisYear = new Date().getFullYear();
+    const thisMonthKey = currentMonthKey();
+    function openPicker() {
+        setView(mode === "year" ? "years" : "months");
+        setViewYear(activeYear);
+        setPageStart(Math.floor(activeYear / 12) * 12);
+        setOpen(true);
+    }
+    useEffect(() => {
+        if (!open)
+            return undefined;
+        const onPointer = (event) => {
+            if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+        const onKey = (event) => {
+            if (event.key === "Escape")
+                setOpen(false);
+        };
+        document.addEventListener("pointerdown", onPointer);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("pointerdown", onPointer);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [open]);
+    const label = mode === "year" ? `Năm ${activeYear}` : `Tháng ${activeMonth} / ${activeYear}`;
+    return (<div className="pp" ref={wrapRef}>
+      <button type="button" className={`pp-trigger ${open ? "open" : ""}`} aria-haspopup="dialog" aria-expanded={open} title={mode === "year" ? "Chọn năm xem" : "Chọn tháng / năm xem"} onClick={() => (open ? setOpen(false) : openPicker())}>
+        <ModernCalendarIcon size={18}/>
 
         <span>{label}</span>
       </button>
 
-      {open && (
-        <div
-          className="pp-pop"
-          role="dialog"
-          aria-label={mode === "year" ? "Chọn năm" : "Chọn tháng và năm"}
-        >
-          {view === "months" ? (
-            <>
+      {open && (<div className="pp-pop" role="dialog" aria-label={mode === "year" ? "Chọn năm" : "Chọn tháng và năm"}>
+          {view === "months" ? (<>
               <div className="pp-head">
-                <button
-                  type="button"
-                  aria-label="Năm trước"
-                  onClick={() => setViewYear((y) => y - 1)}
-                >
-                  <ChevronLeft size={16} />
+                <button type="button" aria-label="Năm trước" onClick={() => setViewYear((y) => y - 1)}>
+                  <ChevronLeft size={16}/>
                 </button>
 
-                <button
-                  type="button"
-                  className="pp-title"
-                  title="Chọn năm khác"
-                  onClick={() => {
+                <button type="button" className="pp-title" title="Chọn năm khác" onClick={() => {
                     setPageStart(Math.floor(viewYear / 12) * 12);
                     setView("years");
-                  }}
-                >
+                }}>
                   Năm {viewYear}
                 </button>
 
-                <button
-                  type="button"
-                  aria-label="Năm sau"
-                  onClick={() => setViewYear((y) => y + 1)}
-                >
-                  <ChevronRight size={16} />
+                <button type="button" aria-label="Năm sau" onClick={() => setViewYear((y) => y + 1)}>
+                  <ChevronRight size={16}/>
                 </button>
               </div>
 
               <div className="pp-grid">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
-                  const key = `${viewYear}-${pad(m)}`;
-                  const selected = viewYear === activeYear && m === activeMonth;
-
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      aria-pressed={selected}
-                      className={`pp-cell ${selected ? "active" : ""} ${
-                        monthsWithData.has(key) ? "has-data" : ""
-                      } ${key === thisMonthKey ? "is-current" : ""}`}
-                      onClick={() => {
-                        onChange(key);
-                        setOpen(false);
-                      }}
-                    >
+                    const key = `${viewYear}-${pad(m)}`;
+                    const selected = viewYear === activeYear && m === activeMonth;
+                    return (<button key={m} type="button" aria-pressed={selected} className={`pp-cell ${selected ? "active" : ""} ${monthsWithData.has(key) ? "has-data" : ""} ${key === thisMonthKey ? "is-current" : ""}`} onClick={() => {
+                            onChange(key);
+                            setOpen(false);
+                        }}>
                       Tháng {m}
-                    </button>
-                  );
+                    </button>);
                 })}
               </div>
 
               <div className="pp-foot">
-                <button
-                  type="button"
-                  onClick={() => {
+                <button type="button" onClick={() => {
                     onChange(thisMonthKey);
                     setOpen(false);
-                  }}
-                >
+                }}>
                   Tháng này
                 </button>
               </div>
-            </>
-          ) : (
-            <>
+            </>) : (<>
               <div className="pp-head">
-                <button
-                  type="button"
-                  aria-label="Các năm trước"
-                  onClick={() => setPageStart((y) => y - 12)}
-                >
-                  <ChevronLeft size={16} />
+                <button type="button" aria-label="Các năm trước" onClick={() => setPageStart((y) => y - 12)}>
+                  <ChevronLeft size={16}/>
                 </button>
 
                 <span className="pp-title static">
                   {pageStart} – {pageStart + 11}
                 </span>
 
-                <button
-                  type="button"
-                  aria-label="Các năm sau"
-                  onClick={() => setPageStart((y) => y + 12)}
-                >
-                  <ChevronRight size={16} />
+                <button type="button" aria-label="Các năm sau" onClick={() => setPageStart((y) => y + 12)}>
+                  <ChevronRight size={16}/>
                 </button>
               </div>
 
               <div className="pp-grid">
                 {Array.from({ length: 12 }, (_, i) => pageStart + i).map((y) => {
-                  const selected = y === activeYear;
-
-                  return (
-                    <button
-                      key={y}
-                      type="button"
-                      aria-pressed={selected}
-                      className={`pp-cell ${selected ? "active" : ""} ${
-                        yearsWithData.has(y) ? "has-data" : ""
-                      } ${y === thisYear ? "is-current" : ""}`}
-                      onClick={() => {
-                        if (mode === "year") {
-                          onChange(String(y));
-                          setOpen(false);
-                        } else {
-                          setViewYear(y);
-                          setView("months");
-                        }
-                      }}
-                    >
+                    const selected = y === activeYear;
+                    return (<button key={y} type="button" aria-pressed={selected} className={`pp-cell ${selected ? "active" : ""} ${yearsWithData.has(y) ? "has-data" : ""} ${y === thisYear ? "is-current" : ""}`} onClick={() => {
+                            if (mode === "year") {
+                                onChange(String(y));
+                                setOpen(false);
+                            }
+                            else {
+                                setViewYear(y);
+                                setView("months");
+                            }
+                        }}>
                       {y}
-                    </button>
-                  );
+                    </button>);
                 })}
               </div>
 
               <div className="pp-foot">
-                {mode === "year" ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onChange(String(thisYear));
-                      setOpen(false);
-                    }}
-                  >
+                {mode === "year" ? (<button type="button" onClick={() => {
+                        onChange(String(thisYear));
+                        setOpen(false);
+                    }}>
                     Năm nay
-                  </button>
-                ) : (
-                  <button type="button" onClick={() => setView("months")}>
+                  </button>) : (<button type="button" onClick={() => setView("months")}>
                     Quay lại
-                  </button>
-                )}
+                  </button>)}
               </div>
-            </>
-          )}
+            </>)}
 
           <div className="pp-legend">
             <i />
             Có giao dịch
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>)}
+    </div>);
 }
-
 /* Dãy số trang: 1 2 3 … 9 (có dấu … khi nhiều trang) */
 function getPageList(current, total) {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-
-  const pages = new Set([1, total, current - 1, current, current + 1]);
-
-  if (current <= 3) [2, 3, 4].forEach((p) => pages.add(p));
-  if (current >= total - 2) [total - 1, total - 2, total - 3].forEach((p) => pages.add(p));
-
-  const sorted = [...pages]
-    .filter((p) => p >= 1 && p <= total)
-    .sort((a, b) => a - b);
-
-  const result = [];
-
-  sorted.forEach((p, index) => {
-    if (index > 0 && p - sorted[index - 1] > 1) result.push("…");
-    result.push(p);
-  });
-
-  return result;
+    if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages = new Set([1, total, current - 1, current, current + 1]);
+    if (current <= 3)
+        [2, 3, 4].forEach((p) => pages.add(p));
+    if (current >= total - 2)
+        [total - 1, total - 2, total - 3].forEach((p) => pages.add(p));
+    const sorted = [...pages]
+        .filter((p) => p >= 1 && p <= total)
+        .sort((a, b) => a - b);
+    const result = [];
+    sorted.forEach((p, index) => {
+        if (index > 0 && p - sorted[index - 1] > 1)
+            result.push("…");
+        result.push(p);
+    });
+    return result;
 }
-
 function LogPager({ page, pageCount, total, from, to, onChange }) {
-  return (
-    <div className="log-pager">
+    return (<div className="log-pager">
       <span className="log-pager-info">
         {total > 0
-          ? `Hiển thị ${from}–${to} / ${total} giao dịch`
-          : "Không có giao dịch"}
+            ? `Hiển thị ${from}–${to} / ${total} giao dịch`
+            : "Không có giao dịch"}
       </span>
 
       <div className="log-pager-pages">
-        <button
-          type="button"
-          aria-label="Trang trước"
-          disabled={page <= 1}
-          onClick={() => onChange(page - 1)}
-        >
-          <ChevronLeft size={16} />
+        <button type="button" aria-label="Trang trước" disabled={page <= 1} onClick={() => onChange(page - 1)}>
+          <ChevronLeft size={16}/>
         </button>
 
-        {getPageList(page, pageCount).map((item, index) =>
-          item === "…" ? (
-            <i key={`gap-${index}`}>…</i>
-          ) : (
-            <button
-              key={item}
-              type="button"
-              aria-current={item === page ? "page" : undefined}
-              className={item === page ? "active" : ""}
-              onClick={() => onChange(item)}
-            >
+        {getPageList(page, pageCount).map((item, index) => item === "…" ? (<i key={`gap-${index}`}>…</i>) : (<button key={item} type="button" aria-current={item === page ? "page" : undefined} className={item === page ? "active" : ""} onClick={() => onChange(item)}>
               {item}
-            </button>
-          )
-        )}
+            </button>))}
 
-        <button
-          type="button"
-          aria-label="Trang sau"
-          disabled={page >= pageCount}
-          onClick={() => onChange(page + 1)}
-        >
-          <ChevronRight size={16} />
+        <button type="button" aria-label="Trang sau" disabled={page >= pageCount} onClick={() => onChange(page + 1)}>
+          <ChevronRight size={16}/>
         </button>
       </div>
-    </div>
-  );
+    </div>);
 }
-
 /* Chuông có 2 "tai" (sóng rung) hai bên, nhấp nháy khi thêm giao dịch */
 function RingingBell({ size = 40 }) {
-  return (
-    <svg
-      className="ring-bell"
-      width={size}
-      height={size}
-      viewBox="0 0 48 48"
-      fill="none"
-      aria-hidden="true"
-    >
-      <g
-        className="ring-ears"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-      >
-        <path className="ear-in" d="M9 17c-2.2 3-2.2 7 0 10" />
-        <path className="ear-out" d="M5 14c-3.4 4.5-3.4 11.5 0 16" />
-        <path className="ear-in" d="M39 17c2.2 3 2.2 7 0 10" />
-        <path className="ear-out" d="M43 14c3.4 4.5 3.4 11.5 0 16" />
+    return (<svg className="ring-bell" width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <g className="ring-ears" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+        <path className="ear-in" d="M9 17c-2.2 3-2.2 7 0 10"/>
+        <path className="ear-out" d="M5 14c-3.4 4.5-3.4 11.5 0 16"/>
+        <path className="ear-in" d="M39 17c2.2 3 2.2 7 0 10"/>
+        <path className="ear-out" d="M43 14c3.4 4.5 3.4 11.5 0 16"/>
       </g>
 
       <g className="ring-body" fill="currentColor">
-        <circle cx="24" cy="8" r="2.2" />
-        <path d="M24 10c-5.5 0-9.5 4.3-9.5 10v6.5L11.5 32h25l-3-5.5V20c0-5.7-4-10-9.5-10z" />
-        <path d="M20.5 34.5a3.5 3.5 0 0 0 7 0z" />
+        <circle cx="24" cy="8" r="2.2"/>
+        <path d="M24 10c-5.5 0-9.5 4.3-9.5 10v6.5L11.5 32h25l-3-5.5V20c0-5.7-4-10-9.5-10z"/>
+        <path d="M20.5 34.5a3.5 3.5 0 0 0 7 0z"/>
       </g>
-    </svg>
-  );
+    </svg>);
 }
-
 /* Icon theo loại giao dịch — dùng đúng icon của các thẻ ở phần Tổng quan:
    Tổng đầu vào · Chi tiêu tháng · Tip */
 const typeIcons = {
-  income: ArrowUpCircle,
-  expense: ArrowDownCircle,
-  adjustment: Gift,
-  transfer: ArrowLeftRight,
+    income: ArrowUpCircle,
+    expense: ArrowDownCircle,
+    adjustment: Gift,
+    transfer: ArrowLeftRight,
 };
-
-function TransactionTable({
-  data,
-  getAccountName,
-  onEdit,
-  onDelete,
-}) {
-  function getType(item) {
-    if (
-      item.type === "income"
-    ) {
-      return "Đầu vào";
+function TransactionTable({ data, getAccountName, onEdit, onDelete, }) {
+    function getType(item) {
+        if (item.type === "income") {
+            return "Đầu vào";
+        }
+        if (item.type === "expense") {
+            return "Đầu ra";
+        }
+        if (item.type ===
+            "adjustment") {
+            return "Tip / Âm";
+        }
+        return "Chuyển tiền";
     }
-
-    if (
-      item.type === "expense"
-    ) {
-      return "Đầu ra";
+    function getCategory(item) {
+        if (item.type === "expense") {
+            return (categories[item.category]?.label ||
+                "Chi tiêu");
+        }
+        if (item.type === "income") {
+            return "Tiền nhận";
+        }
+        if (item.type ===
+            "adjustment") {
+            return "Tip / Âm";
+        }
+        return "Nội bộ";
     }
-
-    if (
-      item.type ===
-      "adjustment"
-    ) {
-      return "Tip / Âm";
+    function getAccountText(item) {
+        if (item.type ===
+            "transfer") {
+            return `${getAccountName(item.fromAccountId)} → ${getAccountName(item.toAccountId)}`;
+        }
+        return getAccountName(item.accountId);
     }
-
-    return "Chuyển tiền";
-  }
-
-  function getCategory(item) {
-    if (
-      item.type === "expense"
-    ) {
-      return (
-        categories[
-          item.category
-        ]?.label ||
-        "Chi tiêu"
-      );
+    function getMoneyPrefix(item) {
+        if (item.type === "income") {
+            return "+";
+        }
+        if (item.type === "expense") {
+            return "-";
+        }
+        if (item.type ===
+            "adjustment") {
+            return item.adjustmentDirection ===
+                "minus"
+                ? "-"
+                : "+";
+        }
+        return "";
     }
-
-    if (
-      item.type === "income"
-    ) {
-      return "Tiền nhận";
+    function getMoneyClass(item) {
+        if (item.type === "income") {
+            return "income";
+        }
+        if (item.type === "expense") {
+            return "expense";
+        }
+        if (item.type ===
+            "adjustment") {
+            return item.adjustmentDirection ===
+                "minus"
+                ? "expense"
+                : "positive";
+        }
+        return "transfer-color";
     }
-
-    if (
-      item.type ===
-      "adjustment"
-    ) {
-      return "Tip / Âm";
-    }
-
-    return "Nội bộ";
-  }
-
-  function getAccountText(
-    item
-  ) {
-    if (
-      item.type ===
-      "transfer"
-    ) {
-      return `${getAccountName(
-        item.fromAccountId
-      )} → ${getAccountName(
-        item.toAccountId
-      )}`;
-    }
-
-    return getAccountName(
-      item.accountId
-    );
-  }
-
-  function getMoneyPrefix(
-    item
-  ) {
-    if (
-      item.type === "income"
-    ) {
-      return "+";
-    }
-
-    if (
-      item.type === "expense"
-    ) {
-      return "-";
-    }
-
-    if (
-      item.type ===
-      "adjustment"
-    ) {
-      return item.adjustmentDirection ===
-        "minus"
-        ? "-"
-        : "+";
-    }
-
-    return "";
-  }
-
-  function getMoneyClass(
-    item
-  ) {
-    if (
-      item.type === "income"
-    ) {
-      return "income";
-    }
-
-    if (
-      item.type === "expense"
-    ) {
-      return "expense";
-    }
-
-    if (
-      item.type ===
-      "adjustment"
-    ) {
-      return item.adjustmentDirection ===
-        "minus"
-        ? "expense"
-        : "positive";
-    }
-
-    return "transfer-color";
-  }
-
-  return (
-    <div className="table-wrapper">
+    return (<div className="table-wrapper">
       <div className="transaction-table">
         <div className="table-header">
           <span>ID</span>
@@ -9693,30 +6880,18 @@ function TransactionTable({
           <span>THAO TÁC</span>
         </div>
 
-        {data.length === 0 && (
-          <Empty>
+        {data.length === 0 && (<Empty>
             Không có giao dịch.
-          </Empty>
-        )}
+          </Empty>)}
 
-        {data.map((item) => (
-          <div
-            className="table-row"
-            key={item.id}
-          >
-            <span
-              className="id-cell"
-              title={`Mã giao dịch ${item.code || ""} · ${getType(item)}`}
-            >
+        {data.map((item) => (<div className="table-row" key={item.id}>
+            <span className="id-cell" title={`Mã giao dịch ${item.code || ""} · ${getType(item)}`}>
               {(() => {
                 const TypeIcon = typeIcons[item.type] || ArrowLeftRight;
-
-                return (
-                  <i className={`id-type-icon ${item.type}`}>
-                    <TypeIcon size={15} strokeWidth={2.3} />
-                  </i>
-                );
-              })()}
+                return (<i className={`id-type-icon ${item.type}`}>
+                    <TypeIcon size={15} strokeWidth={2.3}/>
+                  </i>);
+            })()}
 
               <span className="id-code">{item.code || "—"}</span>
             </span>
@@ -9726,9 +6901,7 @@ function TransactionTable({
             </span>
 
             <span>
-              <span
-                className={`type-badge ${item.type}`}
-              >
+              <span className={`type-badge ${item.type}`}>
                 {getType(item)}
               </span>
             </span>
@@ -9737,61 +6910,35 @@ function TransactionTable({
               {getCategory(item)}
             </span>
 
-            <strong
-              className={getMoneyClass(item)}
-            >
+            <strong className={getMoneyClass(item)}>
               {getMoneyPrefix(item)}
-              {formatMoney(
-                Math.abs(Number(item.amount || 0))
-              )}
+              {formatMoney(Math.abs(Number(item.amount || 0)))}
             </strong>
 
-            <span
-              className="account-cell"
-              title={getAccountText(item)}
-            >
+            <span className="account-cell" title={getAccountText(item)}>
               {getAccountText(item)}
             </span>
 
-            <span
-              className="content-cell"
-              title={item.description || ""}
-            >
+            <span className="content-cell" title={item.description || ""}>
               {item.description || "Không có ghi chú"}
             </span>
 
             <span className="actions">
-              <button
-                type="button"
-                className="icon-button"
-                title="Sửa giao dịch"
-                aria-label="Sửa giao dịch"
-                onClick={() => onEdit(item)}
-              >
-                <Pencil size={16} />
+              <button type="button" className="icon-button" title="Sửa giao dịch" aria-label="Sửa giao dịch" onClick={() => onEdit(item)}>
+                <Pencil size={16}/>
               </button>
 
-              <button
-                type="button"
-                className="icon-button delete"
-                title="Xoá giao dịch"
-                aria-label="Xoá giao dịch"
-                onClick={() => onDelete(item.id)}
-              >
-                <Trash2 size={16} />
+              <button type="button" className="icon-button delete" title="Xoá giao dịch" aria-label="Xoá giao dịch" onClick={() => onDelete(item.id)}>
+                <Trash2 size={16}/>
               </button>
             </span>
-          </div>
-        ))}
+          </div>))}
       </div>
-    </div>
-  );
+    </div>);
 }
-
 /* =========================================================
    CSS
 ========================================================= */
-
 const styles = `
 /* =========================================================
    THIẾT KẾ - BIẾN MÀU (DESIGN TOKENS)
