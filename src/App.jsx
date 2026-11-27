@@ -2107,12 +2107,16 @@ export default function App() {
         income: "Thêm khoản thu",
         adjustment: "Thêm Tip / Âm",
     }[formType] || "Thêm giao dịch";
-    /* =======================================================
-       MÀN HÌNH CHỜ ĐỒNG BỘ DỮ LIỆU GIA ĐÌNH
-    ======================================================= */
+
+    // Chỉ hiển thị giao diện khi xảy ra lỗi đồng bộ.
+    // Trong lúc tải dữ liệu, ẩn hoàn toàn màn hình chờ.
     if (!familySyncReady) {
-        const isError = familySyncStatus === "error";
-        return (<div style={{
+        if (familySyncStatus !== "error") {
+            return null;
+        }
+
+        return (
+            <div style={{
                 minHeight: "100vh",
                 display: "flex",
                 alignItems: "center",
@@ -2121,84 +2125,68 @@ export default function App() {
                 background: "#f5f7fb",
                 fontFamily: "Arial, sans-serif",
             }}>
-        <div style={{
-                width: "100%",
-                maxWidth: "420px",
-                padding: "32px 24px",
-                borderRadius: "20px",
-                background: "#ffffff",
-                textAlign: "center",
-                boxShadow: "0 12px 40px rgba(0,0,0,0.08)",
-            }}>
-          <div style={{
-                width: "58px",
-                height: "58px",
-                margin: "0 auto 18px",
-                borderRadius: "18px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: isError ? "#fee2e2" : "#e0f2fe",
-                color: isError ? "#dc2626" : "#0284c7",
-                fontSize: "27px",
-            }}>
-            {isError ? "!" : "↻"}
-          </div>
-
-          <h2 style={{
-                margin: "0 0 10px",
-                color: "#172033",
-                fontSize: "21px",
-            }}>
-            {isError
-                ? "Không thể đồng bộ dữ liệu"
-                : "Đang tải dữ liệu gia đình"}
-          </h2>
-
-          <p style={{
-                margin: "0 0 22px",
-                color: "#64748b",
-                fontSize: "14px",
-                lineHeight: 1.7,
-            }}>
-            {isError
-                ? familySyncError ||
-                    "Đã xảy ra lỗi khi kết nối máy chủ."
-                : "Vui lòng chờ trong giây lát. Hệ thống đang kết nối và tải dữ liệu tài chính của gia đình."}
-          </p>
-
-          {isError ? (<button type="button" onClick={() => window.location.reload()} style={{
-                    border: "none",
-                    borderRadius: "10px",
-                    padding: "12px 24px",
-                    background: "#2563eb",
-                    color: "#ffffff",
-                    fontWeight: 600,
-                    cursor: "pointer",
+                <div style={{
+                    width: "100%",
+                    maxWidth: "420px",
+                    padding: "32px 24px",
+                    borderRadius: "20px",
+                    background: "#ffffff",
+                    textAlign: "center",
+                    boxShadow: "0 12px 40px rgba(0,0,0,0.08)",
                 }}>
-              Thử kết nối lại
-            </button>) : (<div style={{
-                    width: "28px",
-                    height: "28px",
-                    margin: "0 auto",
-                    border: "3px solid #dbeafe",
-                    borderTopColor: "#2563eb",
-                    borderRadius: "50%",
-                    animation: "familySyncSpin 0.8s linear infinite",
-                }}/>)}
-        </div>
+                    <div style={{
+                        width: "58px",
+                        height: "58px",
+                        margin: "0 auto 18px",
+                        borderRadius: "18px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "#fee2e2",
+                        color: "#dc2626",
+                        fontSize: "27px",
+                    }}>
+                        !
+                    </div>
 
-        <style>
-          {`
-            @keyframes familySyncSpin {
-              to {
-                transform: rotate(360deg);
-              }
-            }
-          `}
-        </style>
-      </div>);
+                    <h2 style={{
+                        margin: "0 0 10px",
+                        color: "#172033",
+                        fontSize: "21px",
+                    }}>
+                        Không thể đồng bộ dữ liệu
+                    </h2>
+
+                    <p style={{
+                        margin: "0 0 22px",
+                        color: "#64748b",
+                        fontSize: "14px",
+                        lineHeight: 1.7,
+                    }}>
+                        {familySyncError ||
+                            "Đã xảy ra lỗi khi kết nối máy chủ."}
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        style={{
+                            border: "none",
+                            borderRadius: "10px",
+                            padding: "12px 24px",
+                            background: "#2563eb",
+                            color: "#ffffff",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                        }}
+                    >
+                        Thử kết nối lại
+                    </button>
+                </div>
+            </div>
+        );
     }
+
     return (<>
       <style>{styles}</style>
 
