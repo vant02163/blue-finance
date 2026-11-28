@@ -73,6 +73,116 @@ export default function AuthGate({ children }) {
     };
   }, []);
 
+
+  // Tự động đăng xuất sau 15 phút không hoạt động
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const INACTIVITY_LIMIT = 15 * 60 * 1000;
+    const ACTIVITY_KEY = `blue-finance-last-activity-${session.user.id}`;
+
+    let lastActivity =
+      Number(localStorage.getItem(ACTIVITY_KEY)) || Date.now();
+
+    let lastSaved = lastActivity;
+    let signingOut = false;
+
+    if (!localStorage.getItem(ACTIVITY_KEY)) {
+      localStorage.setItem(ACTIVITY_KEY, String(lastActivity));
+    }
+
+    const logoutThisDevice = async () => {
+      if (signingOut) return;
+
+      signingOut = true;
+
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+        localStorage.removeItem(ACTIVITY_KEY);
+      } catch (error) {
+        signingOut = false;
+        console.error("Lỗi tự động đăng xuất:", error);
+      }
+    };
+
+    const recordActivity = () => {
+      if (signingOut) return;
+
+      const now = Date.now();
+
+      if (now - lastActivity >= INACTIVITY_LIMIT) {
+        logoutThisDevice();
+        return;
+      }
+
+      lastActivity = now;
+
+      if (now - lastSaved >= 1000) {
+        localStorage.setItem(ACTIVITY_KEY, String(now));
+        lastSaved = now;
+      }
+    };
+
+    const checkInactivity = () => {
+      if (signingOut) return;
+
+      const sharedActivity =
+        Number(localStorage.getItem(ACTIVITY_KEY)) || 0;
+
+      if (sharedActivity > lastActivity) {
+        lastActivity = sharedActivity;
+      }
+
+      if (Date.now() - lastActivity >= INACTIVITY_LIMIT) {
+        logoutThisDevice();
+      }
+    };
+
+    const handleStorage = (event) => {
+      if (event.key === ACTIVITY_KEY && event.newValue) {
+        const newActivity = Number(event.newValue);
+
+        if (newActivity > lastActivity) {
+          lastActivity = newActivity;
+        }
+      }
+    };
+
+    const events = [
+      "pointerdown",
+      "keydown",
+      "mousemove",
+      "scroll",
+      "touchstart",
+    ];
+
+    events.forEach((event) => {
+      window.addEventListener(event, recordActivity, {
+        passive: true,
+      });
+    });
+
+    window.addEventListener("storage", handleStorage);
+    document.addEventListener("visibilitychange", checkInactivity);
+
+    const timer = setInterval(checkInactivity, 1000);
+
+    checkInactivity();
+
+    return () => {
+      clearInterval(timer);
+
+      events.forEach((event) => {
+        window.removeEventListener(event, recordActivity);
+      });
+
+      window.removeEventListener("storage", handleStorage);
+      document.removeEventListener("visibilitychange", checkInactivity);
+
+      // Không xóa mốc hoạt động khi tải lại trang
+    };
+  }, [session?.user?.id]);
+
   // Thời gian hiệu ứng đăng nhập
   useEffect(() => {
     if (!entering || leaving) return;
@@ -127,10 +237,15 @@ export default function AuthGate({ children }) {
         });
 
       if (loginError) throw loginError;
+      
+if (!data.session) {
+  throw new Error("Đăng nhập chưa hoàn tất. Vui lòng thử lại.");
+}
 
-      if (!data.session) {
-        throw new Error("Đăng nhập chưa hoàn tất. Vui lòng thử lại.");
-      }
+localStorage.setItem(
+  `blue-finance-last-activity-${data.session.user.id}`,
+  String(Date.now())
+);
 
       setLeaving(false);
       setEntryFinished(false);
@@ -174,6 +289,10 @@ export default function AuthGate({ children }) {
       if (registerError) throw registerError;
 
       if (data.session) {
+        localStorage.setItem(
+          `blue-finance-last-activity-${data.session.user.id}`,
+          String(Date.now())
+        );
         setLeaving(false);
         setEntryFinished(false);
         setEntering(true);
