@@ -236,7 +236,7 @@ export default function AuthGate({ children }) {
 
   // Đã đăng nhập và hiệu ứng đi vào hoàn tất
 // Chỉ vào giao diện chính sau khi hiệu ứng đăng nhập kết thúc
-    if (session && entryFinished) {
+    if (session && (!entering || entryFinished)) {
       return children;
     }
 
